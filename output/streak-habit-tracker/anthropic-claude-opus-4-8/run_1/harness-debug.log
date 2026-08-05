@@ -1,0 +1,96 @@
+========================================================================
+HARNESS DEBUG TIMELINE  --  streak-habit-tracker  /  anthropic-claude-opus-4-8  /  streak-habit-tracker__mafbxr7
+========================================================================
+started : 2026-08-03T19:43:31.904259Z
+finished: 2026-08-03T19:49:01.424447Z
+REWARD  : 0.0   deployed=0.0   invalid=[]
+
+--- stage durations (seconds) ---
+  environment_setup   : 11.1
+  agent_setup         : 136.3
+  agent_execution     : 17.4
+  verifier            : 151.1
+
+--- 1. ENVIRONMENT + AGENT SETUP (orchestration.log) ---
+ed, for example
+  `setsid nohup <command> > /tmp/app.log 2>&1 < /dev/null &`, so it is not a child
+  of your shell and not a session-scoped background job. A server started as an
+  ordinary background job is killed the instant your session ends, and the app
+  scores zero however correct it is.
+- Bind to `0.0.0.0`, never `127.0.0.1` or `localhost` — the grader connects from a
+  different container, so a loopback-only listener is unreachable.
+- Before you finish, verify persistence yourself: confirm the listening process is
+  still running with a parent that is not your shell, and that the port answers.
+- **The backing services are ALREADY RUNNING.** Every service named in this brief
+  is started for you before your session begins and is reachable at the environment
+  variable given for it. **Do not download, install, compile or start your own copy
+  of any of them.** Read the address from the environment; never hardcode it and
+  never substitute a local file, an embedded database, or your own instance of the
+  same product. The grader inspects the service at that address — an app that
+  writes to a different instance scores zero no matter how well it works.
+- Use **only** the PocketBase instance at `BACKEND_URL`. No other backing
+  service.
+- No persistent volumes, no fixed container names, no custom networks. The app
+  must tear down and re-run cleanly.
+
+### API shapes
+
+Everything internal is your choice. These request and response shapes are not —
+they are the interface the grader holds you to. Field names are exact.
+
+| Endpoint | Request body | Success | On success returns |
+|---|---|---|---|
+| `POST /api/auth/login` | `{"email": str, "password": str}` | `200` | `{"access_token": str, ...}` |
+| `GET  /api/habits` | — | `200` | JSON array of `{"id", "name", "color", "current_streak", "longest_streak", "completed_today", ...}` |
+| `POST /api/habits` | `{"name": str, "color": str, "description"?: str}` | `200` or `201` | the created habit including `id` |
+| `GET  /api/habits/{id}` | — | `200` | the habit, including `current_streak`, `longest_streak`, `completed_today` |
+| `PATCH /api/habits/{id}` | `{"name"?: str, "color"?: str, "description"?: str}` | `200` | the updated habit |
+| `DELETE /api/habits/{id}` | — | `200`, `202` or `204` | — (habit is soft-deleted) |
+| `POST /api/habits/{id}/complete` | `{"date": "YYYY-MM-DD"}` | `200` or `201` | the completion or the current streak |
+| `DELETE /api/habits/{id}/complete` | `{"date": "YYYY-MM-DD"}` | `200`, `202` or `204` | — |
+| `GET  /api/dashboard` | — | `200` | `{"total_habits", "total_completions", "habits_with_active_streak", "habits": [...]}` |
+| `GET  /api/health` | — | `200` | — |
+
+Rules:
+
+- Every business-rule violation returns a `4xx` with a message naming the
+  reason. Never a `5xx`, never a silent `200` on a rule violation.
+- Every endpoint except `POST /api/auth/login` and `GET /api/health` requires a
+  valid bearer token; anonymous callers get `401` or `403`.
+- A token whose user does not own the referenced habit gets `401` or `403` on
+  every habit and completion endpoint.
+- List endpoints return a JSON array at the top level.
+
+---
+
+## Definition of done
+
+The app is deployed and healthy; the seeded user can sign in and see the three
+seeded habits with the seeded streak values; new habits can be added, renamed,
+and deleted through the browser; a habit can be marked complete and un-marked
+for a day and the streak counters recompute correctly; a duplicate mark for the
+same day is a no-op; a future-dated mark is rejected; a token from one user
+cannot read or mutate another user'"'"'s habits; the dashboard matches the
+completion ledger.
+
+Test your own work in a browser before you finish.
+' 2>&1 </dev/null | stdbuf -oL tee /logs/agent/openhands.txt
+Command outputs captured
+No final_metrics found in trajectory
+Collecting main service artifacts
+The verifier.env contains an API key (often the case for LLM-based verifiers). You will incur costs associated with the API calls.
+
+
+--- 2. AGENT EXECUTION ---
+  cost_usd=None  stop_reason=None
+  trajectory: trajectory/trajectory.json  (raw: trajectory/claude-code.txt)
+
+--- 3. VERIFIER (deploy gate -> browser -> pytest -> judge -> score) ---
+app never became reachable at http://localhost:4173 - scoring 0
+
+
+--- 4. SCORE ---
+  (no workflows.json -- grading did not complete; see verifier stdout above)
+
+========================================================================
+END

@@ -1,0 +1,1 @@
+# ethara/seat-allocation-map

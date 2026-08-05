@@ -1,0 +1,99 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/apple/Downloads/testing/.venv/lib/python3.12/site-packages/harbor/cli │
+│ /jobs.py:1612 in start                                                       │
+│                                                                              │
+│   1609 │   # `_run_job` itself prints the summary + invokes the upload       │
+│        finalize                                                              │
+│   1610 │   # (when --upload is set) so everything stays on one event loop.   │
+│        See                                                                   │
+│   1611 │   # the long comment in `HarborHubUploadPlugin.on_job_end` for why  │
+│        this matters.                                                         │
+│ ❱ 1612 │   job, job_result = run_async(_run_job())                           │
+│   1613 │                                                                     │
+│   1614 │   if export_traces:                                                 │
+│   1615 │   │   from harbor.utils.traces_utils import export_traces as        │
+│        _export_traces                                                        │
+│                                                                              │
+│ /Users/apple/Downloads/testing/.venv/lib/python3.12/site-packages/harbor/cli │
+│ /utils.py:62 in run_async                                                    │
+│                                                                              │
+│    59 │   """                                                                │
+│    60 │   if sys.platform == "win32":                                        │
+│    61 │   │   return asyncio.run(coro,                                       │
+│       loop_factory=asyncio.ProactorEventLoop)                                │
+│ ❱  62 │   return asyncio.run(coro)                                           │
+│    63                                                                        │
+│    64                                                                        │
+│    65 def parse_kwargs(kwargs_list: list[str] | None) -> dict[str, Any]:     │
+│                                                                              │
+│ /opt/homebrew/Cellar/python@3.12/3.12.13_2/Frameworks/Python.framework/Versi │
+│ ons/3.12/lib/python3.12/asyncio/runners.py:195 in run                        │
+│                                                                              │
+│   192 │   │   │   "asyncio.run() cannot be called from a running event       │
+│       loop")                                                                 │
+│   193 │                                                                      │
+│   194 │   with Runner(debug=debug, loop_factory=loop_factory) as runner:     │
+│ ❱ 195 │   │   return runner.run(main)                                        │
+│   196                                                                        │
+│   197                                                                        │
+│   198 def _cancel_all_tasks(loop):                                           │
+│                                                                              │
+│ /opt/homebrew/Cellar/python@3.12/3.12.13_2/Frameworks/Python.framework/Versi │
+│ ons/3.12/lib/python3.12/asyncio/runners.py:118 in run                        │
+│                                                                              │
+│   115 │   │                                                                  │
+│   116 │   │   self._interrupt_count = 0                                      │
+│   117 │   │   try:                                                           │
+│ ❱ 118 │   │   │   return self._loop.run_until_complete(task)                 │
+│   119 │   │   except exceptions.CancelledError:                              │
+│   120 │   │   │   if self._interrupt_count > 0:                              │
+│   121 │   │   │   │   uncancel = getattr(task, "uncancel", None)             │
+│                                                                              │
+│ /opt/homebrew/Cellar/python@3.12/3.12.13_2/Frameworks/Python.framework/Versi │
+│ ons/3.12/lib/python3.12/asyncio/base_events.py:691 in run_until_complete     │
+│                                                                              │
+│    688 │   │   if not future.done():                                         │
+│    689 │   │   │   raise RuntimeError('Event loop stopped before Future      │
+│        completed.')                                                          │
+│    690 │   │                                                                 │
+│ ❱  691 │   │   return future.result()                                        │
+│    692 │                                                                     │
+│    693 │   def stop(self):                                                   │
+│    694 │   │   """Stop running the event loop.                               │
+│                                                                              │
+│ /Users/apple/Downloads/testing/.venv/lib/python3.12/site-packages/harbor/cli │
+│ /jobs.py:1539 in _run_job                                                    │
+│                                                                              │
+│   1536 │   │   │   if upload                                                 │
+│   1537 │   │   │   else False                                                │
+│   1538 │   │   )                                                             │
+│ ❱ 1539 │   │   job = await Job.create(config)                                │
+│   1540 │   │   _confirm_host_env_access(                                     │
+│   1541 │   │   │   job,                                                      │
+│   1542 │   │   │   console,                                                  │
+│                                                                              │
+│ /Users/apple/Downloads/testing/.venv/lib/python3.12/site-packages/harbor/job │
+│ .py:123 in create                                                            │
+│                                                                              │
+│   120 │   @classmethod                                                       │
+│   121 │   async def create(cls, config: JobConfig) -> "Job":                 │
+│   122 │   │   cls._resolve_agent_skills(config)                              │
+│ ❱ 123 │   │   task_configs = await cls._resolve_task_configs(config)         │
+│   124 │   │                                                                  │
+│       EnvironmentFactory.validate_resource_policies(config.environment)      │
+│   125 │   │   metrics = await cls._resolve_metrics(config, task_configs)     │
+│   126                                                                        │
+│                                                                              │
+│ /Users/apple/Downloads/testing/.venv/lib/python3.12/site-packages/harbor/job │
+│ .py:360 in _resolve_task_configs                                             │
+│                                                                              │
+│   357 │   │   │   )                                                          │
+│   358 │   │                                                                  │
+│   359 │   │   if not task_configs:                                           │
+│ ❱ 360 │   │   │   raise ValueError("Either datasets or tasks must be         │
+│       provided.")                                                            │
+│   361 │   │                                                                  │
+│   362 │   │   return task_configs                                            │
+│   363                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ValueError: Either datasets or tasks must be provided.

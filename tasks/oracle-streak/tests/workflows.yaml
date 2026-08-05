@@ -1,0 +1,137 @@
+# Hidden grading checklist (PLAN.md 4.4).
+#
+# Baked into the verifier image and NEVER uploaded to the agent container --
+# [verifier].environment_mode = "separate" in task.toml is what guarantees that.
+#
+# A workflow passes iff  passing_substeps / total_substeps >= 0.90
+#                        AND every substep marked `critical` passed.
+# reward = passing_workflows / total_workflows.
+#
+# Substep grader selection:
+#   browser -> what a user does or sees
+#   pytest  -> a real, externally observable side effect (collection state, HTTP
+#              surface, permission denial). Deterministic by construction;
+#              prefer it whenever either grader could assert the same thing.
+
+# ---------------------------------------------------------------- happy paths
+
+- id: user_sees_seeded_streaks
+  purpose: The seeded user signs in and sees the three seeded habits with the seeded streak values
+  substeps:
+    - kind: browser
+      do: Sign in with the credentials documented in /app/USER_README.md
+    - kind: browser
+      do: Verify the dashboard shows three habits including Meditate, Read 20 minutes and No soda
+    - kind: browser
+      do: Verify Meditate shows a current streak of 5 and No soda shows a current streak of 1
+    - kind: pytest
+      test: test_streaks.py::test_seeded_streaks_match_ledger
+      critical: true
+
+- id: user_adds_habit
+  purpose: A signed-in user creates a new habit that shows up with a zero streak
+  substeps:
+    - kind: browser
+      do: Sign in and open the habits view
+    - kind: browser
+      do: Add a habit named Journal with the teal colour tag
+    - kind: browser
+      do: Verify the new habit is listed with current streak 0 and longest streak 0
+    - kind: pytest
+      test: test_habits.py::test_created_habit_persisted
+      critical: true
+
+- id: user_marks_today_complete
+  purpose: Marking today extends the current streak by one and the dashboard reflects it
+  substeps:
+    - kind: browser
+      do: Sign in and open the dashboard
+    - kind: browser
+      do: Toggle Mark today on the Read 20 minutes habit
+    - kind: browser
+      do: Verify Read 20 minutes now shows completed_today true and a current streak of at least 1
+    - kind: pytest
+      test: test_completions.py::test_mark_today_persists_and_streak_updates
+      critical: true
+
+- id: user_unmarks_day
+  purpose: Un-marking a day removes the completion and recomputes the streak from the ledger
+  substeps:
+    - kind: browser
+      do: Sign in and open the Meditate habit detail
+    - kind: browser
+      do: Un-mark today on the completion calendar and confirm
+    - kind: browser
+      do: Verify the current streak drops from 5 to 0 and completed_today is false
+    - kind: pytest
+      test: test_completions.py::test_unmark_removes_completion_and_recomputes
+      critical: true
+
+- id: user_deletes_habit
+  purpose: Deleting a habit hides it from the list while preserving completion history on disk
+  substeps:
+    - kind: browser
+      do: Sign in and open the habits view
+    - kind: browser
+      do: Delete the No soda habit and confirm the destructive dialog
+    - kind: browser
+      do: Verify No soda is no longer listed on the habits view or the dashboard
+    - kind: pytest
+      test: test_habits.py::test_soft_delete_hides_habit_and_keeps_completions
+      critical: true
+
+- id: dashboard_matches_ledger
+  purpose: Dashboard counters are computed from real completion state, not cached
+  substeps:
+    - kind: browser
+      do: Sign in and open the dashboard
+    - kind: browser
+      do: Verify tiles for total habits, total completions, and habits with an active streak are present
+    - kind: pytest
+      test: test_streaks.py::test_dashboard_counts_match_ledger
+      critical: true
+
+# ------------------------------------------------------------ non-happy paths
+
+- id: duplicate_habit_name_rejected
+  purpose: A second habit with a name that already exists (case-insensitive) is rejected
+  substeps:
+    - kind: browser
+      do: Sign in and attempt to add a second habit named meditate in lowercase
+    - kind: browser
+      do: Verify a validation error is shown and no duplicate row appears in the list
+    - kind: pytest
+      test: test_habits.py::test_duplicate_name_case_insensitive_rejected
+      critical: true
+
+- id: duplicate_completion_no_double_count
+  purpose: Marking the same habit for the same day twice must not create a second row
+  substeps:
+    - kind: pytest
+      test: test_completions.py::test_duplicate_completion_is_idempotent
+      critical: true
+
+- id: future_dated_completion_rejected
+  purpose: A completion cannot be recorded for a date in the future
+  substeps:
+    - kind: pytest
+      test: test_completions.py::test_future_dated_completion_rejected
+
+- id: unauthenticated_access_denied
+  purpose: Protected routes and endpoints reject anonymous callers
+  substeps:
+    - kind: browser
+      do: Open the dashboard route without signing in and verify a redirect to the login page
+    - kind: pytest
+      test: test_authorization.py::test_unauthenticated_requests_denied
+      critical: true
+
+- id: cross_user_access_forbidden
+  purpose: A token from one user cannot read or mutate another user's habits
+  substeps:
+    - kind: pytest
+      test: test_authorization.py::test_other_users_habit_not_readable
+      critical: true
+    - kind: pytest
+      test: test_authorization.py::test_other_users_habit_not_mutable
+      critical: true

@@ -1,0 +1,14 @@
+{
+    "job_name": "2026-08-04__19-48-47",
+    "agents": [
+        {
+            "name": "oracle",
+            "n_concurrent": 1
+        }
+    ],
+    "tasks": [
+        {
+            "path": "tasks/oracle-streak"
+        }
+    ]
+}

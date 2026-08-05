@@ -1,0 +1,315 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "deku-pay",
+    "version": "1.0.0",
+    "description": "In-house adversarial payment sidecar for the Deku benchmark. Behaves like a real payment provider with asynchronous settlement and signed webhook delivery."
+  },
+  "servers": [
+    {
+      "url": "{baseUrl}",
+      "description": "deku-pay sidecar — read base URL from PAYMENTS_API_URL env var",
+      "variables": {
+        "baseUrl": {
+          "default": "http://deku-pay:8080"
+        }
+      }
+    }
+  ],
+  "security": [
+    {"bearerAuth": []}
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use PAYMENTS_SECRET_KEY as the bearer token. All endpoints except GET /health require this."
+      }
+    },
+    "schemas": {
+      "Charge": {
+        "type": "object",
+        "required": ["id", "amount", "currency", "status"],
+        "properties": {
+          "id":             {"type": "string",  "example": "ch_a1b2c3d4e5f6a1b2c3d4e5f6"},
+          "amount":         {"type": "integer", "example": 1000, "description": "Amount in minor units (cents). $10.00 = 1000."},
+          "currency":       {"type": "string",  "example": "usd", "description": "Lowercase ISO 4217 currency code."},
+          "status":         {"type": "string",  "enum": ["pending", "succeeded", "failed", "refunded"]},
+          "source":         {"type": "string",  "example": "tok_visa_ok"},
+          "customer_email": {"type": "string",  "example": "reader@example.com"},
+          "metadata":       {"type": "object",  "additionalProperties": true, "example": {"subscription_id": "42"}},
+          "created_at":     {"type": "integer", "description": "Unix timestamp"},
+          "updated_at":     {"type": "integer", "description": "Unix timestamp"}
+        }
+      },
+      "ChargeCreate": {
+        "type": "object",
+        "required": ["amount", "source"],
+        "properties": {
+          "amount":         {"type": "integer", "example": 1000},
+          "currency":       {"type": "string",  "example": "usd", "default": "usd"},
+          "source":         {"type": "string",  "example": "tok_visa_ok", "description": "Card token. One of: tok_visa_ok, tok_visa_decline, tok_visa_webhook_flake"},
+          "customer_email": {"type": "string",  "example": "reader@example.com"},
+          "metadata":       {"type": "object",  "additionalProperties": true}
+        }
+      },
+      "ChargeList": {
+        "type": "object",
+        "properties": {
+          "data":  {"type": "array", "items": {"$ref": "#/components/schemas/Charge"}},
+          "count": {"type": "integer"}
+        }
+      },
+      "WebhookEndpoint": {
+        "type": "object",
+        "properties": {
+          "id":         {"type": "string",  "example": "we_a1b2c3d4e5f6a1b2"},
+          "url":        {"type": "string",  "example": "http://main:4173/api/webhooks/payments"},
+          "events":     {"type": "array", "items": {"type": "string"}, "example": ["charge.succeeded", "charge.failed", "charge.refunded"]},
+          "created_at": {"type": "integer"}
+        }
+      },
+      "WebhookCreate": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url":    {"type": "string",  "example": "http://main:4173/api/webhooks/payments"},
+          "events": {"type": "array",  "items": {"type": "string"}, "default": ["charge.succeeded", "charge.failed", "charge.refunded"]}
+        }
+      },
+      "Refund": {
+        "type": "object",
+        "properties": {
+          "id":         {"type": "string",  "example": "re_a1b2c3d4e5f6a1b2"},
+          "charge_id":  {"type": "string",  "example": "ch_a1b2c3d4e5f6a1b2c3d4e5f6"},
+          "amount":     {"type": "integer", "example": 1000},
+          "currency":   {"type": "string",  "example": "usd"},
+          "status":     {"type": "string",  "example": "succeeded"},
+          "created_at": {"type": "integer"}
+        }
+      },
+      "RefundCreate": {
+        "type": "object",
+        "required": ["charge_id"],
+        "properties": {
+          "charge_id": {"type": "string"},
+          "amount":    {"type": "integer", "description": "Defaults to full charge amount if omitted"}
+        }
+      },
+      "WebhookEvent": {
+        "type": "object",
+        "description": "Delivered via POST to your registered URL. Verify Deku-Signature before trusting.",
+        "properties": {
+          "id":      {"type": "string",  "example": "evt_a1b2c3d4e5f6a1b2"},
+          "type":    {"type": "string",  "enum": ["charge.succeeded", "charge.failed", "charge.refunded"]},
+          "created": {"type": "integer", "description": "Unix timestamp"},
+          "data": {
+            "type": "object",
+            "properties": {
+              "object": {"$ref": "#/components/schemas/Charge"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Liveness probe",
+        "description": "No authentication required.",
+        "security": [],
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Service is running",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"status": {"type": "string", "example": "ok"}}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/charges": {
+      "post": {
+        "summary": "Create a charge",
+        "description": "Creates a charge in 'pending' status. It transitions asynchronously to 'succeeded' or 'failed'. Include an Idempotency-Key header to prevent duplicate charges on replay.",
+        "operationId": "createCharge",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Unique key per charge attempt. Replaying the same key returns the original charge instead of creating a duplicate. Derive from your subscription ID.",
+            "schema": {"type": "string", "example": "sub-42-attempt-1"}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/ChargeCreate"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Charge created (status = pending)",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Charge"}}}
+          },
+          "200": {
+            "description": "Idempotent replay — same Idempotency-Key seen before; original charge returned",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Charge"}}}
+          },
+          "400": {"description": "Missing required fields or unknown card token"},
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      },
+      "get": {
+        "summary": "List charges",
+        "description": "Returns all charges newest-first.",
+        "operationId": "listCharges",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {"type": "integer", "default": 100, "minimum": 1, "maximum": 1000}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of charges",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ChargeList"}}}
+          },
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      }
+    },
+    "/v1/charges/{id}": {
+      "get": {
+        "summary": "Retrieve a charge",
+        "description": "Poll this endpoint to observe status transitions from pending to succeeded or failed.",
+        "operationId": "getCharge",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Charge object",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Charge"}}}
+          },
+          "404": {"description": "Charge not found"},
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      }
+    },
+    "/v1/webhooks": {
+      "post": {
+        "summary": "Register a webhook endpoint",
+        "description": "Register a URL to receive charge settlement events. Call this during app startup before creating charges so deliveries are not missed. The provider will POST signed events to this URL when charges settle.",
+        "operationId": "createWebhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/WebhookCreate"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook endpoint registered",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/WebhookEndpoint"}}}
+          },
+          "400": {"description": "url is required"},
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      },
+      "get": {
+        "summary": "List webhook endpoints",
+        "operationId": "listWebhooks",
+        "responses": {
+          "200": {
+            "description": "Registered endpoints",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {"data": {"type": "array", "items": {"$ref": "#/components/schemas/WebhookEndpoint"}}}
+                }
+              }
+            }
+          },
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      }
+    },
+    "/v1/webhooks/{id}": {
+      "delete": {
+        "summary": "Delete a webhook endpoint",
+        "operationId": "deleteWebhook",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {"application/json": {"schema": {"type": "object", "properties": {"deleted": {"type": "boolean"}}}}}
+          },
+          "404": {"description": "Not found"},
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      }
+    },
+    "/v1/refunds": {
+      "get": {
+        "summary": "List refunds",
+        "operationId": "listRefunds",
+        "parameters": [
+          {
+            "name": "charge",
+            "in": "query",
+            "required": false,
+            "description": "Filter by charge ID",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of refunds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {"data": {"type": "array", "items": {"$ref": "#/components/schemas/Refund"}}}
+                }
+              }
+            }
+          },
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      },
+      "post": {
+        "summary": "Create a refund",
+        "operationId": "createRefund",
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/RefundCreate"}}}
+        },
+        "responses": {
+          "201": {
+            "description": "Refund created",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Refund"}}}
+          },
+          "400": {"description": "Charge not in succeeded status"},
+          "404": {"description": "Charge not found"},
+          "401": {"description": "Invalid or missing bearer token"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,147 @@
+# Hidden grading checklist (PLAN.md 4.4).
+#
+# Baked into the verifier image and NEVER uploaded to the agent container --
+# [verifier].environment_mode = "separate" in task.toml is what guarantees that.
+#
+# A workflow passes iff  passing_substeps / total_substeps >= 0.90
+#                        AND every substep marked `critical` passed.
+# reward = passing_workflows / total_workflows.
+#
+# Substep grader selection:
+#   browser -> what a user does or sees
+#   pytest  -> a real, externally observable side effect (DB state, HTTP
+#              surface, permission denial, mail-server inbox). Deterministic
+#              by construction; prefer it whenever either grader could assert
+#              the same thing. PLAN.md 4.4: email delivery is ALWAYS pytest --
+#              a browser looking at a confirmation screen cannot tell a real
+#              send from a setTimeout.
+
+# ---------------------------------------------------------------- happy paths
+
+- id: guest_signs_up_and_browses
+  purpose: A new visitor signs up and sees the seeded published event with remaining capacity
+  substeps:
+    - kind: browser
+      do: Open the app and sign up with a fresh email, password and display name
+    - kind: browser
+      do: Verify the home page lists the seeded event "Summer Meetup 2026" with a remaining-capacity indicator
+    - kind: pytest
+      test: test_data_integrity.py::test_signup_persists_guest_user
+
+- id: guest_rsvp_yes_sends_email
+  purpose: A yes RSVP is persisted and a real confirmation email lands in the inbox
+  substeps:
+    - kind: browser
+      do: Sign in with the seeded guest credentials documented in /app/USER_README.md
+    - kind: browser
+      do: Open the seeded event and RSVP yes
+    - kind: browser
+      do: Verify the app shows a success confirmation with the RSVP state as yes
+    - kind: pytest
+      test: test_rsvp.py::test_rsvp_yes_persisted
+      critical: true
+    - kind: pytest
+      test: test_email.py::test_rsvp_yes_delivers_confirmation_email
+      critical: true
+
+- id: guest_changes_yes_to_no_frees_slot
+  purpose: Changing yes to no immediately releases the slot and does not send a second email
+  substeps:
+    - kind: browser
+      do: Sign in as guest and change an existing yes RSVP to no
+    - kind: browser
+      do: Verify the event page shows the remaining capacity incremented by one
+    - kind: pytest
+      test: test_rsvp.py::test_change_yes_to_no_frees_capacity
+      critical: true
+    - kind: pytest
+      test: test_email.py::test_change_to_no_sends_no_email
+
+- id: organiser_sees_guest_list
+  purpose: The organiser sees every yes RSVP on their event with name and email
+  substeps:
+    - kind: browser
+      do: Sign in as the seeded organiser and open the event
+    - kind: browser
+      do: Verify the guest list shows every yes RSVP with the guest's name and email
+    - kind: pytest
+      test: test_rsvp.py::test_organiser_guest_list_matches_database
+      critical: true
+
+- id: organiser_creates_event
+  purpose: The organiser creates and publishes a new event that appears on the guest home page
+  substeps:
+    - kind: browser
+      do: Sign in as organiser and create a new event with capacity 5 and status published
+    - kind: browser
+      do: Verify the new event appears on the guest home page after sign-in as a guest
+    - kind: pytest
+      test: test_data_integrity.py::test_new_event_visible_to_guests
+
+# ------------------------------------------------------------ non-happy paths
+
+- id: capacity_full_rejected
+  purpose: An RSVP against a full event is rejected with a 4xx and sends no email
+  substeps:
+    - kind: browser
+      do: Sign in as a guest and attempt to RSVP yes to an event whose capacity is already reached
+    - kind: browser
+      do: Verify the app surfaces a rejection message naming capacity as the reason
+    - kind: pytest
+      test: test_rsvp.py::test_rsvp_beyond_capacity_rejected
+      critical: true
+    - kind: pytest
+      test: test_email.py::test_capacity_rejection_sends_no_email
+      critical: true
+
+- id: concurrent_last_seat_single_winner
+  purpose: Two simultaneous RSVPs for the last seat produce exactly one winner
+  substeps:
+    - kind: pytest
+      test: test_rsvp.py::test_concurrent_last_seat_single_winner
+      critical: true
+
+- id: duplicate_rsvp_does_not_double_count
+  purpose: A guest submitting the same yes twice updates the row rather than double-counting
+  substeps:
+    - kind: pytest
+      test: test_rsvp.py::test_duplicate_yes_updates_and_does_not_double_count
+      critical: true
+
+- id: guest_cannot_edit_others_rsvp
+  purpose: A guest cannot modify another guest's RSVP
+  substeps:
+    - kind: pytest
+      test: test_rbac.py::test_guest_cannot_edit_other_guest_rsvp
+      critical: true
+
+- id: guest_forbidden_from_organiser_views
+  purpose: A guest cannot see the organiser's guest list and cannot create events
+  substeps:
+    - kind: browser
+      do: Sign in as a guest and verify no create-event or guest-list control is available
+    - kind: pytest
+      test: test_rbac.py::test_guest_create_event_denied_at_api
+      critical: true
+    - kind: pytest
+      test: test_rbac.py::test_guest_read_organiser_guest_list_denied
+      critical: true
+
+- id: unauthenticated_access_denied
+  purpose: Protected routes and endpoints reject anonymous callers
+  substeps:
+    - kind: browser
+      do: Open the my-rsvps route without signing in and verify a redirect to the login page
+    - kind: pytest
+      test: test_rbac.py::test_unauthenticated_requests_denied
+      critical: true
+
+- id: cancelled_event_rejects_new_rsvp
+  purpose: A cancelled event accepts no new RSVPs and vanishes from the guest home page
+  substeps:
+    - kind: browser
+      do: Sign in as organiser and cancel a published event
+    - kind: browser
+      do: Verify the cancelled event no longer appears on the guest home page
+    - kind: pytest
+      test: test_rsvp.py::test_cancelled_event_rsvp_rejected

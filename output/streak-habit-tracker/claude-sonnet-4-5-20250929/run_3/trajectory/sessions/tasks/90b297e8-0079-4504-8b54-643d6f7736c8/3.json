@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Implement authentication system",
+  "description": "Build login page, auth context, token management, protected routes, and session handling",
+  "activeForm": "Implementing authentication",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,11 @@
+# WCB-style self-describing service descriptor. Read by environment/stack.py.
+[service]
+name             = "postgres"
+slot             = "db"
+kind             = "image"
+image            = "postgres:16-alpine"
+host             = "postgres"
+port             = 5432
+healthcheck_path = ""          # no HTTP; compose uses pg_isready
+app_env_hint     = "DATABASE_URL"
+generic_seed     = "postgres-init.sh"

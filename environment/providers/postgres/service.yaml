@@ -1,0 +1,15 @@
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: deku_admin
+      POSTGRES_PASSWORD: deku-local-dev
+      POSTGRES_DB: ethara
+    volumes:
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deku_admin -d ethara"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s

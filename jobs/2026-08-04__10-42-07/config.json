@@ -1,0 +1,14 @@
+{
+    "job_name": "2026-08-04__10-42-07",
+    "agents": [
+        {
+            "name": "oracle",
+            "n_concurrent": 1
+        }
+    ],
+    "tasks": [
+        {
+            "path": "/tmp/deku-smoke/smoke-tip-calculator"
+        }
+    ]
+}

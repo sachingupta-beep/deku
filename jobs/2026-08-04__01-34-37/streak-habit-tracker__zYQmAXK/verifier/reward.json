@@ -1,0 +1,15 @@
+{
+  "reward": 0.0,
+  "workflows_total": 11,
+  "workflows_passed": 0,
+  "substeps_total": 32,
+  "substeps_passed": 1,
+  "browser_substeps_total": 20,
+  "browser_substeps_passed": 0,
+  "pytest_substeps_total": 12,
+  "pytest_substeps_passed": 1,
+  "critical_substeps_failed": 10,
+  "browser_graded": 1,
+  "deployed": 1.0,
+  "judge_score": 0.0
+}

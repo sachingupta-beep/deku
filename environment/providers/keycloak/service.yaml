@@ -1,0 +1,29 @@
+  keycloak:
+    # Keycloak 25.0.6 — explicit patch tag, multi-arch (linux/amd64 + linux/arm64).
+    # start-dev uses the embedded H2 database so there is no schema conflict with
+    # the application's postgres tables. H2 state is ephemeral, but the realm is
+    # re-imported from keycloak-realm.json on every boot -- deterministic by design.
+    #
+    # keycloak-realm.json is TASK-SPECIFIC (roles + users for that task's scenario),
+    # so it stays in the task's environment/ -- not in this central fragment.
+    image: quay.io/keycloak/keycloak:25.0.6
+    restart: unless-stopped
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: deku_admin
+      KEYCLOAK_ADMIN_PASSWORD: deku-local-dev
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./keycloak-realm.json:/opt/keycloak/data/import/ethara-realm.json:ro
+    ports:
+      # 8080: main HTTP; 9000: management (health/ready endpoint).
+      - "8080:8080"
+      - "9000:9000"
+    healthcheck:
+      # Keycloak 25 UBI image ships no curl/wget. Use bash /dev/tcp on the
+      # management port (9000) which exposes /health/ready.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\nConnection: close\\r\\n\\r\\n' >&3 && timeout 5 cat <&3 | grep -q UP"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 90s

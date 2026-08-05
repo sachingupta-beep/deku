@@ -1,0 +1,16 @@
+{
+    "task": {
+        "path": "/tmp/deku-cmp/streak-habit-tracker"
+    },
+    "trial_name": "streak-habit-tracker__mafbxr7",
+    "trials_dir": "jobs/2026-08-04__01-13-28",
+    "agent": {
+        "name": "openhands",
+        "model_name": "anthropic/claude-opus-4-8",
+        "n_concurrent": 1,
+        "kwargs": {
+            "version": "0.62.0"
+        }
+    },
+    "job_id": "a0e3ab6e-669b-4755-aeec-a98bbf6f9ac2"
+}

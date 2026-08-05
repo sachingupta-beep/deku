@@ -1,0 +1,10 @@
+[service]
+name             = "mailpit"
+slot             = "email"
+kind             = "image"
+image            = "axllent/mailpit:v1.30.6"
+host             = "mailpit"
+port             = 1025          # SMTP (agent sends)
+api_port         = 8025          # HTTP inbox API (verifier reads)
+healthcheck_path = "/api/v1/messages"
+app_env_hint     = "SMTP_HOST / EMAIL_INBOX_API_URL"

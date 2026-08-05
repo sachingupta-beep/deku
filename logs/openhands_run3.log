@@ -1,0 +1,34 @@
+START 2026-08-04 01:20:10  openhands + anthropic/claude-opus-4-5-20251101
+
+           Environment Variables            
+  Variable            ┃  Phase              
+━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━
+  BACKEND_URL         │  [environment.env]  
+  ANTHROPIC_API_KEY   │  [verifier.env]     
+  ANTHROPIC_BASE_URL  │  [verifier.env]     
+  APP_PUBLIC_URL      │  [verifier.env]     
+  BACKEND_URL         │  [verifier.env]     
+  BACKEND_ADMIN_KEY   │  [verifier.env]     
+
+Tasks in this run will load these from your environment. Proceed? (Y/n):   1/1 Deployed: 0.000 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0:05:46 0:00:00
+adhoc • openhands • claude-opus-4-5-20251101
+┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┓
+┃ Trials ┃ Exceptions ┃ Deployed ┃ Reward ┃
+┡━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━┩
+│      1 │          0 │    0.000 │  0.000 │
+└────────┴────────────┴──────────┴────────┘
+
+┏━━━━━━━━┳━━━━━━━┓
+┃ Reward ┃ Count ┃
+┡━━━━━━━━╇━━━━━━━┩
+│ 0.0    │     1 │
+│ 0.0    │     1 │
+└────────┴───────┘
+
+Job Info
+Total runtime: 5m 46s
+Results written to jobs/2026-08-04__01-20-11/result.json
+Inspect results by running `harbor view jobs`
+Share results by running `harbor upload jobs/2026-08-04__01-20-11`
+
+END 2026-08-04 01:25:58

@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "Build frontend application",
+  "description": "Create React components for login, dashboard, habits list, and habit detail views",
+  "activeForm": "Building frontend",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

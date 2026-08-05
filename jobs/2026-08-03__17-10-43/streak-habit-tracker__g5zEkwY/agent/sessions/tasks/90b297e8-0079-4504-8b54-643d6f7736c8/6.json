@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Build dashboard with statistics",
+  "description": "Create dashboard page with stat tiles, habits list with streaks, real-time updates after marking completions",
+  "activeForm": "Building dashboard",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,14 @@
+{
+    "agents": [
+        {
+            "name": "claude-code",
+            "model_name": "claude-sonnet-4-5-20250929",
+            "n_concurrent": 1
+        }
+    ],
+    "tasks": [
+        {
+            "path": "/tmp/deku-cmp/seat-allocation-map"
+        }
+    ]
+}

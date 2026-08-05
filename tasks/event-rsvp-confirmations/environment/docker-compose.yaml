@@ -1,0 +1,75 @@
+# Sidecar services for the `backend` and `email` slots (PLAN.md 3.3).
+#
+# Harbor merges this over its own build compose. The agent container is the
+# `main` service and services here share its network namespace under egress
+# control -- so the app reaches Postgres at `postgres:5432`, the SMTP server
+# at `mailpit:1025`, and the separate verifier reaches the app at `main:4173`.
+#
+# Zero-credential rule (PLAN.md 3.3): credentials are fixed local fixture values
+# created by this container at boot. Nothing is fetched from a vendor, nothing
+# expires, and a fresh clone plus Docker is sufficient to run the task offline.
+#
+# The agent gets an UNPRIVILEGED role and the verifier gets the superuser
+# (PLAN.md 3.4). An agent holding the admin credential could satisfy workflows by
+# writing rows directly instead of implementing the feature.
+#
+# Email is the whole point of this task: Mailpit is a real SMTP server, not a
+# stub, and the verifier queries its inbox API directly. The agent sends over
+# SMTP on 1025; the verifier inspects via the HTTP API on 8025.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: deku_admin
+      POSTGRES_PASSWORD: deku-local-dev
+      POSTGRES_DB: ethara
+    volumes:
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deku_admin -d ethara"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  # Mailpit is a real SMTP server with an HTTP inbox API -- not a stub. The
+  # agent sends confirmation emails over SMTP on 1025; the verifier reads the
+  # inbox at the HTTP API on 8025 via EMAIL_INBOX_API_URL. Pinned to a specific
+  # version tag for reproducibility; `latest` would silently break on API changes.
+  mailpit:
+    image: axllent/mailpit:v1.30.6
+    restart: unless-stopped
+    environment:
+      # No auth required for local fixture use -- the agent sends unauthenticated
+      # SMTP and the verifier reads the inbox without credentials.
+      MP_MAX_MESSAGES: "500"
+    ports:
+      - "1025:1025"   # SMTP -- agent sends here
+      - "8025:8025"   # HTTP API/UI -- verifier inspects here
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8025/api/v1/messages > /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  # Reachability fix (PLAN.md 1.8, answered empirically).
+  #
+  # Harbor gives the SEPARATE verifier its own compose project -- the session id
+  # is "{trial}__verifier__{key}" and extra_docker_compose is stripped -- so it
+  # lands on a different Docker network and cannot resolve `main`. Publishing the
+  # app port lets the verifier reach it at host.docker.internal instead.
+  #
+  # Isolation is preserved where it matters: separate mode still means tests/ and
+  # workflows.yaml are never uploaded into the agent container. Only the network
+  # hop changes. Note the fixed host port caps local concurrency at one trial.
+  main:
+    # Ports only, deliberately. Harbor merges this file LAST, so any `image` or
+    # `command` here would override the built agent image and its entrypoint --
+    # the trial would run the placeholder instead of the agent. To bring the
+    # sidecars up standalone for local checks, run them with `docker run` rather
+    # than adding a stub image here.
+    ports:
+      - "4173:4173"

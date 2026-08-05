@@ -1,0 +1,111 @@
+{
+    "id": "ad78f8cf-c878-4da0-a8d1-e421b6b9261a",
+    "started_at": "2026-08-03T22:37:10.659241",
+    "updated_at": "2026-08-03T23:59:37.545862",
+    "finished_at": "2026-08-03T23:59:37.545862",
+    "n_total_trials": 1,
+    "stats": {
+        "n_completed_trials": 1,
+        "n_errored_trials": 0,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "claude-code__claude-sonnet-4-5-20250929__adhoc": {
+                "n_trials": 1,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "browser_graded": 1.0,
+                        "browser_substeps_passed": 0.0,
+                        "browser_substeps_total": 20.0,
+                        "critical_substeps_failed": 10.0,
+                        "deployed": 1.0,
+                        "judge_score": 0.0,
+                        "pytest_substeps_passed": 1.0,
+                        "pytest_substeps_total": 12.0,
+                        "reward": 0.0,
+                        "substeps_passed": 1.0,
+                        "substeps_total": 32.0,
+                        "workflows_passed": 0.0,
+                        "workflows_total": 11.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0.0": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "workflows_total": {
+                        "11": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "workflows_passed": {
+                        "0": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "substeps_total": {
+                        "32": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "substeps_passed": {
+                        "1": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "browser_substeps_total": {
+                        "20": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "browser_substeps_passed": {
+                        "0": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "pytest_substeps_total": {
+                        "12": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "pytest_substeps_passed": {
+                        "1": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "critical_substeps_failed": {
+                        "10": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "browser_graded": {
+                        "1": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "deployed": {
+                        "1.0": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    },
+                    "judge_score": {
+                        "0.0": [
+                            "streak-habit-tracker__LHcneBe"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 6075263,
+        "n_cache_tokens": 5956645,
+        "n_output_tokens": 62383,
+        "cost_usd": 3.16703625
+    }
+}

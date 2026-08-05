@@ -1,0 +1,10 @@
+[service]
+name             = "pocketbase"
+slot             = "backend"
+kind             = "image"
+image            = "ghcr.io/muchobien/pocketbase:0.22.21"
+host             = "pocketbase"
+port             = 8090
+healthcheck_path = "/api/health"
+app_env_hint     = "BACKEND_URL"
+task_seed        = "pocketbase-init.sh"   # task-specific collections; stays in the task

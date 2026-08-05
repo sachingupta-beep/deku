@@ -1,0 +1,11 @@
+[service]
+name             = "keycloak"
+slot             = "auth"
+kind             = "image"
+image            = "quay.io/keycloak/keycloak:25.0.6"
+host             = "keycloak"
+port             = 8080          # main HTTP
+mgmt_port        = 9000          # management (health/ready)
+healthcheck_path = "/health/ready"   # served on mgmt_port
+app_env_hint     = "AUTH_ISSUER_URL / AUTH_CLIENT_ID / AUTH_CLIENT_SECRET"
+task_seed        = "keycloak-realm.json"   # task-specific realm; stays in the task

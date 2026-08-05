@@ -1,0 +1,85 @@
+{
+  "judge_score": 0.0,
+  "advisory": true,
+  "note": "Diagnostic only. PLAN.md 1.4: judge_score never drives training. A judge-only reward is trivially gamed. The binary substep grader owns the RL reward; this score is for human review only.",
+  "dimensions": {
+    "instruction_following": {
+      "score": 0.0,
+      "weight": 0.3,
+      "rationale": "exception: HTTPStatusError: Client error '429 Too Many Requests' for url 'http://host.docker.internal:8765/v1/messages'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429",
+      "evidence": [],
+      "asks": "Are the features named in instruction.md Core-features and User-flow sections actually present and reachable in the deployed app? A missing feature is a score cut, a hidden-but-implemented feature is a smaller cut. Score against the actual spec passed in, not a generic notion."
+    },
+    "functionality": {
+      "score": 0.0,
+      "weight": 0.25,
+      "rationale": "exception: RuntimeError: upstream rate limit already exhausted the retry ladder; skipping further grader calls",
+      "evidence": [],
+      "asks": "Do the core flows actually WORK when driven -- signup/login, primary CRUD, submit forms, key journeys -- without runtime errors, dead ends, blank screens, or 500s? Console errors and failed network requests during real interaction count heavily."
+    },
+    "ux_flow": {
+      "score": 0.0,
+      "weight": 0.15,
+      "rationale": "exception: RuntimeError: upstream rate limit already exhausted the retry ladder; skipping further grader calls",
+      "evidence": [],
+      "asks": "Navigation reachability, empty states, loading states, error states, feedback on actions (toasts/inline messages), sensible redirects (unauth -> login?next=, login success -> next/home). Judge against the spec's User flow section."
+    },
+    "ui_visual": {
+      "score": 0.0,
+      "weight": 0.15,
+      "rationale": "exception: RuntimeError: upstream rate limit already exhausted the retry ladder; skipping further grader calls",
+      "evidence": [],
+      "asks": "Does the visual design match the UI/UX notes section -- palette hex values, type scale, radii, density, hierarchy? Does it look intentionally designed, or default-Bootstrap / default-Tailwind / default-shadcn slop? Use computed styles as objective evidence, not just screenshots."
+    },
+    "motion": {
+      "score": 0.0,
+      "weight": 0.05,
+      "rationale": "exception: RuntimeError: upstream rate limit already exhausted the retry ladder; skipping further grader calls",
+      "evidence": [],
+      "asks": "Are transitions present with durations and easing near the spec (typically 150ms / 250ms / cubic-bezier(0.16, 1, 0.3, 1))? Does the app respect prefers-reduced-motion when emulated? Zero motion is a cut; bouncy over-motion is also a cut if the spec forbids it."
+    },
+    "accessibility": {
+      "score": 0.0,
+      "weight": 0.05,
+      "rationale": "exception: RuntimeError: upstream rate limit already exhausted the retry ladder; skipping further grader calls",
+      "evidence": [],
+      "asks": "Visible focus indicator on Tab through, labels on icon buttons, WCAG AA text contrast (4.5:1 body), keyboard reachability. Judge against the spec's stated a11y bar."
+    },
+    "responsiveness": {
+      "score": 0.0,
+      "weight": 0.05,
+      "rationale": "exception: RuntimeError: upstream rate limit already exhausted the retry ladder; skipping further grader calls",
+      "evidence": [],
+      "asks": "Does the layout hold at the mobile and tablet viewports without horizontal overflow, overlapping elements, hidden CTAs, or squashed tables? Judge from multi-viewport screenshots."
+    }
+  },
+  "missing_features": [
+    "/habits",
+    "/login",
+    "/login?next=<current>",
+    "/login?next=<path>"
+  ],
+  "console_errors": [],
+  "screenshots": [
+    "/logs/verifier/shots/00_root_1920x1200.png",
+    "/logs/verifier/shots/00_root_768x1024.png",
+    "/logs/verifier/shots/00_root_390x844.png"
+  ],
+  "meta": {
+    "grader_model": "claude-sonnet-4-5-20250929",
+    "url": "http://localhost:4173",
+    "viewports": [
+      "1920x1200",
+      "768x1024",
+      "390x844"
+    ],
+    "instruction": "/tests/instruction.md",
+    "started_at": "2026-08-03T20:45:48+00:00",
+    "harness": "run_rubric.py",
+    "finished_at": "2026-08-03T20:50:59+00:00",
+    "routes_visited": [
+      "/"
+    ],
+    "login_status": "could not parse credentials"
+  }
+}

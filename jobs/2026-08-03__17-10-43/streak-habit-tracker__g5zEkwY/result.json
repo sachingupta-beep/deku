@@ -1,0 +1,114 @@
+{
+    "id": "3ea7b880-7857-449c-a70c-68a38769abe0",
+    "task_name": "ethara/streak-habit-tracker",
+    "trial_name": "streak-habit-tracker__g5zEkwY",
+    "trial_uri": "file:///Users/macbookpro/Desktop/greenfield/testing/jobs/2026-08-03__17-10-43/streak-habit-tracker__g5zEkwY",
+    "task_id": {
+        "path": "/tmp/deku-cmp/streak-habit-tracker"
+    },
+    "source": null,
+    "task_checksum": "d36b0ad61502e6c80931a67b145b913f9eca82fd41eeadf0df60681c51f7dd70",
+    "config": {
+        "task": {
+            "path": "/tmp/deku-cmp/streak-habit-tracker",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": null
+        },
+        "trial_name": "streak-habit-tracker__g5zEkwY",
+        "trials_dir": "jobs/2026-08-03__17-10-43",
+        "install_only": false,
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "claude-code",
+            "import_path": null,
+            "model_name": "claude-sonnet-4-5-20250929",
+            "n_concurrent": 1,
+            "concurrency_group": null,
+            "skills": [],
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "resume_trajectory": false,
+            "load_trajectory": null,
+            "extra_allowed_hosts": [],
+            "kwargs": {},
+            "mcp_servers": []
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "override_tpu": null,
+            "mounts": null,
+            "extra_docker_compose": [],
+            "kwargs": {},
+            "extra_allowed_hosts": []
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "disable": false
+        },
+        "artifacts": [],
+        "extra_instruction_paths": [],
+        "job_id": "05c7be46-62be-4cb7-8e34-cd84c2cab705"
+    },
+    "agent_info": {
+        "name": "claude-code",
+        "version": "2.1.220",
+        "model_info": {
+            "name": "claude-sonnet-4-5-20250929",
+            "provider": null
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 3638818,
+        "n_cache_tokens": 3541994,
+        "n_output_tokens": 43103,
+        "cost_usd": 2.07191445,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": null,
+    "exception_info": {
+        "exception_type": "ValidationError",
+        "exception_message": "4 validation errors for VerifierResult\nrewards.judge_score.float\n  Input should be a valid number [type=float_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/float_type\nrewards.judge_score.int\n  Input should be a valid integer [type=int_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/int_type\nrewards.workflows.float\n  Input should be a valid number [type=float_type, input_value=[{'id': 'user_sees_seeded...critical_failed': True}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/float_type\nrewards.workflows.int\n  Input should be a valid integer [type=int_type, input_value=[{'id': 'user_sees_seeded...critical_failed': True}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/int_type",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/trial.py\", line 354, in run\n    await self._run()\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/single_step.py\", line 52, in _run\n    await self._run_verifier()\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/single_step.py\", line 105, in _run_verifier\n    self.result.verifier_result = await self._run_shared_verifier(\n                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/trial.py\", line 535, in _run_shared_verifier\n    return await asyncio.wait_for(\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py\", line 520, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/verifier/verifier.py\", line 238, in verify\n    return VerifierResult(rewards=rewards)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/pydantic/main.py\", line 263, in __init__\n    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npydantic_core._pydantic_core.ValidationError: 4 validation errors for VerifierResult\nrewards.judge_score.float\n  Input should be a valid number [type=float_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/float_type\nrewards.judge_score.int\n  Input should be a valid integer [type=int_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.13/v/int_type\nrewards.workflows.float\n  Input should be a valid number [type=float_type, input_value=[{'id': 'user_sees_seeded...critical_failed': True}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/float_type\nrewards.workflows.int\n  Input should be a valid integer [type=int_type, input_value=[{'id': 'user_sees_seeded...critical_failed': True}], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.13/v/int_type\n",
+        "occurred_at": "2026-08-03T17:25:55.117920"
+    },
+    "started_at": "2026-08-03T11:40:44.189038Z",
+    "finished_at": "2026-08-03T11:56:07.147120Z",
+    "environment_setup": {
+        "started_at": "2026-08-03T11:40:44.253508Z",
+        "finished_at": "2026-08-03T11:41:09.535201Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-08-03T11:41:09.535789Z",
+        "finished_at": "2026-08-03T11:42:13.464126Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-08-03T11:42:13.470258Z",
+        "finished_at": "2026-08-03T11:55:51.013412Z"
+    },
+    "verifier": {
+        "started_at": "2026-08-03T11:55:52.697201Z",
+        "finished_at": "2026-08-03T11:55:55.107943Z"
+    },
+    "step_results": null
+}

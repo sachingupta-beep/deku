@@ -1,0 +1,49 @@
+{
+    "id": "28668c8f-c9ba-4840-bc02-22219f1c53ff",
+    "started_at": "2026-08-03T18:53:22.249538",
+    "updated_at": "2026-08-03T20:41:55.050196",
+    "finished_at": "2026-08-03T20:41:55.050196",
+    "n_total_trials": 1,
+    "stats": {
+        "n_completed_trials": 1,
+        "n_errored_trials": 1,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "claude-code__claude-sonnet-4-5-20250929__adhoc": {
+                "n_trials": 1,
+                "n_errors": 1,
+                "metrics": [
+                    {
+                        "deployed": 0.0,
+                        "reward": 0.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0.0": [
+                            "streak-habit-tracker__h3eePJv"
+                        ]
+                    },
+                    "deployed": {
+                        "0.0": [
+                            "streak-habit-tracker__h3eePJv"
+                        ]
+                    }
+                },
+                "exception_stats": {
+                    "ApiResponseStalledError": [
+                        "streak-habit-tracker__h3eePJv"
+                    ]
+                }
+            }
+        },
+        "n_input_tokens": 1263870,
+        "n_cache_tokens": 1209057,
+        "n_output_tokens": 13531,
+        "cost_usd": 0.7710561000000001
+    }
+}

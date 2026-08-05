@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+"""Repackage a raw Harbor trial (jobs/<ts>/<task>__<id>/) into a clean,
+debuggable output tree: output/<task>/<model>/run_<N>/.
+
+Pure stdlib -- runs with the system python3, no venv required.
+
+    python3 harness/repackage.py jobs/2026-08-03__13-16-53/streak-habit-tracker__jZiMs3R
+    python3 harness/repackage.py --all          # repackage every trial under jobs/
+
+What it does (all additive -- never touches jobs/ or tasks/):
+  - copies the built app (/app artifact)      -> app/
+  - copies the trajectory + raw CLI log       -> trajectory/
+  - copies every browser screenshot           -> screenshots/
+  - copies every verifier/agent log           -> logs/
+  - writes services.json from the task's declared slots + compose  -> services/
+  - writes manifest.json (provenance: model, digests, timings, reward)
+  - writes harness-debug.log: ONE start->end timeline for fast debugging
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import sys
+from datetime import datetime
+from pathlib import Path
+
+try:
+    import tomllib  # py3.11+
+except ModuleNotFoundError:  # pragma: no cover
+    tomllib = None
+
+REPO = Path(__file__).resolve().parent.parent
+JOBS = REPO / "jobs"
+OUT = REPO / "output"
+
+
+# ----------------------------------------------------------------- helpers
+def _load_json(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return {}
+
+
+def _slug(text: str) -> str:
+    return "".join(c if c.isalnum() or c in "-._" else "-" for c in text).strip("-") or "unknown"
+
+
+def _copytree(src: Path, dst: Path) -> int:
+    """Copy a directory if it exists and is non-empty. Returns file count."""
+    if not src.exists() or not src.is_dir():
+        return 0
+    n = sum(1 for p in src.rglob("*") if p.is_file())
+    if n:
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+    return n
+
+
+def _iso(t: str | None) -> str:
+    return t or "?"
+
+
+def _dur(stage: dict | None) -> float | None:
+    if not isinstance(stage, dict):
+        return None
+    a, b = stage.get("started_at"), stage.get("finished_at")
+    if not (a and b):
+        return None
+    try:
+        pa = datetime.fromisoformat(a.replace("Z", "+00:00"))
+        pb = datetime.fromisoformat(b.replace("Z", "+00:00"))
+        return round((pb - pa).total_seconds(), 1)
+    except Exception:
+        return None
+
+
+# ------------------------------------------------------------- task services
+def _task_services(task_name: str) -> dict:
+    """Read the task's declared slots + parse service images from its compose."""
+    tdir = REPO / "tasks" / task_name
+    services: dict = {"declared": {}, "images": {}, "seed_files": []}
+    toml_path = tdir / "task.toml"
+    if tomllib and toml_path.exists():
+        try:
+            meta = tomllib.loads(toml_path.read_text())
+            services["declared"] = meta.get("metadata", {}).get("services", {})
+        except Exception:
+            pass
+    compose = tdir / "environment" / "docker-compose.yaml"
+    if compose.exists():
+        # lightweight parse: pull `<name>:` blocks and their `image:` lines
+        name = None
+        for line in compose.read_text().splitlines():
+            s = line.strip()
+            if line[:4].strip() and s.endswith(":") and not s.startswith("#") and "  " in line[:4] + "x":
+                pass
+            if s.startswith("image:"):
+                if name:
+                    services["images"][name] = s.split("image:", 1)[1].strip()
+            elif s and s.endswith(":") and not s.startswith("#") and line.startswith("  ") and not line.startswith("    "):
+                name = s[:-1]
+    env_dir = tdir / "environment"
+    if env_dir.exists():
+        services["seed_files"] = sorted(
+            p.name for p in env_dir.iterdir()
+            if p.is_file() and p.name not in {"Dockerfile", "docker-compose.yaml"}
+        )
+    return services
+
+
+# --------------------------------------------------------------- the writer
+def repackage(trial: Path) -> Path:
+    if not trial.exists():
+        sys.exit(f"trial not found: {trial}")
+
+    config = _load_json(trial / "config.json")
+    result = _load_json(trial / "result.json")
+    lock = _load_json(trial / "lock.json")
+
+    task_name = result.get("task_name", "").split("/")[-1] or trial.name.split("__")[0]
+    task_name = _slug(task_name)
+    agent_info = result.get("agent_info") or {}
+    model = _slug(
+        (config.get("agent") or {}).get("model_name")
+        or (agent_info.get("model_info") or {}).get("name")
+        or "unknown-model"
+    )
+
+    dest_root = OUT / task_name / model
+    dest_root.mkdir(parents=True, exist_ok=True)
+    run_n = 1 + sum(1 for p in dest_root.glob("run_*") if p.is_dir())
+    dest = dest_root / f"run_{run_n}"
+    dest.mkdir(parents=True, exist_ok=True)
+
+    # --- reward + workflows (the score) ---
+    for fn in ("reward.json", "workflows.json"):
+        src = trial / "verifier" / fn
+        if src.exists():
+            shutil.copy2(src, dest / fn)
+
+    # --- app (the built frontend/backend) ---
+    app_files = 0
+    for cand in (trial / "artifacts" / "app", trial / "artifacts" / "logs" / "app"):
+        app_files += _copytree(cand, dest / "app")
+    if app_files == 0:
+        (dest / "app").mkdir(exist_ok=True)
+        (dest / "app" / "MISSING.txt").write_text(
+            "No /app artifact was captured for this trial. On a deploy-failed run the\n"
+            "app is often not collected. On a successful run this holds the built app.\n"
+        )
+
+    # --- trajectory ---
+    traj = dest / "trajectory"
+    traj.mkdir(exist_ok=True)
+    for fn in ("trajectory.json", "claude-code.txt"):
+        src = trial / "agent" / fn
+        if src.exists():
+            shutil.copy2(src, traj / fn)
+    _copytree(trial / "agent" / "sessions", traj / "sessions")
+
+    # --- screenshots ---
+    shots = 0
+    for cand in (trial / "verifier" / "shots", trial / "verifier" / "screenshots"):
+        shots += _copytree(cand, dest / "screenshots")
+
+    # --- services evidence ---
+    (dest / "services").mkdir(exist_ok=True)
+    (dest / "services" / "services.json").write_text(
+        json.dumps(_task_services(task_name), indent=2) + "\n"
+    )
+
+    # --- every raw log ---
+    logs = dest / "logs"
+    logs.mkdir(exist_ok=True)
+    log_map = {
+        trial / "trial.log": "orchestration.log",
+        trial / "verifier" / "test-stdout.txt": "verifier_stdout.txt",
+        trial / "verifier" / "ctrf.json": "pytest_ctrf.json",
+        trial / "verifier" / "judge.json": "judge.json",
+        trial / "verifier" / "ctrf-error.json": "pytest_collection_error.json",
+        trial / "artifacts" / "manifest.json": "artifacts_manifest.json",
+    }
+    for src, name in log_map.items():
+        if src.exists():
+            shutil.copy2(src, logs / name)
+
+    # --- manifest (provenance) ---
+    rewards = result.get("verifier_result", {}).get("rewards", {})
+    manifest = {
+        "task": task_name,
+        "model": model,
+        "trial_id": trial.name,
+        "source_job": str(trial.relative_to(REPO)) if str(trial).startswith(str(REPO)) else str(trial),
+        "task_checksum": lock.get("task_checksum") or result.get("task_checksum"),
+        "reward": rewards.get("reward"),
+        "deployed": rewards.get("deployed"),
+        "invalid": _load_json(dest / "workflows.json").get("summary", {}).get("invalid", []),
+        "exception": result.get("exception_info"),
+        "started_at": result.get("started_at"),
+        "finished_at": result.get("finished_at"),
+        "stage_seconds": {
+            s: _dur(result.get(s))
+            for s in ("environment_setup", "agent_setup", "agent_execution", "verifier")
+        },
+        "agent": {
+            "version": result.get("agent_info", {}).get("version"),
+            "cost_usd": result.get("agent_result", {}).get("cost_usd"),
+        },
+        "repackaged_from": "harness/repackage.py",
+    }
+    (dest / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+
+    _write_debug_log(dest / "harness-debug.log", manifest, trial, result)
+    return dest
+
+
+def _write_debug_log(path: Path, m: dict, trial: Path, result: dict) -> None:
+    """One human-readable start->end timeline of the whole trial."""
+    L: list[str] = []
+    add = L.append
+    add("=" * 72)
+    add(f"HARNESS DEBUG TIMELINE  --  {m['task']}  /  {m['model']}  /  {m['trial_id']}")
+    add("=" * 72)
+    add(f"started : {_iso(m['started_at'])}")
+    add(f"finished: {_iso(m['finished_at'])}")
+    add(f"REWARD  : {m['reward']}   deployed={m['deployed']}   invalid={m['invalid']}")
+    if m["exception"]:
+        add(f"EXCEPTION: {m['exception']}")
+    add("")
+    add("--- stage durations (seconds) ---")
+    for s, sec in m["stage_seconds"].items():
+        add(f"  {s:20s}: {sec}")
+    add("")
+    add("--- 1. ENVIRONMENT + AGENT SETUP (orchestration.log) ---")
+    tl = (trial / "trial.log")
+    add(tl.read_text()[-4000:] if tl.exists() else "  (no trial.log)")
+    add("")
+    add("--- 2. AGENT EXECUTION ---")
+    ar = result.get("agent_result", {})
+    add(f"  cost_usd={ar.get('cost_usd')}  stop_reason={ar.get('stop_reason')}")
+    add(f"  trajectory: trajectory/trajectory.json  (raw: trajectory/claude-code.txt)")
+    add("")
+    add("--- 3. VERIFIER (deploy gate -> browser -> pytest -> judge -> score) ---")
+    vs = (trial / "verifier" / "test-stdout.txt")
+    add(vs.read_text() if vs.exists() else "  (no verifier stdout)")
+    ctrf = _load_json(trial / "verifier" / "ctrf.json")
+    if ctrf:
+        summ = ctrf.get("results", {}).get("summary", {})
+        add(f"  pytest: {summ}")
+    add("")
+    add("--- 4. SCORE ---")
+    wf = _load_json(trial / "verifier" / "workflows.json")
+    if wf:
+        add(f"  {json.dumps(wf.get('summary', {}), indent=2)}")
+        for w in wf.get("workflows", []):
+            add(f"    [{'PASS' if w.get('passed') else 'FAIL'}] {w.get('id')}  "
+                f"({w.get('substeps_passed')}/{w.get('substeps_graded')})")
+    else:
+        add("  (no workflows.json -- grading did not complete; see verifier stdout above)")
+    add("")
+    add("=" * 72)
+    add("END")
+    path.write_text("\n".join(L) + "\n")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("trial", nargs="?", help="path to a jobs/<ts>/<task>__<id> trial dir")
+    ap.add_argument("--all", action="store_true", help="repackage every trial under jobs/")
+    args = ap.parse_args()
+
+    trials: list[Path] = []
+    if args.all:
+        trials = [p for p in JOBS.glob("*/*__*") if p.is_dir()]
+    elif args.trial:
+        trials = [Path(args.trial).resolve()]
+    else:
+        ap.error("give a trial path or --all")
+
+    failed = 0
+    for t in trials:
+        try:
+            dest = repackage(t)
+            print(f"repackaged {t.name}  ->  {dest.relative_to(REPO)}")
+        except Exception as exc:  # one bad trial must not abort the batch
+            failed += 1
+            print(f"SKIP {t.name}: {type(exc).__name__}: {exc}", file=sys.stderr)
+    if failed:
+        print(f"\n{failed}/{len(trials)} trial(s) skipped", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

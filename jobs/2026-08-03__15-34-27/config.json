@@ -1,0 +1,15 @@
+{
+    "job_name": "2026-08-03__15-34-27",
+    "agents": [
+        {
+            "name": "claude-code",
+            "model_name": "claude-sonnet-4-5-20250929",
+            "n_concurrent": 1
+        }
+    ],
+    "tasks": [
+        {
+            "path": "/tmp/deku-cmp/streak-habit-tracker"
+        }
+    ]
+}

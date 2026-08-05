@@ -1,0 +1,25 @@
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:0.22.21
+    restart: unless-stopped
+    # The image's own POCKETBASE_ADMIN_* env vars do not create the account, so
+    # the superuser is created explicitly in the task seed. `migrate up` must run
+    # first -- without it `admin create` fails with "Migration are not initialized
+    # yet" and the verifier has no privileged credential to inspect state with.
+    #
+    # The entrypoint is overridden rather than using `command:` because the image
+    # entrypoint already supplies `serve`; appending to it makes PocketBase read
+    # "serve" as a hostname and bind https://serve with auto-TLS.
+    #
+    # pocketbase-init.sh is TASK-SPECIFIC (it creates that task's collections),
+    # so it stays in the task's environment/ -- not in this central fragment.
+    volumes:
+      - ./pocketbase-init.sh:/init.sh:ro
+    entrypoint:
+      - /bin/sh
+      - /init.sh
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8090/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s

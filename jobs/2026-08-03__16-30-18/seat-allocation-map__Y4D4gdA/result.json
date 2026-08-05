@@ -1,0 +1,114 @@
+{
+    "id": "a4b504a8-3e15-45be-ae53-8d53ae38aa22",
+    "task_name": "ethara/seat-allocation-map",
+    "trial_name": "seat-allocation-map__Y4D4gdA",
+    "trial_uri": "file:///Users/macbookpro/Desktop/greenfield/testing/jobs/2026-08-03__16-30-18/seat-allocation-map__Y4D4gdA",
+    "task_id": {
+        "path": "/tmp/deku-cmp/seat-allocation-map"
+    },
+    "source": null,
+    "task_checksum": "2c00b363b4a09f28a9decb7f65460d798c192fdcf1d8474f93c6e19b3a06f928",
+    "config": {
+        "task": {
+            "path": "/tmp/deku-cmp/seat-allocation-map",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": null
+        },
+        "trial_name": "seat-allocation-map__Y4D4gdA",
+        "trials_dir": "jobs/2026-08-03__16-30-18",
+        "install_only": false,
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "claude-code",
+            "import_path": null,
+            "model_name": "claude-sonnet-4-5-20250929",
+            "n_concurrent": 1,
+            "concurrency_group": null,
+            "skills": [],
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "resume_trajectory": false,
+            "load_trajectory": null,
+            "extra_allowed_hosts": [],
+            "kwargs": {},
+            "mcp_servers": []
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "override_tpu": null,
+            "mounts": null,
+            "extra_docker_compose": [],
+            "kwargs": {},
+            "extra_allowed_hosts": []
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "disable": false
+        },
+        "artifacts": [],
+        "extra_instruction_paths": [],
+        "job_id": "3bb8f400-d2e9-4d07-b823-ee44d8f66c38"
+    },
+    "agent_info": {
+        "name": "claude-code",
+        "version": "2.1.220",
+        "model_info": {
+            "name": "claude-sonnet-4-5-20250929",
+            "provider": null
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 6577989,
+        "n_cache_tokens": 6464752,
+        "n_output_tokens": 58470,
+        "cost_usd": 3.2405976000000005,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0.0,
+            "deployed": 0.0
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-08-03T11:00:18.936099Z",
+    "finished_at": "2026-08-03T11:24:48.467121Z",
+    "environment_setup": {
+        "started_at": "2026-08-03T11:00:18.994265Z",
+        "finished_at": "2026-08-03T11:00:34.753456Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-08-03T11:00:34.753827Z",
+        "finished_at": "2026-08-03T11:02:00.639722Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-08-03T11:02:00.641153Z",
+        "finished_at": "2026-08-03T11:21:45.289035Z"
+    },
+    "verifier": {
+        "started_at": "2026-08-03T11:21:58.888467Z",
+        "finished_at": "2026-08-03T11:24:48.467035Z"
+    },
+    "step_results": null
+}

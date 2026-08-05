@@ -1,0 +1,13 @@
+{
+    "agents": [
+        {
+            "name": "oracle",
+            "n_concurrent": 1
+        }
+    ],
+    "tasks": [
+        {
+            "path": "tasks/streak-habit-tracker"
+        }
+    ]
+}

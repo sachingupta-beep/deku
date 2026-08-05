@@ -1,0 +1,80 @@
+{
+  "summary": {
+    "reward": 0.0,
+    "invalid": [
+      "browser_substeps_ungraded",
+      "grader_unavailable",
+      "workflow_timeout"
+    ],
+    "workflows_total": 6,
+    "workflows_passed": 4,
+    "substeps_total": 4,
+    "substeps_passed": 4,
+    "browser_substeps_declared": 4,
+    "browser_substeps_total": 0,
+    "browser_substeps_passed": 0,
+    "browser_substeps_ungraded": 4,
+    "pytest_substeps_total": 4,
+    "pytest_substeps_passed": 4,
+    "critical_substeps_failed": 0,
+    "browser_graded": true,
+    "deployed": 1.0,
+    "judge_score": null
+  },
+  "workflows": [
+    {
+      "id": "page_loads_and_renders_calculator",
+      "purpose": "The single-page app loads and shows a bill input and a tip control",
+      "passed": false,
+      "substeps_passed": 0,
+      "substeps_graded": 0,
+      "ratio": 0.0,
+      "critical_failed": false
+    },
+    {
+      "id": "interactive_calculation_updates_totals",
+      "purpose": "Typing a bill and picking a tip updates the tip amount and total live on the page",
+      "passed": false,
+      "substeps_passed": 0,
+      "substeps_graded": 0,
+      "ratio": 0.0,
+      "critical_failed": false
+    },
+    {
+      "id": "api_health_endpoint_reachable",
+      "purpose": "/api/health answers 200 so the healthcheck can go green",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "api_calculate_basic_bill_and_tip",
+      "purpose": "The JSON endpoint returns the exact rounded fields for a normal case",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "api_calculate_split_across_people",
+      "purpose": "The JSON endpoint splits the total across the given people count",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "api_invalid_bill_rejected",
+      "purpose": "Invalid inputs are rejected with 400 and a JSON error, not a 5xx or a silent 200",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    }
+  ]
+}

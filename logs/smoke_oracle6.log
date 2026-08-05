@@ -1,0 +1,30 @@
+START 2026-08-04 12:27:50  ORACLE on smoke-tip-calculator
+
+          Environment Variables          
+  Variable            ┃  Phase           
+━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━
+  ANTHROPIC_API_KEY   │  [verifier.env]  
+  ANTHROPIC_BASE_URL  │  [verifier.env]  
+  APP_PUBLIC_URL      │  [verifier.env]  
+
+Tasks in this run will load these from your environment. Proceed? (Y/n):   1/1 Mean: 0.000 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0:14:10 0:00:00
+adhoc • oracle
+┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━┓
+┃ Trials ┃ Exceptions ┃  Mean ┃
+┡━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━┩
+│      1 │          0 │ 0.000 │
+└────────┴────────────┴───────┘
+
+┏━━━━━━━━┳━━━━━━━┓
+┃ Reward ┃ Count ┃
+┡━━━━━━━━╇━━━━━━━┩
+│ 0.0    │     1 │
+└────────┴───────┘
+
+Job Info
+Total runtime: 14m 10s
+Results written to jobs/2026-08-04__12-27-50/result.json
+Inspect results by running `harbor view jobs`
+Share results by running `harbor upload jobs/2026-08-04__12-27-50`
+
+END 2026-08-04 12:42:05

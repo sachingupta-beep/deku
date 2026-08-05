@@ -1,0 +1,10 @@
+START 2026-08-04 12:00:31  ORACLE on smoke-tip-calculator
+
+          Environment Variables          
+  Variable            ┃  Phase           
+━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━
+  ANTHROPIC_API_KEY   │  [verifier.env]  
+  ANTHROPIC_BASE_URL  │  [verifier.env]  
+  APP_PUBLIC_URL      │  [verifier.env]  
+
+Tasks in this run will load these from your environment. Proceed? (Y/n):   1/1 Mean: 0.000 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0:25:15 0:00:00

@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Create React frontend with Vite and TypeScript",
+  "description": "Initialize Vite project with React + TypeScript, install dependencies (Tailwind, TanStack Query, React Router, react-hook-form, Zod), configure build setup",
+  "activeForm": "Creating React frontend",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

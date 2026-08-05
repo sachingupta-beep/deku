@@ -1,0 +1,12 @@
+{
+    "task": {
+        "path": "/tmp/deku-smoke/streak-habit-tracker"
+    },
+    "trial_name": "streak-habit-tracker__kW4TMAK",
+    "trials_dir": "jobs/2026-08-03__13-04-24",
+    "agent": {
+        "name": "nop",
+        "n_concurrent": 1
+    },
+    "job_id": "bf385753-b9d2-47ff-bd60-c6ceed7d1074"
+}

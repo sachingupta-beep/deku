@@ -1,0 +1,20 @@
+  # Mailpit is a real SMTP server with an HTTP inbox API -- not a stub. The
+  # agent sends confirmation emails over SMTP on 1025; the verifier reads the
+  # inbox at the HTTP API on 8025 via EMAIL_INBOX_API_URL. Pinned to a specific
+  # version tag for reproducibility; `latest` would silently break on API changes.
+  mailpit:
+    image: axllent/mailpit:v1.30.6
+    restart: unless-stopped
+    environment:
+      # No auth required for local fixture use -- the agent sends unauthenticated
+      # SMTP and the verifier reads the inbox without credentials.
+      MP_MAX_MESSAGES: "500"
+    ports:
+      - "1025:1025"   # SMTP -- agent sends here
+      - "8025:8025"   # HTTP API/UI -- verifier inspects here
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8025/api/v1/messages > /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s

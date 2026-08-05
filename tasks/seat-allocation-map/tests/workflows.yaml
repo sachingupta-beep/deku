@@ -1,0 +1,159 @@
+# Hidden grading checklist (PLAN.md 4.4).
+#
+# Baked into the verifier image and NEVER uploaded to the agent container --
+# [verifier].environment_mode = "separate" in task.toml is what guarantees that.
+#
+# A workflow passes iff  passing_substeps / total_substeps >= 0.90
+#                        AND every substep marked `critical` passed.
+# reward = passing_workflows / total_workflows.
+#
+# Substep grader selection:
+#   browser -> what a user does or sees
+#   pytest  -> a real, externally observable side effect (DB state, HTTP surface,
+#              permission denial). Deterministic by construction; prefer it whenever
+#              either grader could assert the same thing.
+
+# ---------------------------------------------------------------- happy paths
+
+- id: employee_finds_own_seat
+  purpose: An employee signs in and finds their own seat, floor, zone and project
+  substeps:
+    - kind: browser
+      do: Sign in with the employee credentials documented in /app/USER_README.md
+    - kind: browser
+      do: Search the employee directory for "Amit" and open their detail view
+    - kind: browser
+      do: Verify the detail view shows floor 2, zone B, bay 4, seat B4-23 and project Talos
+    - kind: pytest
+      test: test_data_integrity.py::test_amit_seat_matches_database
+
+- id: hr_onboards_new_joiner
+  purpose: HR adds a joiner and allocates a suggested seat near their project team
+  substeps:
+    - kind: browser
+      do: Sign in as the admin account documented in /app/USER_README.md
+    - kind: browser
+      do: Create a new employee on project Talos with a unique email
+    - kind: browser
+      do: Verify the app offers ranked available seat suggestions for that employee
+    - kind: browser
+      do: Accept a suggested seat and verify a success confirmation appears
+    - kind: pytest
+      test: test_allocation.py::test_new_joiner_allocation_persisted
+      critical: true
+
+- id: hr_releases_leaver_seat
+  purpose: Releasing an allocation immediately returns the seat to the available pool
+  substeps:
+    - kind: browser
+      do: Sign in as admin and open an employee who currently holds a seat
+    - kind: browser
+      do: Release the seat and confirm in the destructive-confirmation dialog
+    - kind: browser
+      do: Verify the employee no longer shows an allocated seat
+    - kind: pytest
+      test: test_allocation.py::test_release_frees_seat
+      critical: true
+
+- id: dashboard_matches_reality
+  purpose: Dashboard counts reflect true database state, not a cached or invented number
+  substeps:
+    - kind: browser
+      do: Sign in and open the dashboard
+    - kind: browser
+      do: Verify tiles for total employees and total, occupied, available and reserved seats are present
+    - kind: browser
+      do: Open the pending-allocation tile and verify it lists employees without a seat
+    - kind: pytest
+      test: test_data_integrity.py::test_dashboard_counts_match_database
+      critical: true
+
+- id: available_seats_filtered_by_floor
+  purpose: Anyone can list every free desk on a given floor
+  substeps:
+    - kind: browser
+      do: Sign in and open the seats view
+    - kind: browser
+      do: Filter to floor 3 with status available
+    - kind: browser
+      do: Verify every row shown is on floor 3 and marked available
+    - kind: pytest
+      test: test_data_integrity.py::test_available_seats_filter_matches_database
+
+- id: assistant_answers_natural_language
+  purpose: The assistant answers seat, project and availability questions with no external service
+  substeps:
+    - kind: browser
+      do: Sign in and open the assistant panel
+    - kind: browser
+      do: Ask where the employee with email amit@ethara.ai sits
+    - kind: browser
+      do: Verify the answer names seat B4-23 on floor 2 and project Talos
+    - kind: pytest
+      test: test_ai.py::test_ai_answers_seat_query
+    - kind: pytest
+      test: test_ai.py::test_ai_answers_available_seats_query
+    - kind: pytest
+      test: test_ai.py::test_ai_is_read_only
+      critical: true
+
+# ------------------------------------------------------------ non-happy paths
+
+- id: employee_cannot_mutate
+  purpose: Authorization is enforced server side, not by hiding controls
+  substeps:
+    - kind: browser
+      do: Sign in as the employee account
+    - kind: browser
+      do: Verify no allocate, release or create-employee control is available
+    - kind: pytest
+      test: test_rbac.py::test_employee_allocate_denied_at_api
+      critical: true
+    - kind: pytest
+      test: test_rbac.py::test_employee_create_denied_at_api
+      critical: true
+
+- id: unauthenticated_access_denied
+  purpose: Protected routes and endpoints reject anonymous callers
+  substeps:
+    - kind: browser
+      do: Open the dashboard route without signing in and verify a redirect to the login page
+    - kind: pytest
+      test: test_rbac.py::test_unauthenticated_requests_denied
+      critical: true
+
+- id: concurrent_allocation_single_winner
+  purpose: Two simultaneous allocations of one seat cannot both succeed
+  substeps:
+    - kind: pytest
+      test: test_allocation.py::test_concurrent_allocate_same_seat_single_winner
+      critical: true
+
+- id: employee_holds_at_most_one_seat
+  purpose: An employee cannot hold two active allocations
+  substeps:
+    - kind: pytest
+      test: test_allocation.py::test_second_allocation_for_same_employee_rejected
+      critical: true
+
+- id: non_available_seat_rejected
+  purpose: Reserved and maintenance seats are not allocatable
+  substeps:
+    - kind: browser
+      do: Sign in as admin and attempt to allocate a seat shown as reserved
+    - kind: browser
+      do: Verify the app surfaces a specific rejection reason rather than succeeding
+    - kind: pytest
+      test: test_allocation.py::test_reserved_seat_allocation_rejected
+    - kind: pytest
+      test: test_allocation.py::test_maintenance_seat_allocation_rejected
+
+- id: duplicate_employee_email_rejected
+  purpose: A second employee with an existing email is rejected, not silently accepted
+  substeps:
+    - kind: browser
+      do: Sign in as admin and submit the new-employee form with an email already in use
+    - kind: browser
+      do: Verify a validation error is shown and no duplicate row appears in the directory
+    - kind: pytest
+      test: test_data_integrity.py::test_duplicate_employee_email_rejected

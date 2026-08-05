@@ -1,0 +1,12 @@
+{
+    "task": {
+        "path": "/tmp/deku-smoke/smoke-tip-calculator"
+    },
+    "trial_name": "smoke-tip-calculator__dp5MtUj",
+    "trials_dir": "jobs/2026-08-04__10-42-07",
+    "agent": {
+        "name": "oracle",
+        "n_concurrent": 1
+    },
+    "job_id": "7d438df8-fcf3-4bd3-8d2a-6b4d72fcac08"
+}

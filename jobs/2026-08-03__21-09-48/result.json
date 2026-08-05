@@ -1,0 +1,111 @@
+{
+    "id": "0f0702db-1751-4fe5-a513-6ab5dc75d2ca",
+    "started_at": "2026-08-03T21:09:49.488399",
+    "updated_at": "2026-08-03T21:54:03.597707",
+    "finished_at": "2026-08-03T21:54:03.597707",
+    "n_total_trials": 1,
+    "stats": {
+        "n_completed_trials": 1,
+        "n_errored_trials": 0,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "claude-code__claude-sonnet-4-5-20250929__adhoc": {
+                "n_trials": 1,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "browser_graded": 1.0,
+                        "browser_substeps_passed": 0.0,
+                        "browser_substeps_total": 20.0,
+                        "critical_substeps_failed": 10.0,
+                        "deployed": 1.0,
+                        "judge_score": 0.0,
+                        "pytest_substeps_passed": 1.0,
+                        "pytest_substeps_total": 12.0,
+                        "reward": 0.0,
+                        "substeps_passed": 1.0,
+                        "substeps_total": 32.0,
+                        "workflows_passed": 0.0,
+                        "workflows_total": 11.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0.0": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "workflows_total": {
+                        "11": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "workflows_passed": {
+                        "0": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "substeps_total": {
+                        "32": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "substeps_passed": {
+                        "1": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "browser_substeps_total": {
+                        "20": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "browser_substeps_passed": {
+                        "0": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "pytest_substeps_total": {
+                        "12": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "pytest_substeps_passed": {
+                        "1": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "critical_substeps_failed": {
+                        "10": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "browser_graded": {
+                        "1": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "deployed": {
+                        "1.0": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    },
+                    "judge_score": {
+                        "0.0": [
+                            "streak-habit-tracker__s5p5N4u"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 11362197,
+        "n_cache_tokens": 11145153,
+        "n_output_tokens": 61587,
+        "cost_usd": 5.0804011499999975
+    }
+}
