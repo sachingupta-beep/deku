@@ -1,0 +1,64 @@
+========================================================================
+HARNESS DEBUG TIMELINE  --  calculator  /  unknown-model  /  calculator__ktHwXuF
+========================================================================
+started : 2026-08-05T08:23:14.480347Z
+finished: 2026-08-05T08:27:42.068152Z
+REWARD  : 0.0   deployed=None   invalid=['browser_results_missing', 'browser_substeps_ungraded']
+
+--- stage durations (seconds) ---
+  environment_setup   : 104.3
+  agent_setup         : 0.0
+  agent_execution     : 0.0
+  verifier            : 151.1
+
+--- 1. ENVIRONMENT + AGENT SETUP (orchestration.log) ---
+Skipping image OS validation for hb__b7faccf30cb965fb25a05341350b107a: docker inspect returned 1
+Collecting main service artifacts
+The verifier.env contains an API key (often the case for LLM-based verifiers). You will incur costs associated with the API calls.
+
+
+--- 2. AGENT EXECUTION ---
+  cost_usd=None  stop_reason=None
+  trajectory: trajectory/trajectory.json  (raw: trajectory/claude-code.txt)
+
+--- 3. VERIFIER (deploy gate -> browser -> pytest -> judge -> score) ---
+app never became reachable at http://localhost:4173 - scoring 0
+INVALID RUN (browser_results_missing, browser_substeps_ungraded): the app was not fully observed; reward forced to 0.0 and must not be read as an agent failure
+reward=0.0000 workflows=0/10 critical_failed=9 browser_graded=False ungraded_browser=7
+
+
+--- 4. SCORE ---
+  {
+  "reward": 0.0,
+  "invalid": [
+    "browser_results_missing",
+    "browser_substeps_ungraded"
+  ],
+  "workflows_total": 10,
+  "workflows_passed": 0,
+  "substeps_total": 9,
+  "substeps_passed": 0,
+  "browser_substeps_declared": 7,
+  "browser_substeps_total": 0,
+  "browser_substeps_passed": 0,
+  "browser_substeps_ungraded": 7,
+  "pytest_substeps_total": 9,
+  "pytest_substeps_passed": 0,
+  "critical_substeps_failed": 9,
+  "browser_graded": false,
+  "deployed": 0.0,
+  "judge_score": null
+}
+    [FAIL] page_loads_and_renders_calculator  (0/0)
+    [FAIL] keypad_calculation_shows_result  (0/0)
+    [FAIL] calculation_appears_in_history  (0/1)
+    [FAIL] api_health_endpoint_reachable  (0/1)
+    [FAIL] api_respects_operator_precedence  (0/1)
+    [FAIL] api_handles_parentheses_and_negatives  (0/1)
+    [FAIL] history_newest_first_and_capped  (0/1)
+    [FAIL] history_cleared_leaves_empty_log  (0/1)
+    [FAIL] division_by_zero_rejected  (0/1)
+    [FAIL] invalid_expression_rejected  (0/2)
+
+========================================================================
+END

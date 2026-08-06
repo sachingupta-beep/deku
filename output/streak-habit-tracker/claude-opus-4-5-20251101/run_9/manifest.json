@@ -1,0 +1,24 @@
+{
+  "task": "streak-habit-tracker",
+  "model": "claude-opus-4-5-20251101",
+  "trial_id": "streak-habit-tracker__8a9tJku",
+  "source_job": "jobs/2026-08-03__15-07-06/streak-habit-tracker__8a9tJku",
+  "task_checksum": "bd8247e2addd7502d2eff313d9fbeec0a69ad1ed07fa83ad244774b7edbdd0d4",
+  "reward": 0.0,
+  "deployed": 0.0,
+  "invalid": [],
+  "exception": null,
+  "started_at": "2026-08-03T09:37:07.170522Z",
+  "finished_at": "2026-08-03T10:04:24.500250Z",
+  "stage_seconds": {
+    "environment_setup": 7.9,
+    "agent_setup": 63.3,
+    "agent_execution": 1385.3,
+    "verifier": 167.4
+  },
+  "agent": {
+    "version": "2.1.220",
+    "cost_usd": 8.352797499999996
+  },
+  "repackaged_from": "harness/repackage.py"
+}

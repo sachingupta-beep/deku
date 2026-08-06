@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Harbor CLI launcher for the Deku harness.
+#
+# Why this exists: .venv was created at a different path (/Users/apple/Downloads/
+# testing/.venv) and later moved here. Virtualenvs are not relocatable, so two
+# things are broken inside it and neither is worth "fixing" by hand every time:
+#
+#   1. .venv/bin/python3.12 -> /opt/homebrew/opt/python@3.12/bin/python3.12
+#      Homebrew on this machine has python@3.10, 3.11 and 3.14 -- no 3.12 -- so
+#      that symlink dangles and the interpreter cannot start at all.
+#   2. Every console script in .venv/bin carries an absolute shebang pointing at
+#      the old path, so `.venv/bin/harbor` dies with "bad interpreter" even once
+#      the symlink is fixed.
+#
+# This script sidesteps both without modifying the venv: it runs a real 3.12
+# interpreter found on the system and points PYTHONPATH at the venv's
+# site-packages, where harbor 0.20.0 is installed and imports cleanly.
+#
+# Usage:
+#   bin/harbor --version
+#   bin/harbor init deku/thing --task --output-dir tasks
+#   yes | bin/harbor run -p tasks/calculator -a nop
+#
+# Put it on PATH to drop the prefix:
+#   export PATH="/Users/apple/Desktop/Green_Field/deku/bin:$PATH"
+
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SITE_PACKAGES="$REPO/.venv/lib/python3.12/site-packages"
+
+if [[ ! -d "$SITE_PACKAGES" ]]; then
+  echo "harbor: no site-packages at $SITE_PACKAGES" >&2
+  echo "        is .venv present in $REPO?" >&2
+  exit 1
+fi
+
+# harbor 0.20.0 is built against 3.12 and site-packages is a 3.12 tree, so the
+# interpreter has to be 3.12 -- 3.14 will not load the compiled deps.
+find_python312() {
+  local candidate
+  for candidate in \
+    /usr/local/bin/python3.12 \
+    /opt/homebrew/bin/python3.12 \
+    /opt/homebrew/opt/python@3.12/bin/python3.12 \
+    /usr/bin/python3.12
+  do
+    [[ -x "$candidate" ]] && { echo "$candidate"; return 0; }
+  done
+  command -v python3.12 2>/dev/null && return 0
+  return 1
+}
+
+PYTHON="$(find_python312)" || {
+  echo "harbor: no python3.12 found on this system." >&2
+  echo "        harbor 0.20.0 lives in a 3.12 site-packages tree and will not" >&2
+  echo "        import under 3.13+. Install one with: brew install python@3.12" >&2
+  exit 1
+}
+
+# sys.argv[0] is rewritten so Typer prints "harbor ..." in usage and error text
+# rather than "-c", which is what the -c invocation would otherwise show.
+exec env PYTHONPATH="$SITE_PACKAGES${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" -c '
+import sys
+from harbor.cli.main import app
+sys.argv[0] = "harbor"
+sys.exit(app())
+' "$@"

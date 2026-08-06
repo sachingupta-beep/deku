@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# One command: build a trajectory, grade it, publish it.
+#
+#   bin/deku-run tasks/calculator
+#   bin/deku-run tasks/streak-habit-tracker -m anthropic/claude-sonnet-4-5-20250929
+#   bin/deku-run tasks/calculator --shared-only     # skip the clean-container regrade
+#   bin/deku-run tasks/calculator -a nop            # free pipeline smoke test
+#
+# Chains the four steps that were separate commands:
+#
+#   1. harbor run                 agent builds the app, Harbor grades it in place
+#   2. repackage.py               publish that grading   -> output/... graded_by=verifier
+#   3. eval_fresh.py              REDEPLOY into a clean container and regrade
+#   4. repackage.py --verifier-dir  publish that too     -> output/... graded_by=verifier_fresh
+#
+# Step 3 is the one that matters: it grades the app the agent BUILT rather than
+# the process the agent LEFT RUNNING. A gap between the two scores is how much
+# the in-place number leaned on a warm container.
+#
+# Any extra flags are passed straight through to `harbor run`.
+
+set -uo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO"
+
+TASK="${1:-}"
+if [[ -z "$TASK" || "$TASK" == -* ]]; then
+  echo "usage: bin/deku-run <task-path> [--shared-only] [harbor flags...]" >&2
+  echo "   e.g. bin/deku-run tasks/calculator" >&2
+  exit 2
+fi
+shift
+
+AGENT="openhands"
+MODEL="anthropic/claude-opus-4-5-20251101"
+FRESH=1
+# Bash 3.2 (the macOS default) errors on "${arr[@]}" for an EMPTY array under
+# `set -u`. The ${arr[@]+"${arr[@]}"} form expands to nothing when unset and to
+# the elements otherwise, and is safe on both 3.2 and 5.x.
+PASSTHRU=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --shared-only) FRESH=0; shift ;;
+    -a|--agent)    AGENT="$2"; shift 2 ;;
+    -m|--model)    MODEL="$2"; shift 2 ;;
+    *)             PASSTHRU+=("$1"); shift ;;
+  esac
+done
+
+# `nop` and `oracle` take no model, and passing one makes Harbor reject the run.
+MODEL_FLAG=(-m "$MODEL")
+AK_FLAG=(--ak version=0.62.0)
+if [[ "$AGENT" == "nop" || "$AGENT" == "oracle" ]]; then
+  MODEL_FLAG=(); AK_FLAG=()
+elif [[ "$AGENT" != "openhands" ]]; then
+  AK_FLAG=()   # --ak version is an OpenHands kwarg only
+fi
+
+# Fail early rather than 15 minutes in with an unreachable grader.
+if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+  echo "ANTHROPIC_API_KEY is not set -- Harbor will refuse to start." >&2
+  echo "Set the bridge env first (see the runbook), then re-run." >&2
+  exit 2
+fi
+
+# Snapshot the existing jobs BEFORE running, so the trial we grade afterwards is
+# provably the one this invocation produced. Taking "newest" alone is wrong: when
+# the agent phase fails to start a trial at all, newest-first silently returns a
+# PREVIOUS run -- and we would then regrade and republish an unrelated task's
+# result as though it were this one.
+BEFORE="$(ls -d jobs/*/ 2>/dev/null | sort)"
+
+echo "==> [1/4] agent phase: $AGENT on $(basename "$TASK")"
+yes | bin/harbor run --path "$REPO/${TASK#./}" -a "$AGENT" \
+      ${MODEL_FLAG[@]+"${MODEL_FLAG[@]}"} ${AK_FLAG[@]+"${AK_FLAG[@]}"} \
+      --n-concurrent-agents 1 ${PASSTHRU[@]+"${PASSTHRU[@]}"}
+HARBOR_RC=$?
+
+AFTER="$(ls -d jobs/*/ 2>/dev/null | sort)"
+JOB="$(comm -13 <(printf '%s\n' "$BEFORE") <(printf '%s\n' "$AFTER") | tail -1)"
+if [[ -z "$JOB" ]]; then
+  echo >&2
+  echo "This run produced no new job directory, so there is nothing to grade." >&2
+  echo "The agent phase did not start -- check the harbor output above." >&2
+  exit "${HARBOR_RC:-1}"
+fi
+
+TRIAL="$(ls -td "$JOB"*__*/ 2>/dev/null | head -1)"
+TRIAL="${TRIAL%/}"
+if [[ -z "$TRIAL" || ! -d "$TRIAL" ]]; then
+  echo "job $JOB has no trial directory -- the agent phase did not run." >&2
+  exit "${HARBOR_RC:-1}"
+fi
+echo "==> trial: $TRIAL"
+
+echo "==> [2/4] publishing the in-place grading"
+python3 harness/repackage.py "$TRIAL" || true
+
+if [[ "$FRESH" == "0" ]]; then
+  echo "==> --shared-only: skipping the clean-container regrade"
+  exit "${HARBOR_RC:-0}"
+fi
+
+echo "==> [3/4] regrading in a clean container"
+bin/deku-py harness/eval_fresh.py "$TRIAL"
+FRESH_RC=$?
+
+echo "==> [4/4] publishing the clean-container grading"
+if [[ -d "$TRIAL/verifier_fresh" ]]; then
+  python3 harness/repackage.py "$TRIAL" --verifier-dir verifier_fresh || true
+fi
+
+echo
+echo "=================== SCORES ==================="
+for pair in "verifier:in-place (shared container)" "verifier_fresh:clean container"; do
+  d="${pair%%:*}"; label="${pair#*:}"
+  f="$TRIAL/$d/reward.json"
+  if [[ -f "$f" ]]; then
+    printf '  %-28s %s\n' "$label" "$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['reward'])" "$f")"
+  else
+    printf '  %-28s (not produced)\n' "$label"
+  fi
+done
+echo "=============================================="
+echo "output/ now holds both, tagged manifest.graded_by"
+
+exit "${FRESH_RC:-0}"

@@ -1,0 +1,29 @@
+{
+  "task": "streak-habit-tracker",
+  "model": "claude-sonnet-4-5-20250929",
+  "trial_id": "streak-habit-tracker__h3eePJv",
+  "source_job": "jobs/2026-08-03__18-53-21/streak-habit-tracker__h3eePJv",
+  "task_checksum": "5f4129c220210f47add6654e668c6009db89abf11faa320cc27273dbf371c9ed",
+  "reward": 0.0,
+  "deployed": 0.0,
+  "invalid": [],
+  "exception": {
+    "exception_type": "ApiResponseStalledError",
+    "exception_message": "Command failed (exit 1): export PATH=\"$HOME/.local/bin:$PATH\"; harbor_claude_code_instruction_dcedbfd0076d4846ae32b78ad1cd9f81=\"$HARBOR_CLAUDE_CODE_INSTRUCTION_DCEDBFD0076D4846AE32B78AD1CD9F81\"; unset HARBOR_CLAUDE_CODE_INSTRUCTION_DCEDBFD0076D4846AE32B78AD1CD9F81; printf \"%s\" \"$harbor_claude_code_instruction_dcedbfd0076d4846ae32b78ad1cd9f81\" | claude --verbose --output-format=stream-json --permission-mode=bypassPermissions --print 2>&1 | tee /logs/agent/claude-code.txt\nstdout: {\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"/app\",\"session_id\":\"655121d4-c0b9-4193-859e-cf5e382b9e92\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeu ... [222539 chars truncated] ... eral_5m_input_tokens\":54280},\"inference_geo\":\"not_available\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{\"claude-sonnet-4-5-20250929\":{\"inputTokens\":233,\"outputTokens\":13531,\"cacheReadInputTokens\":1209057,\"cacheCreationInputTokens\":54580,\"webSearchRequests\":0,\"costUSD\":0.7710561000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000,\"canonicalModel\":\"claude-sonnet-4-5\",\"provider\":\"firstParty\"}},\"permission_denials\":[],\"terminal_reason\":\"api_error\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"API Error: Response stalled mid-stream. The response above may be incomplete.\",\"type\":\"result\",\"duration_ms\":634816,\"uuid\":\"af37e456-4cc1-4f71-b1e5-69067c391fef\"}\n\nstderr: None",
+    "exception_traceback": "Traceback (most recent call last):\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/single_step.py\", line 77, in _run_agent\n    await self._run_agent_phase(\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/trial.py\", line 450, in _run_agent_phase\n    await asyncio.wait_for(\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py\", line 520, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/agents/installed/base.py\", line 168, in wrapper\n    return await fn(self, instruction, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/agents/installed/claude_code.py\", line 1516, in run\n    await self.exec_as_agent(\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/agents/installed/base.py\", line 592, in exec_as_agent\n    return await self._exec(\n           ^^^^^^^^^^^^^^^^^\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/agents/installed/base.py\", line 559, in _exec\n    raise self._classify_exec_error(command, result)\nharbor.agents.installed.base.ApiResponseStalledError: Command failed (exit 1): export PATH=\"$HOME/.local/bin:$PATH\"; harbor_claude_code_instruction_dcedbfd0076d4846ae32b78ad1cd9f81=\"$HARBOR_CLAUDE_CODE_INSTRUCTION_DCEDBFD0076D4846AE32B78AD1CD9F81\"; unset HARBOR_CLAUDE_CODE_INSTRUCTION_DCEDBFD0076D4846AE32B78AD1CD9F81; printf \"%s\" \"$harbor_claude_code_instruction_dcedbfd0076d4846ae32b78ad1cd9f81\" | claude --verbose --output-format=stream-json --permission-mode=bypassPermissions --print 2>&1 | tee /logs/agent/claude-code.txt\nstdout: {\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"/app\",\"session_id\":\"655121d4-c0b9-4193-859e-cf5e382b9e92\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeu ... [222539 chars truncated] ... eral_5m_input_tokens\":54280},\"inference_geo\":\"not_available\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{\"claude-sonnet-4-5-20250929\":{\"inputTokens\":233,\"outputTokens\":13531,\"cacheReadInputTokens\":1209057,\"cacheCreationInputTokens\":54580,\"webSearchRequests\":0,\"costUSD\":0.7710561000000001,\"contextWindow\":200000,\"maxOutputTokens\":32000,\"canonicalModel\":\"claude-sonnet-4-5\",\"provider\":\"firstParty\"}},\"permission_denials\":[],\"terminal_reason\":\"api_error\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"API Error: Response stalled mid-stream. The response above may be incomplete.\",\"type\":\"result\",\"duration_ms\":634816,\"uuid\":\"af37e456-4cc1-4f71-b1e5-69067c391fef\"}\n\nstderr: None\n",
+    "occurred_at": "2026-08-03T20:39:08.176851"
+  },
+  "started_at": "2026-08-03T13:23:22.303986Z",
+  "finished_at": "2026-08-03T15:11:54.918132Z",
+  "stage_seconds": {
+    "environment_setup": 22.9,
+    "agent_setup": 55.5,
+    "agent_execution": 6267.4,
+    "verifier": 151.3
+  },
+  "agent": {
+    "version": "2.1.220",
+    "cost_usd": 0.7710561000000001
+  },
+  "repackaged_from": "harness/repackage.py"
+}

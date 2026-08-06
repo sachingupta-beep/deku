@@ -1,0 +1,33 @@
+workflow page_loads_and_renders_calculator (2 browser substeps)
+  substep 1/2: Open the root URL and verify the page renders a tip calculator with a visible bi
+  [cooldown] waiting 60s before first grader call
+  [retry] HTTP 429, sleeping 45s (1/2)
+  substep 2/2: Verify the page shows three output labels named tip, total, and per person (case
+  -> 0/2 passed (369.4s)
+workflow interactive_calculation_updates_totals (1 browser substeps)
+  substep 1/1: Type 100 into the bill amount input, set the tip percentage to 15, and confirm t
+  -> 0/1 passed (0.1s)
+workflow api_invalid_bill_rejected (1 browser substeps)
+  substep 1/1: Type -5 into the bill amount input and confirm a visible validation message appe
+  -> 0/1 passed (0.1s)
+....                                                                     [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_smoke.py::test_health_endpoint_returns_200
+PASSED ../tests/test_smoke.py::test_calculate_basic_returns_exact_shape
+PASSED ../tests/test_smoke.py::test_calculate_split_returns_per_person
+PASSED ../tests/test_smoke.py::test_invalid_bill_returns_400
+4 passed in 0.04s
+gathering evidence @ http://localhost:4173 across 3 viewport(s)
+grading dimension `instruction_following` (weight 0.3)
+  [cooldown] waiting 60s before first grader call
+  [retry] HTTP 429, sleeping 45s (1/2)
+grading dimension `functionality` (weight 0.25)
+grading dimension `ux_flow` (weight 0.15)
+grading dimension `ui_visual` (weight 0.15)
+grading dimension `motion` (weight 0.05)
+grading dimension `accessibility` (weight 0.05)
+grading dimension `responsiveness` (weight 0.05)
+judge_score = 0.0000 (advisory, see PLAN.md 1.4). wrote /logs/verifier/judge.json
+INVALID RUN (browser_substeps_ungraded, grader_unavailable, workflow_timeout): the app was not fully observed; reward forced to 0.0 and must not be read as an agent failure
+reward=0.0000 workflows=4/6 critical_failed=0 browser_graded=True ungraded_browser=4

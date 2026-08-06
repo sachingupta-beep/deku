@@ -1,0 +1,101 @@
+{
+  "workflows": [
+    {
+      "id": "page_loads_and_renders_calculator",
+      "substeps": [
+        {
+          "passed": true,
+          "note": "Calculator page renders successfully with visible display area showing \"0\" and all clickable controls including digits 0-9 and the four operators (plus, minus, times, divide).",
+          "steps_used": 4,
+          "do": "Open the root URL and verify the page renders a calculator with a visible display area and clickable controls for digits and the four operators plus minus times divide"
+        },
+        {
+          "passed": true,
+          "note": "The page shows a \"History\" section with \"Clear\" button and displays \"No calculations yet\", confirming the history area is present and visibly empty.",
+          "steps_used": 2,
+          "do": "Verify the page shows a history area (a list, panel, or section labelled history or recent) and that it is visibly empty or shows no calculation rows before anything has been entered"
+        }
+      ]
+    },
+    {
+      "id": "keypad_calculation_shows_result",
+      "substeps": [
+        {
+          "passed": true,
+          "note": "Successfully entered the expression 12+5*3 using on-screen controls, activated equals, and confirmed the display shows the correct result of 27.",
+          "steps_used": 16,
+          "do": "Using the on-screen controls enter the expression 12+5*3 and activate the equals control, then confirm the display shows the result 27"
+        },
+        {
+          "passed": true,
+          "note": "Successfully cleared display, entered 7/2, pressed equals, and confirmed the display shows 3.5",
+          "steps_used": 12,
+          "do": "Clear the display, enter 7/2, activate equals, and confirm the display shows 3.5"
+        }
+      ]
+    },
+    {
+      "id": "calculation_appears_in_history",
+      "substeps": [
+        {
+          "passed": true,
+          "note": "After evaluating the expression \"1+2\", a history row appeared showing \"1+2 = 3\" with both the expression and its result correctly displayed.",
+          "steps_used": 10,
+          "do": "After evaluating an expression, confirm a history row appears showing that expression and its result"
+        }
+      ]
+    },
+    {
+      "id": "api_health_endpoint_reachable",
+      "substeps": []
+    },
+    {
+      "id": "api_respects_operator_precedence",
+      "substeps": []
+    },
+    {
+      "id": "api_handles_parentheses_and_negatives",
+      "substeps": []
+    },
+    {
+      "id": "history_newest_first_and_capped",
+      "substeps": []
+    },
+    {
+      "id": "history_cleared_leaves_empty_log",
+      "substeps": [
+        {
+          "passed": true,
+          "note": "Successfully activated the clear-history control and confirmed the history panel now shows \"No calculations yet\" with no calculation rows.",
+          "steps_used": 4,
+          "do": "Activate the clear-history control and confirm the history panel no longer lists any calculation rows"
+        }
+      ]
+    },
+    {
+      "id": "division_by_zero_rejected",
+      "substeps": [
+        {
+          "passed": true,
+          "note": "Successfully entered 1/0 and pressed equals; calculator displays \"Division by zero\" error message without showing any stale numeric result.",
+          "steps_used": 10,
+          "do": "Enter the expression 1/0 and activate equals, then confirm a visible error message appears and the display does not show a stale numeric result from a previous calculation"
+        }
+      ]
+    },
+    {
+      "id": "invalid_expression_rejected",
+      "substeps": []
+    }
+  ],
+  "meta": {
+    "grader_model": "claude-sonnet-4-5-20250929",
+    "grader_provider": "anthropic",
+    "viewport": "1920x1200",
+    "url": "http://localhost:4173",
+    "max_steps": 100,
+    "started_at": "2026-08-06T07:18:05+00:00",
+    "finished_at": "2026-08-06T07:26:53+00:00",
+    "ungraded_substeps": 0
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "task": "streak-habit-tracker",
+  "model": "claude-sonnet-4-5-20250929",
+  "trial_id": "streak-habit-tracker__cPvAFnn",
+  "source_job": "jobs/2026-08-03__20-43-13/streak-habit-tracker__cPvAFnn",
+  "task_checksum": "5f4129c220210f47add6654e668c6009db89abf11faa320cc27273dbf371c9ed",
+  "reward": 0.0,
+  "deployed": 1.0,
+  "invalid": [],
+  "exception": null,
+  "started_at": "2026-08-03T15:13:15.008206Z",
+  "finished_at": "2026-08-03T15:34:59.548856Z",
+  "stage_seconds": {
+    "environment_setup": 36.7,
+    "agent_setup": 40.7,
+    "agent_execution": 1202.5,
+    "verifier": 10.4
+  },
+  "agent": {
+    "version": "2.1.220",
+    "cost_usd": 3.281760450000001
+  },
+  "repackaged_from": "harness/repackage.py"
+}

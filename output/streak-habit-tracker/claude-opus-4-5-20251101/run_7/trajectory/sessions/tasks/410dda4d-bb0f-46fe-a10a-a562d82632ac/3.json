@@ -1,0 +1,8 @@
+{
+  "id": "3",
+  "subject": "Build Express API layer",
+  "description": "Create API endpoints matching required shapes: auth, habits CRUD, completions, dashboard, health",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

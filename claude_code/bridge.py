@@ -31,6 +31,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import time
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, Union
 
@@ -188,20 +189,71 @@ def _sse_error_bytes(err_type: str, message: str) -> bytes:
     )
 
 
-def drop_conflicting_sampling_params(body: dict[str, Any]) -> dict[str, Any]:
-    """Remove ``top_p`` when ``temperature`` is also set.
+def _rejects_temperature(model: str) -> bool:
+    """True when this model 400s on ``temperature`` being present at all.
 
-    Anthropic rejects the pair outright ("`temperature` and `top_p` cannot both
-    be specified"), and some newer models reject ``temperature`` entirely. Agents
-    that always send both -- OpenHands 0.62 via LiteLLM is the case that surfaced
-    this -- therefore fail on their first call with a 400 and never take a step.
+    Driven by ``KAIJU_CC_NO_TEMPERATURE_MODELS`` (a regex, case-insensitive) so a
+    new model does not need a code change. The default encodes the one family we
+    have actually OBSERVED reject it, quoted verbatim from the upstream 400:
 
-    Dropping ``top_p`` keeps the caller's explicit temperature, which is the
-    parameter agents actually tune. Not configurable: sending both is always an
-    upstream error, so there is no case where forwarding it unchanged is correct.
+        opus-4-8: `temperature` is deprecated for this model.
+
+    Deliberately not widened to "every future opus" -- guessing which models
+    reject the parameter would silently strip a sampling knob callers set on
+    purpose. Add to the regex when a real 400 says to, not in anticipation.
     """
+    pattern = os.environ.get("KAIJU_CC_NO_TEMPERATURE_MODELS", "").strip()
+    if not pattern:
+        pattern = r"claude-opus-4-8"
+    try:
+        return re.search(pattern, model, re.IGNORECASE) is not None
+    except re.error:
+        _LOG.warning(
+            "KAIJU_CC_NO_TEMPERATURE_MODELS is not a valid regex (%r); "
+            "ignoring it and applying the pair rule only", pattern,
+        )
+        return False
+
+
+def drop_conflicting_sampling_params(body: dict[str, Any]) -> dict[str, Any]:
+    """Reconcile ``temperature``/``top_p`` with what the target model accepts.
+
+    Anthropic enforces TWO separate rules, and an agent that always sends both
+    parameters -- OpenHands 0.62 via LiteLLM is the case that surfaced this --
+    trips whichever one applies and dies on its first call with a 400:
+
+        rule 1 (most models)  `temperature` and `top_p` cannot both be specified
+        rule 2 (e.g. opus-4-8) `temperature` is deprecated for this model.
+
+    LiteLLM maps 400 to a terminal BadRequestError, so OpenHands does not retry:
+    CodeActAgent goes RUNNING -> ERROR having taken zero actions, and the trial
+    still runs the verifier against an empty container and records a 0.0 that
+    looks like an agent score. Handling this here, at the single choke point
+    every agent's traffic passes through, fixes it for all of them at once.
+
+    Order matters. Rule 2 is applied FIRST: on a model that rejects
+    ``temperature``, dropping ``top_p`` (rule 1's remedy) would leave the request
+    just as invalid -- which is exactly the bug this replaces, and why opus-4-8
+    never completed a single step while opus-4-5 worked fine.
+
+    Where both are legal we drop ``top_p`` and keep ``temperature``, because
+    temperature is the knob agents actually tune.
+
+    Not configurable as a whole: sending both is always an upstream error, so
+    there is no case where forwarding the request unchanged is correct. Only the
+    model matcher is tunable, via KAIJU_CC_NO_TEMPERATURE_MODELS.
+    """
+    model = str(body.get("model") or "")
+
+    if _rejects_temperature(model) and "temperature" in body:
+        body.pop("temperature")
+        _LOG.info(
+            "dropped `temperature` for model %r, which rejects it outright", model
+        )
+
     if "temperature" in body and "top_p" in body:
         body.pop("top_p")
+
     return body
 
 
@@ -228,7 +280,25 @@ def inject_system_prefix(body: dict[str, Any]) -> dict[str, Any]:
     if isinstance(system, str):
         if system.startswith(SYSTEM_PREFIX):
             return body
-        body["system"] = f"{SYSTEM_PREFIX}\n\n{system}"
+        # B17: the prefix must be its OWN content block. Concatenating it into a
+        # single string -- "PREFIX\n\n<caller text>" -- is rejected upstream, and
+        # rejected as `rate_limit_error` rather than anything that names the real
+        # problem. Measured 2026-08-05 against the OAuth path:
+        #
+        #   system = "<exact prefix>"                     -> 200
+        #   system = "<exact prefix> ...more text"        -> 429
+        #   system = [{prefix}, {…more text}]             -> 200
+        #
+        # Cost of getting this wrong: every grader call carries a system prompt,
+        # so 100% of browser substeps failed on every run while the agent (which
+        # sends block-shaped system content through LiteLLM) worked fine. The
+        # symptom read as quota exhaustion and sent us through account pools,
+        # cooldowns and provider swaps before the shape turned out to be the
+        # cause. Promote to blocks instead of concatenating.
+        body["system"] = [
+            {"type": "text", "text": SYSTEM_PREFIX},
+            {"type": "text", "text": system},
+        ]
         return body
 
     if isinstance(system, list):

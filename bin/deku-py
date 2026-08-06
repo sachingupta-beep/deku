@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Python launcher for the Deku harness scripts (bridge, graders, report tools).
+#
+# Same problem and same workaround as bin/harbor: .venv was created at a
+# different path and moved here, so its interpreter symlink dangles and every
+# console script has a stale absolute shebang. This runs a real 3.12 with the
+# venv's site-packages on PYTHONPATH, without modifying the venv.
+#
+# The repo root is prepended to PYTHONPATH as well, so `-m agent.claude_code`
+# resolves from any working directory.
+#
+# Usage:
+#   bin/deku-py -m agent.claude_code --host 0.0.0.0 --port 8765
+#   bin/deku-py harness/eval/report.py jobs/ --detail
+#   bin/deku-py harness/validate_task.py tasks/*/
+
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SITE_PACKAGES="$REPO/.venv/lib/python3.12/site-packages"
+
+if [[ ! -d "$SITE_PACKAGES" ]]; then
+  echo "deku-py: no site-packages at $SITE_PACKAGES" >&2
+  exit 1
+fi
+
+find_python312() {
+  local candidate
+  for candidate in \
+    /usr/local/bin/python3.12 \
+    /opt/homebrew/bin/python3.12 \
+    /opt/homebrew/opt/python@3.12/bin/python3.12 \
+    /usr/bin/python3.12
+  do
+    [[ -x "$candidate" ]] && { echo "$candidate"; return 0; }
+  done
+  command -v python3.12 2>/dev/null && return 0
+  return 1
+}
+
+PYTHON="$(find_python312)" || {
+  echo "deku-py: no python3.12 found. Install one with: brew install python@3.12" >&2
+  exit 1
+}
+
+exec env PYTHONPATH="$REPO:$SITE_PACKAGES${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON" "$@"

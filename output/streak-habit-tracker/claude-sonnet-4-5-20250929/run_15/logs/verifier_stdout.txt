@@ -1,0 +1,152 @@
+playwright not installed: No module named 'playwright'; emitting all-fail results
+.EEEEEEEEEEE                                                             [100%]
+==================================== ERRORS ====================================
+____________ ERROR at setup of test_other_users_habit_not_readable _____________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_____________ ERROR at setup of test_other_users_habit_not_mutable _____________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+________ ERROR at setup of test_mark_today_persists_and_streak_updates _________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_______ ERROR at setup of test_unmark_removes_completion_and_recomputes ________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+__________ ERROR at setup of test_duplicate_completion_is_idempotent ___________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+___________ ERROR at setup of test_future_dated_completion_rejected ____________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+________________ ERROR at setup of test_created_habit_persisted ________________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_______ ERROR at setup of test_duplicate_name_case_insensitive_rejected ________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_____ ERROR at setup of test_soft_delete_hides_habit_and_keeps_completions _____
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+______________ ERROR at setup of test_seeded_streaks_match_ledger ______________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_____________ ERROR at setup of test_dashboard_counts_match_ledger _____________
+
+db = <conftest.HabitStore object at 0xffffba7fa780>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_authorization.py::test_unauthenticated_requests_denied
+ERROR ../tests/test_authorization.py::test_other_users_habit_not_readable - A...
+ERROR ../tests/test_authorization.py::test_other_users_habit_not_mutable - As...
+ERROR ../tests/test_completions.py::test_mark_today_persists_and_streak_updates
+ERROR ../tests/test_completions.py::test_unmark_removes_completion_and_recomputes
+ERROR ../tests/test_completions.py::test_duplicate_completion_is_idempotent
+ERROR ../tests/test_completions.py::test_future_dated_completion_rejected - A...
+ERROR ../tests/test_habits.py::test_created_habit_persisted - AssertionError:...
+ERROR ../tests/test_habits.py::test_duplicate_name_case_insensitive_rejected
+ERROR ../tests/test_habits.py::test_soft_delete_hides_habit_and_keeps_completions
+ERROR ../tests/test_streaks.py::test_seeded_streaks_match_ledger - AssertionE...
+ERROR ../tests/test_streaks.py::test_dashboard_counts_match_ledger - Assertio...
+1 passed, 11 errors in 0.74s
+no rubric judge in this image (or no instruction.md) - skipping
+reward=0.0000 workflows=0/11 critical_failed=10 browser_graded=True

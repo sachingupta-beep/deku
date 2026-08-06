@@ -1,0 +1,9 @@
+{
+  "id": "7",
+  "subject": "Deploy and verify deployment contract",
+  "description": "Build production frontend, start detached server on correct port/host, create USER_README.md, verify health endpoint, test persistence after session",
+  "activeForm": "Deploying application",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

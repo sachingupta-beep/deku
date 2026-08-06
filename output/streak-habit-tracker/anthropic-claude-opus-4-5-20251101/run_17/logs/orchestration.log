@@ -1,0 +1,401 @@
+Skipping image OS validation for hb__98db060145f90872d389cd8c171829b3: docker inspect returned 1
+Running healthcheck: curl -fsS http://pocketbase:8090/api/health > /dev/null
+Healthcheck passed
+Running command: if command -v apk >/dev/null 2>&1; then  apk add --no-cache curl git build-base tmux; elif command -v apt-get >/dev/null 2>&1; then  apt-get update && apt-get install -y curl git build-essential tmux; elif command -v dnf >/dev/null 2>&1; then  dnf install -y curl git gcc gcc-c++ make tmux; elif command -v yum >/dev/null 2>&1; then  yum install -y curl git gcc gcc-c++ make tmux; else  echo "Error: No supported package manager found" >&2;  exit 1; fi
+Command outputs captured
+Running command: mkdir -p /opt/openhands-venv && chown root:root /opt/openhands-venv
+Command outputs captured
+Running command: set -euo pipefail; curl -LsSf https://astral.sh/uv/install.sh | sh && if [ -f "$HOME/.local/bin/env" ]; then source "$HOME/.local/bin/env"; fi && uv python install 3.13 && uv venv /opt/openhands-venv --python 3.13 && source /opt/openhands-venv/bin/activate && export SKIP_VSCODE_BUILD=true && uv pip install openhands-ai==0.62.0 && /opt/openhands-venv/bin/python -m openhands.core.main --version
+Command outputs captured
+Running command: SANDBOX_VOLUMES=${PWD}:/workspace:rw USER=`id -un` /opt/openhands-venv/bin/python -m openhands.core.main --task='# Ethara — Streak Habit Tracker
+
+Build and deploy a working web application from this brief. There is no starting
+codebase. When you are done, a stranger must be able to open the app in a browser,
+sign in, add a habit, mark it complete for today, and see the streak count update
+without hitting an error page.
+
+---
+
+## Overview
+
+A single-user personal habit tracker. The user keeps a small list of daily habits
+(for example "meditate", "read for 20 minutes", "no soda"), marks each one done on
+the days they actually did it, and watches a **current streak** and a **longest
+streak** number climb. The whole product is one person, their habits, their
+completion history, and a couple of counters — nothing more.
+
+The backend for this task is **PocketBase**. PocketBase supplies both persistence
+(collections over REST) and authentication (email + password) in a single binary.
+Do not add a second database, a second auth provider, or any other backing service.
+
+---
+
+## User roles
+
+| Role | Can do |
+|---|---|
+| `user` | Sign in; create, rename and delete their own habits; mark a habit complete or uncomplete on a given date; view their streak counters and history |
+
+There is exactly one role and one seeded account. There is no admin surface, no
+sharing, no multi-user visibility. Every habit and every completion belongs to
+the signed-in user, and a user must never be able to read or mutate another
+user'"'"'s data through the API.
+
+Authorization is enforced **server-side on every endpoint that touches habits or
+completions**. A request without a valid bearer token, or a request whose token
+belongs to a different user, must be rejected with `401` or `403` — hiding a
+button in the UI is not authorization.
+
+---
+
+## Core features
+
+### Habit management
+Create, list, rename and delete habits. A habit has a name (1–80 characters,
+unique per user, case-insensitive), an optional short description (up to 200
+characters), a colour tag from a fixed palette of six, a created timestamp, and
+a soft-deleted flag. Deleting a habit is a soft delete — the record is hidden
+from the list but its completion history is preserved on disk so a later
+undelete could restore it.
+
+- The habit name is unique per user, case-insensitive. Creating a second habit
+  named "Meditate" while "meditate" already exists must be rejected with a `4xx`
+  error, not silently accepted.
+- Renaming a habit to a name another of your own habits already uses must be
+  rejected the same way.
+
+### Completions
+Mark a habit complete for a given date, and un-mark it. A completion has the
+habit id, the user id, and a date (calendar day, no time-of-day). Concretely:
+
+1. A completion is uniquely identified by (`user_id`, `habit_id`, `date`).
+   Marking the same habit complete for the same date twice must **not** create a
+   second row and must **not** double-count. The second attempt is either a
+   no-op returning `200` or a rejection returning `409` — pick one and be
+   consistent.
+2. Un-marking removes the completion for that (habit, date) pair. Un-marking a
+   date that was never marked is a no-op returning `200` or `204`.
+3. A completion cannot be recorded for a date in the future relative to today
+   (server-side "today", UTC). Attempts must be rejected with a `4xx` error.
+4. A completion belongs to the calling user only. Marking or un-marking a habit
+   whose `user_id` differs from the caller'"'"'s must be rejected with `401` or
+   `403`, and no row may be written or removed.
+
+### Streak calculation
+For each habit, expose two numbers:
+
+- **`current_streak`** — the number of consecutive days ending on **today** on
+  which the habit is marked complete. If today is not marked, `current_streak`
+  is `0` (a day that is not yet marked breaks the current streak — the user has
+  until end of day to keep it alive).
+- **`longest_streak`** — the maximum run of consecutive days ever recorded for
+  this habit.
+
+A missing day in the middle of a run breaks the streak: completions on Mon-Tue
+followed by nothing on Wed and a completion on Thu means `current_streak` on Thu
+is `1`, not `3`. Marking the same day twice does not extend the streak
+(rule 1 above). Streaks are computed from the completion table on the fly — do
+not store them in a column that can drift out of sync with the ledger.
+
+### Dashboard
+A single page showing, for the signed-in user: the total number of habits, the
+sum of completions ever recorded, the count of habits with a `current_streak`
+of at least one, and a per-habit list of `{name, current_streak, longest_streak,
+completed_today}`. Every tile and every row reflects true state within one
+request of any mark or un-mark. No stale counts.
+
+### Empty state
+A user with no habits sees a clear empty state — a short prompt and an "Add
+habit" button — not a broken table with a spinner or a blank white screen.
+
+### Auth
+Email and password login. The app returns a stateless bearer token as
+`{"access_token": <token>}` on success and the client sends it as
+`Authorization: Bearer <token>` on every subsequent request. Passwords are
+stored hashed (PocketBase does this natively). One seeded account, listed in
+the Data model section. No signup, no password reset, no SSO.
+
+---
+
+## User flow
+
+| Route | Purpose | Auth |
+|---|---|---|
+| `/login` | Email + password sign in | No |
+| `/` | Dashboard — counters and per-habit streaks | Signed in |
+| `/habits` | Habit table with add / rename / delete | Signed in |
+| `/habits/:id` | Habit detail: completion calendar and streak history | Signed in |
+
+**Navigation.** A slim top bar with the product name on the left and the
+current user'"'"'s email plus a Sign out link on the right. Two links: Dashboard and
+Habits. On narrow screens the two links collapse into a menu icon.
+
+**Entry and redirects.**
+
+- Unauthenticated visitor to any protected route → redirect to `/login?next=<path>`.
+- Login success → the `next` param if present, otherwise `/`.
+- Sign out → `/login`.
+- Token expired mid-action → clear the token, redirect to `/login?next=<current>`,
+  and surface a "session expired" message.
+
+**Journeys.**
+
+1. **Daily check-in.** Sign in → dashboard → for each habit, click the "Mark
+   today" toggle → the row'"'"'s `completed_today` becomes true, the counter tile
+   updates, and if the previous day was also marked the `current_streak` goes up
+   by one.
+2. **Add a habit.** Habits → "Add habit" → name and colour → save → new row
+   appears with `current_streak = 0` and `longest_streak = 0`.
+3. **Fix a mistake.** Open the habit detail → click yesterday'"'"'s tile to
+   un-mark → the streak recomputes from the ledger and the dashboard reflects
+   the new numbers on the next read.
+4. **Remove a habit.** Habits → delete a row → destructive-confirm dialog → row
+   disappears from the list. The completion rows for that habit stay on disk.
+
+**States.** Every list has a loading skeleton, an empty state, and an error
+state distinct from empty. Business-rule rejections (duplicate name, future-dated
+completion) surface a specific reason inline, not a generic red banner.
+
+---
+
+## UI/UX notes
+
+Calm, personal, sober — a private notebook, not a gamified streak app with
+confetti. Warm neutrals with one confident indigo accent, small type, generous
+whitespace, tables that feel light. No trophies, no fireworks, no motivational
+copy. Reference points: Linear'"'"'s typographic restraint and the muted density of
+a good personal-finance tool.
+
+**Palette.** Background `#FAF9F7`, surface `#FFFFFF`, primary text `#111827`,
+muted text `#6B7280`, primary / CTA `#4F46E5` (hover `#4338CA`), border
+`#E5E7EB`, danger `#DC2626`, success `#16A34A`. The six habit-colour tags are
+indigo `#4F46E5`, teal `#0D9488`, amber `#D97706`, rose `#E11D48`, slate
+`#475569`, forest `#166534`. Dark mode is optional; if you ship it, background
+`#0B1220`, surface `#111827`, text `#F3F4F6`, muted `#9CA3AF`, border `#1F2937`.
+
+**Type.** Inter for UI, JetBrains Mono for streak numbers and date pills.
+Heading scale 28 / 22 / 18 / 16, body 14 with 16 for emphasis, caption 12. Line
+height 1.5 body, 1.25 headings. Tabular numerals in the streak counters and the
+dashboard tiles.
+
+**Shape.** 8px radius default, 12px on cards, pill radius for the colour tag.
+1px hairline borders. Cards carry a single soft shadow; modals a larger one.
+
+**Density.** Airy on the dashboard tiles, compact on the habits table (36px
+rows, sticky header). The completion calendar uses a 12×N grid of squares
+coloured by the habit'"'"'s tag when marked and empty when not, with a hover
+tooltip carrying the ISO date.
+
+**Components.** Buttons in primary, secondary, ghost and destructive at 28 / 36
+/ 44px. Inputs with a 2px indigo focus ring, labels above, errors below in
+danger color. Toasts top-right, auto-dismissing. Modals centered with a blurred
+backdrop, closable with Escape, with a confirm step before any habit deletion.
+
+**Motion.** 150ms standard, 250ms entering, `cubic-bezier(0.16, 1, 0.3, 1)`.
+No bounce. Respect `prefers-reduced-motion`.
+
+**Responsive and accessible.** Breakpoints at 640 / 768 / 1024 / 1280, touch
+targets at least 44×44. WCAG AA: contrast at least 4.5:1 for body text, full
+keyboard navigation, a visible focus ring on every interactive element, and
+meaningful labels on icon-only buttons.
+
+---
+
+## Technical requirements
+
+- **Frontend:** React 18 with Vite, TypeScript in strict mode, Tailwind CSS v3.
+  TanStack Query for server state, React Context for the session, React Router
+  v6, react-hook-form for forms, Zod for shared request and response shapes. A
+  typed `fetch` wrapper injects the bearer token and handles `401`.
+- **Backend:** **PocketBase** as the sole backing service. Reach it at the URL
+  in the `BACKEND_URL` environment variable. You may put a thin server in front
+  (a small FastAPI or Express layer, or PocketBase custom Go hooks) to shape the
+  `/api/...` routes pinned below, or expose PocketBase'"'"'s own REST directly under
+  those paths through a reverse proxy — either is fine. What matters is that
+  the exact route shapes below answer on the app origin.
+- **Health:** `GET /api/health` returns `200` once the app is ready.
+- **Logging:** structured logging to stdout.
+
+Use only the libraries named here plus their direct dependencies and PocketBase
+itself. Do not introduce a second database, cache, queue, object store,
+identity provider or email service — the only backing service available in this
+environment is the PocketBase instance at `BACKEND_URL`, and reaching for
+anything else is a contract violation.
+
+---
+
+## Data model
+
+Three PocketBase collections. All timestamps are UTC. Collection names below are
+**exact** — the grader queries them by these names. **All persistent application
+data lives in these PocketBase collections.** Using PocketBase only for login
+while keeping habits or completions in SQLite, a JSON file, or process memory is a
+contract violation: the grader reads PocketBase, so that data is invisible to it
+and every assertion about it fails.
+
+**`users`** — the built-in PocketBase auth collection, kept under that name. An
+account has an id, email, verified flag, hashed password (managed by
+PocketBase), and a created timestamp.
+
+**`habits`** — id; `user_id` (FK to `users.id`); `name` (1–80 characters);
+`description` (optional, up to 200); `color` (one of `indigo`, `teal`, `amber`,
+`rose`, `slate`, `forest`); `deleted` (boolean, default false); created and
+updated timestamps.
+
+Constraints on `habits`:
+
+- Unique per (`user_id`, lowercased `name`) where `deleted = false`. Two live
+  habits by the same user with names that differ only in case must not coexist.
+
+**`completions`** — id; `user_id` (FK to `users.id`); `habit_id` (FK to
+`habits.id`); `date` (ISO calendar day, `YYYY-MM-DD`, UTC); created timestamp.
+
+Constraints on `completions`:
+
+- Unique on (`user_id`, `habit_id`, `date`). A duplicate mark for the same day
+  cannot create a second row. This is what makes rule 1 of Completions hold.
+- `user_id` on a completion row must equal the `user_id` on its habit.
+
+### Seed data
+
+The database must be seeded deterministically on first start:
+
+**Every seeded account uses the password `deku-demo-pw-2026`.** It is benchmark fixture data, not a secret. Hash it as normal; the exact literal must work at login, and it must be written into `/app/USER_README.md` alongside each account so a grader can sign in.
+
+
+- One user account: email `demo@ethara.ai`.
+- Three habits for that user, all with `deleted = false`:
+  - `Meditate` (indigo)
+  - `Read 20 minutes` (teal)
+  - `No soda` (amber)
+- Completions such that, on the day the app is first started (server "today",
+  UTC):
+  - `Meditate` has a `current_streak` of **5**: completions on today and the
+    four preceding days.
+  - `Read 20 minutes` has a `current_streak` of **0** and a `longest_streak` of
+    at least **3**: completions three days in a row somewhere earlier this
+    month, and nothing today.
+  - `No soda` has a `current_streak` of **1**: a completion for today, and
+    a gap on the day before.
+
+Seeding must be idempotent — restarting the app must not duplicate rows or
+change the seeded streak values.
+
+---
+
+## Constraints
+
+- Single user, no sharing, no multi-account switching.
+- No reminders, notifications, email or push. This is a personal notebook.
+- No timezones per habit — all dates are UTC calendar days.
+- No gamification (points, badges, confetti, sound).
+- No native mobile app; responsive web only.
+- No external network calls at runtime. Everything the app needs is in this
+  environment.
+- Only the PocketBase instance at `BACKEND_URL` is available. No other backing
+  service.
+
+---
+
+## Deployment contract
+
+Non-negotiable. The application is graded through a browser and over HTTP by a
+process that knows nothing about your code, so the following must hold exactly.
+
+- The app is reachable at the URL in the `APP_PUBLIC_URL` environment variable,
+  served on the port in `APP_PUBLIC_PORT` (`4173`). Never hardcode the port —
+  read it from the environment.
+- The REST API is served on that **same origin** under the `/api` prefix.
+- The app starts from this environment image with **no manual steps**. The
+  healthcheck must go green on its own.
+- Default login credentials are written to **`/app/USER_README.md`** so a
+  grader can sign in.
+- Reserve the directories `.browser_screenshots/` and `.downloads/` at the app
+  root and leave them empty.
+- The frontend is served as a **production build behind a preview server** —
+  never a dev server.
+- **The server must outlive your session.** Grading runs in a separate container
+  *after* your session ends. Start the server fully detached, for example
+  `setsid nohup <command> > /tmp/app.log 2>&1 < /dev/null &`, so it is not a child
+  of your shell and not a session-scoped background job. A server started as an
+  ordinary background job is killed the instant your session ends, and the app
+  scores zero however correct it is.
+- Bind to `0.0.0.0`, never `127.0.0.1` or `localhost` — the grader connects from a
+  different container, so a loopback-only listener is unreachable.
+- Before you finish, verify persistence yourself: confirm the listening process is
+  still running with a parent that is not your shell, and that the port answers.
+- **Write `/app/start.sh`, and make it executable.** Grading may redeploy your app
+  into a *clean* container: same base image, your `/app` files copied in, and
+  nothing else — no processes running, no caches you warmed, no packages you
+  installed outside `/app`, no state you created by hand. The backing services are
+  still there at the same addresses, but their data is **re-seeded from scratch**,
+  so anything you wrote into them during your session is gone. `start.sh` is the
+  only thing that turns your files back into a running app, so it must:
+  - install whatever it needs (vendor dependencies into `/app`, or install them
+    inside the script — do not assume anything you installed during your session
+    still exists),
+  - read the port from `APP_PUBLIC_PORT` and every service address from the
+    environment, never hardcoded,
+  - start the server detached exactly as described above,
+  - exit `0` once the app is answering, and non-zero if it cannot start.
+- **Prove `start.sh` works before you finish.** Kill every process you started, run
+  `bash /app/start.sh` yourself, and confirm the app answers afterwards. An app that
+  only runs because of something you did by hand in this session is not a deployable
+  app, and will score zero.
+- **The backing services are ALREADY RUNNING.** Every service named in this brief
+  is started for you before your session begins and is reachable at the environment
+  variable given for it. **Do not download, install, compile or start your own copy
+  of any of them.** Read the address from the environment; never hardcode it and
+  never substitute a local file, an embedded database, or your own instance of the
+  same product. The grader inspects the service at that address — an app that
+  writes to a different instance scores zero no matter how well it works.
+- Use **only** the PocketBase instance at `BACKEND_URL`. No other backing
+  service.
+- No persistent volumes, no fixed container names, no custom networks. The app
+  must tear down and re-run cleanly.
+
+### API shapes
+
+Everything internal is your choice. These request and response shapes are not —
+they are the interface the grader holds you to. Field names are exact.
+
+| Endpoint | Request body | Success | On success returns |
+|---|---|---|---|
+| `POST /api/auth/login` | `{"email": str, "password": str}` | `200` | `{"access_token": str, ...}` |
+| `GET  /api/habits` | — | `200` | JSON array of `{"id", "name", "color", "current_streak", "longest_streak", "completed_today", ...}` |
+| `POST /api/habits` | `{"name": str, "color": str, "description"?: str}` | `200` or `201` | the created habit including `id` |
+| `GET  /api/habits/{id}` | — | `200` | the habit, including `current_streak`, `longest_streak`, `completed_today` |
+| `PATCH /api/habits/{id}` | `{"name"?: str, "color"?: str, "description"?: str}` | `200` | the updated habit |
+| `DELETE /api/habits/{id}` | — | `200`, `202` or `204` | — (habit is soft-deleted) |
+| `POST /api/habits/{id}/complete` | `{"date": "YYYY-MM-DD"}` | `200` or `201` | the completion or the current streak |
+| `DELETE /api/habits/{id}/complete` | `{"date": "YYYY-MM-DD"}` | `200`, `202` or `204` | — |
+| `GET  /api/dashboard` | — | `200` | `{"total_habits", "total_completions", "habits_with_active_streak", "habits": [...]}` |
+| `GET  /api/health` | — | `200` | — |
+
+Rules:
+
+- Every business-rule violation returns a `4xx` with a message naming the
+  reason. Never a `5xx`, never a silent `200` on a rule violation.
+- Every endpoint except `POST /api/auth/login` and `GET /api/health` requires a
+  valid bearer token; anonymous callers get `401` or `403`.
+- A token whose user does not own the referenced habit gets `401` or `403` on
+  every habit and completion endpoint.
+- List endpoints return a JSON array at the top level.
+
+---
+
+## Definition of done
+
+The app is deployed and healthy; the seeded user can sign in and see the three
+seeded habits with the seeded streak values; new habits can be added, renamed,
+and deleted through the browser; a habit can be marked complete and un-marked
+for a day and the streak counters recompute correctly; a duplicate mark for the
+same day is a no-op; a future-dated mark is rejected; a token from one user
+cannot read or mutate another user'"'"'s habits; the dashboard matches the
+completion ledger.
+
+Test your own work in a browser before you finish.
+' 2>&1 </dev/null | stdbuf -oL tee /logs/agent/openhands.txt
+Command outputs captured
+Collecting main service artifacts
+The verifier.env contains an API key (often the case for LLM-based verifiers). You will incur costs associated with the API calls.

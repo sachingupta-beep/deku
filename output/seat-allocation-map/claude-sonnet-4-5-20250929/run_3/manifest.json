@@ -1,0 +1,24 @@
+{
+  "task": "seat-allocation-map",
+  "model": "claude-sonnet-4-5-20250929",
+  "trial_id": "seat-allocation-map__Y4D4gdA",
+  "source_job": "jobs/2026-08-03__16-30-18/seat-allocation-map__Y4D4gdA",
+  "task_checksum": "2c00b363b4a09f28a9decb7f65460d798c192fdcf1d8474f93c6e19b3a06f928",
+  "reward": 0.0,
+  "deployed": 0.0,
+  "invalid": [],
+  "exception": null,
+  "started_at": "2026-08-03T11:00:18.936099Z",
+  "finished_at": "2026-08-03T11:24:48.467121Z",
+  "stage_seconds": {
+    "environment_setup": 15.8,
+    "agent_setup": 85.9,
+    "agent_execution": 1184.6,
+    "verifier": 169.6
+  },
+  "agent": {
+    "version": "2.1.220",
+    "cost_usd": 3.2405976000000005
+  },
+  "repackaged_from": "harness/repackage.py"
+}

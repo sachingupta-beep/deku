@@ -1,0 +1,18 @@
+{
+    "job_name": "2026-08-05__21-26-54",
+    "agents": [
+        {
+            "name": "openhands",
+            "model_name": "anthropic/claude-opus-4-5-20251101",
+            "n_concurrent": 1,
+            "kwargs": {
+                "version": "0.62.0"
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "path": "/Users/apple/Desktop/Green_Field/deku/tasks/streak-habit-tracker"
+        }
+    ]
+}

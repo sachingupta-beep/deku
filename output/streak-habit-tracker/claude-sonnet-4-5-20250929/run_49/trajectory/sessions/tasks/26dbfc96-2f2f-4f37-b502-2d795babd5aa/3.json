@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Build backend API layer",
+  "description": "Create API endpoints for auth, habits, completions, and dashboard. Implement streak calculation logic and authorization checks",
+  "activeForm": "Building API layer",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

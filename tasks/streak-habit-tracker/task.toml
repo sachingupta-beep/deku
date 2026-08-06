@@ -71,14 +71,25 @@ build_timeout_sec = 900.0
 # PLAN.md 3.6 targets no-network with a pre-seeded package cache. Until the
 # Phase 2 cache lands this uses the documented allowlist fallback. Egress is
 # build-time only: no provider is remote.
-network_mode  = "allowlist"
-allowed_hosts = [
-  "registry.npmjs.org",
-  "pypi.org",
-  "files.pythonhosted.org",
-  "github.com",
-  "objects.githubusercontent.com",
-]
+# LOCAL-DEV SETTING -- revert to "allowlist" before this task is admitted.
+# Docker Desktop's LinuxKit kernel lacks CONFIG_NFT_FIB_INET, so Harbor cannot
+# enforce any non-public mode and rejects the task outright. See the same note in
+# tasks/calculator/task.toml. Original: network_mode = "allowlist" with
+# allowed_hosts as listed below.
+#
+# allowed_hosts MUST stay commented out while network_mode is "public" -- Harbor
+# rejects the pair ("allowed_hosts is only valid when network_mode='allowlist'"),
+# and it rejects it by returning False from Task.is_valid_dir(), which makes the
+# CLI silently reclassify the directory as a DATASET and fail with the unrelated
+# "Either datasets or tasks must be provided." Restore both lines together.
+network_mode  = "public"
+# allowed_hosts = [
+#   "registry.npmjs.org",
+#   "pypi.org",
+#   "files.pythonhosted.org",
+#   "github.com",
+#   "objects.githubusercontent.com",
+# ]
 
 # Canonical backend-slot vars (PLAN.md 3.4). No admin credential here.
 # `${VAR:-default}` resolves from the host, falling back to the sidecar address in

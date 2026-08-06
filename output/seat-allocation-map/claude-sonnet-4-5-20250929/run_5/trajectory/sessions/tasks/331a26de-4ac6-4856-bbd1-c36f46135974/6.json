@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Deploy and verify",
+  "description": "Production build, detached server start, health check, USER_README.md",
+  "activeForm": "Deploying and verifying",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

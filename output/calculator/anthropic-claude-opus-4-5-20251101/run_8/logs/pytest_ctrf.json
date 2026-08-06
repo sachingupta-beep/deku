@@ -1,0 +1,101 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 9,
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1785919380.632707,
+            "stop": 1785919380.6969833
+        },
+        "tests": [
+            {
+                "name": "test_calculator.py::test_health_endpoint_returns_200",
+                "status": "passed",
+                "duration": 0.01723149999997986,
+                "start": 1785919380.6455047,
+                "stop": 1785919380.6629858,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_calculate_respects_operator_precedence",
+                "status": "passed",
+                "duration": 0.002020374000267111,
+                "start": 1785919380.6631007,
+                "stop": 1785919380.6652665,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_calculate_handles_parentheses_and_negatives",
+                "status": "passed",
+                "duration": 0.0032085829996049142,
+                "start": 1785919380.6653657,
+                "stop": 1785919380.6686978,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_history_records_calculation",
+                "status": "passed",
+                "duration": 0.0017142490000878752,
+                "start": 1785919380.6687777,
+                "stop": 1785919380.670621,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_history_is_newest_first_and_capped",
+                "status": "passed",
+                "duration": 0.009703998999839314,
+                "start": 1785919380.6706975,
+                "stop": 1785919380.6805406,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_history_clear_empties_the_log",
+                "status": "passed",
+                "duration": 0.0023325840002144105,
+                "start": 1785919380.680635,
+                "stop": 1785919380.6830955,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_division_by_zero_returns_400",
+                "status": "passed",
+                "duration": 0.001537708999876486,
+                "start": 1785919380.6831808,
+                "stop": 1785919380.6848414,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_invalid_expression_returns_400",
+                "status": "passed",
+                "duration": 0.0034316669998588623,
+                "start": 1785919380.6849186,
+                "stop": 1785919380.688464,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            },
+            {
+                "name": "test_calculator.py::test_rejected_expression_is_not_recorded",
+                "status": "passed",
+                "duration": 0.008091291999789973,
+                "start": 1785919380.6885426,
+                "stop": 1785919380.6968036,
+                "retries": 0,
+                "file_path": "test_calculator.py"
+            }
+        ]
+    }
+}

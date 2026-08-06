@@ -1,0 +1,12 @@
+{
+    "task": {
+        "path": "tasks/calculator"
+    },
+    "trial_name": "calculator__nxrEFcC",
+    "trials_dir": "jobs/2026-08-05__17-03-28",
+    "agent": {
+        "name": "nop",
+        "n_concurrent": 1
+    },
+    "job_id": "131cfd02-3328-4f3e-98e9-e4f622310b9e"
+}

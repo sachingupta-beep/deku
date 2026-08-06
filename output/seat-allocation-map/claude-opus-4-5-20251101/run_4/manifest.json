@@ -1,0 +1,24 @@
+{
+  "task": "seat-allocation-map",
+  "model": "claude-opus-4-5-20251101",
+  "trial_id": "seat-allocation-map__8eHqQB9",
+  "source_job": "jobs/2026-08-03__15-56-24/seat-allocation-map__8eHqQB9",
+  "task_checksum": "2c00b363b4a09f28a9decb7f65460d798c192fdcf1d8474f93c6e19b3a06f928",
+  "reward": 0.0,
+  "deployed": 0.0,
+  "invalid": [],
+  "exception": null,
+  "started_at": "2026-08-03T10:26:25.381821Z",
+  "finished_at": "2026-08-03T11:00:14.929260Z",
+  "stage_seconds": {
+    "environment_setup": 95.2,
+    "agent_setup": 144.4,
+    "agent_execution": 1606.9,
+    "verifier": 169.1
+  },
+  "agent": {
+    "version": "2.1.220",
+    "cost_usd": 8.903151500000002
+  },
+  "repackaged_from": "harness/repackage.py"
+}

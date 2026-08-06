@@ -1,0 +1,8 @@
+{
+  "id": "5",
+  "subject": "Deploy production build",
+  "description": "Build frontend, start detached server, write USER_README.md, verify deployment",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

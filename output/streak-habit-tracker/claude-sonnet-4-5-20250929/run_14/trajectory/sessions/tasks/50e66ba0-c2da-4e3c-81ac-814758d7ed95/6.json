@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Deploy as production build with detached server",
+  "description": "Build frontend, configure proxy, start server detached, verify health and persistence",
+  "activeForm": "Deploying application",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

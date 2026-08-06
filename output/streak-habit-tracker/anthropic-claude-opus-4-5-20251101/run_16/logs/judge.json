@@ -1,0 +1,130 @@
+{
+  "judge_score": 0.15,
+  "advisory": true,
+  "note": "Diagnostic only. PLAN.md 1.4: judge_score never drives training. A judge-only reward is trivially gamed. The binary substep grader owns the RL reward; this score is for human review only.",
+  "dimensions": {
+    "instruction_following": {
+      "score": 0.2,
+      "weight": 0.3,
+      "rationale": "The app only presents the login page (/login) and no other routes could be visited due to missing credentials. None of the core features specified\u2014habit management, completions, streak calculation, dashboard, habits list, or habit detail pages\u2014are visible or testable. The spec requires four distinct routes (/, /habits, /habits/:id, /login) with full CRUD operations and streak tracking, but only the login screen is accessible.",
+      "evidence": [
+        "00_root_1920x1200.png shows only a login form",
+        "routes_visited: ['/'] indicates only the root route was accessed",
+        "login_status: 'no credentials file' prevented testing protected routes",
+        "spec requires routes /, /habits, /habits/:id with habit CRUD, completions, and streak calculation\u2014none are reachable"
+      ],
+      "asks": "Are the features named in instruction.md Core-features and User-flow sections actually present and reachable in the deployed app? A missing feature is a score cut, a hidden-but-implemented feature is a smaller cut. Score against the actual spec passed in, not a generic notion."
+    },
+    "functionality": {
+      "score": 0.0,
+      "weight": 0.25,
+      "rationale": "The app presents a login page but cannot be tested for core functionality because no credentials were provided (\"login_status\": \"no credentials file\"). Only the route \"/\" was visited, which shows the login form. Without the ability to authenticate, none of the core flows\u2014habit management (create, list, rename, delete), completions (mark/unmark), streak calculation, dashboard, or any protected routes\u2014can be verified. The evidence shows the app loads without console errors, but functionality cannot be assessed.",
+      "evidence": [
+        "routes_visited: ['/']",
+        "login_status: no credentials file",
+        "screenshots show only /login page at 00_root_1920x1200.png, 00_root_768x1024.png, 00_root_390x844.png",
+        "console_errors_and_warnings: []"
+      ],
+      "asks": "Do the core flows actually WORK when driven -- signup/login, primary CRUD, submit forms, key journeys -- without runtime errors, dead ends, blank screens, or 500s? Console errors and failed network requests during real interaction count heavily."
+    },
+    "ux_flow": {
+      "score": 0.2,
+      "weight": 0.15,
+      "rationale": "The evidence shows only the /login route is accessible. No credentials file was provided, login could not be tested, and zero protected routes (/habits, /habits/:id, or dashboard at /) were visited. The spec requires unauth redirects to /login?next=, login success redirects, navigation links (Dashboard, Habits), a top bar with user email + Sign out, loading/empty/error states for lists, inline business-rule errors, and complete user journeys (daily check-in, add habit, fix mistake, remove habit). None of this could be verified from a single static login page.",
+      "evidence": [
+        "00_root_1920x1200.png",
+        "00_root_768x1024.png",
+        "00_root_390x844.png",
+        "routes_visited: ['/']",
+        "login_status: no credentials file"
+      ],
+      "asks": "Navigation reachability, empty states, loading states, error states, feedback on actions (toasts/inline messages), sensible redirects (unauth -> login?next=, login success -> next/home). Judge against the spec's User flow section."
+    },
+    "ui_visual": {
+      "score": 0.8,
+      "weight": 0.15,
+      "rationale": "The visual design largely matches the spec with correct palette colors, typography, and shape values. Background is `#FAF9F7`, primary text `#111827`, muted text `#6B7280`, primary CTA `#4F46E5`, all matching spec exactly. Inter font family is correctly applied, body is 14px with line-height 1.5 (computed 20px/14px \u2248 1.43), and 8px border-radius is consistent. Focus states show proper 2px indigo ring. However, there are gaps: H1 is 24px instead of the specified 28px, H2 is 18px (correct) but line-height is 28px instead of 1.25\u00d718=22.5px, and motion uses 150ms cubic-bezier(0.4,0,0.2,1) instead of the spec's cubic-bezier(0.16,1,0.3,1). The design feels intentional and avoids default framework styling, but these deviations prevent a perfect score.",
+      "evidence": [
+        "00_root_1920x1200.png",
+        "body background-color: rgb(250, 249, 247)",
+        "body color: rgb(17, 24, 39)",
+        "p color: rgb(107, 114, 128)",
+        "button background-color: rgb(79, 70, 229)",
+        "body font-family: Inter, system-ui, sans-serif",
+        "p font-size: 14px",
+        "p line-height: 20px",
+        "input border-radius: 8px",
+        "h1 font-size: 24px",
+        "h2 line-height: 28px",
+        "transition: cubic-bezier(0.4, 0, 0.2, 1)",
+        "focus box-shadow: rgb(79, 70, 229) 0px 0px 0px 2px"
+      ],
+      "asks": "Does the visual design match the UI/UX notes section -- palette hex values, type scale, radii, density, hierarchy? Does it look intentionally designed, or default-Bootstrap / default-Tailwind / default-shadcn slop? Use computed styles as objective evidence, not just screenshots."
+    },
+    "motion": {
+      "score": 0.2,
+      "weight": 0.05,
+      "rationale": "The app has minimal motion implementation that does not meet spec requirements. Only one element has a transition (0.15s cubic-bezier(0.4, 0, 0.2, 1)) instead of the specified 150ms/250ms with cubic-bezier(0.16, 1, 0.3, 1). While prefers-reduced-motion is respected (transitions change to 1e-05s when emulated), the baseline motion does not match the spec's easing curve or systematic application across interactive elements. The spec requires \"150ms standard, 250ms entering, cubic-bezier(0.16, 1, 0.3, 1)\" but the implementation uses a different easing curve and duration pattern.",
+      "evidence": [
+        "motion./.transitions shows only 1 element with 'color, background-color, border-color, text-decoration-color, fill, stroke|0.15s|cubic-bezier(0.4, 0, 0.2, 1)' instead of spec's cubic-bezier(0.16, 1, 0.3, 1)",
+        "motion_with_reduced_motion./.transitions correctly reduces to 1e-05s when prefers-reduced-motion is emulated",
+        "Spec requires '150ms standard, 250ms entering, cubic-bezier(0.16, 1, 0.3, 1)' but implementation uses cubic-bezier(0.4, 0, 0.2, 1)"
+      ],
+      "asks": "Are transitions present with durations and easing near the spec (typically 150ms / 250ms / cubic-bezier(0.16, 1, 0.3, 1))? Does the app respect prefers-reduced-motion when emulated? Zero motion is a cut; bouncy over-motion is also a cut if the spec forbids it."
+    },
+    "accessibility": {
+      "score": 0.8,
+      "weight": 0.05,
+      "rationale": "The app demonstrates strong accessibility fundamentals: visible focus indicators are present on all interactive elements (inputs show a 2px indigo ring via box-shadow, button shows auto outline), all inputs have visible labels, no icon-only buttons lack labels, and the app respects prefers-reduced-motion by reducing transitions to near-zero. Body text contrast is adequate (rgb(17, 24, 39) on rgb(250, 249, 247) meets WCAG AA 4.5:1). However, the login page lacks semantic landmarks (no main, nav, or header elements), which is a minor gap against full accessibility best practices.",
+      "evidence": [
+        "focus_walk shows input elements with box-shadow: rgb(79, 70, 229) 0px 0px 0px 2px indicating 2px indigo focus ring",
+        "focus_walk shows button with outline: rgb(16, 16, 16) auto 1px visible focus indicator",
+        "a11y_probes shows zero icon_only_buttons_without_label and zero unlabeled_inputs",
+        "motion_with_reduced_motion shows transitions reduced to 1e-05s when prefers-reduced-motion is true",
+        "computed_styles_sample shows body text color rgb(17, 24, 39) on background rgb(250, 249, 247)",
+        "a11y_probes landmarks shows 0 main, 0 nav, 0 header elements on the login page"
+      ],
+      "asks": "Visible focus indicator on Tab through, labels on icon buttons, WCAG AA text contrast (4.5:1 body), keyboard reachability. Judge against the spec's stated a11y bar."
+    },
+    "responsiveness": {
+      "score": 1.0,
+      "weight": 0.05,
+      "rationale": "The login page displays correctly across all three tested viewports (1920x1200 desktop, 768x1024 tablet, 390x844 mobile) with no horizontal overflow, overlapping elements, or hidden CTAs. The centered login card adapts appropriately to each screen size while maintaining proper spacing and readability. All interactive elements (email input, password input, sign-in button) are fully visible and accessible at every viewport.",
+      "evidence": [
+        "00_root_1920x1200.png",
+        "00_root_768x1024.png",
+        "00_root_390x844.png"
+      ],
+      "asks": "Does the layout hold at the mobile and tablet viewports without horizontal overflow, overlapping elements, hidden CTAs, or squashed tables? Judge from multi-viewport screenshots."
+    }
+  },
+  "missing_features": [
+    "/habits",
+    "/login",
+    "/login?next=<current>",
+    "/login?next=<path>"
+  ],
+  "console_errors": [],
+  "screenshots": [
+    "/logs/verifier/shots/00_root_1920x1200.png",
+    "/logs/verifier/shots/00_root_768x1024.png",
+    "/logs/verifier/shots/00_root_390x844.png"
+  ],
+  "meta": {
+    "grader_model": "claude-sonnet-4-5-20250929",
+    "url": "http://localhost:4173",
+    "viewports": [
+      "1920x1200",
+      "768x1024",
+      "390x844"
+    ],
+    "instruction": "/tests/instruction.md",
+    "started_at": "2026-08-06T08:21:30+00:00",
+    "harness": "run_rubric.py",
+    "finished_at": "2026-08-06T08:23:49+00:00",
+    "routes_visited": [
+      "/"
+    ],
+    "login_status": "no credentials file"
+  }
+}

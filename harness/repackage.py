@@ -85,7 +85,7 @@ def _task_services(task_name: str) -> dict:
     if tomllib and toml_path.exists():
         try:
             meta = tomllib.loads(toml_path.read_text())
-            services["declared"] = meta.get("metadata", {}).get("services", {})
+            services["declared"] = (meta.get("metadata") or {}).get("services") or {}
         except Exception:
             pass
     compose = tdir / "environment" / "docker-compose.yaml"
@@ -111,16 +111,41 @@ def _task_services(task_name: str) -> dict:
 
 
 # --------------------------------------------------------------- the writer
-def repackage(trial: Path) -> Path:
+def repackage(trial: Path, verifier_dir: str = "verifier") -> Path:
+    """Repackage a trial. `verifier_dir` selects WHICH grading run to publish.
+
+    "verifier"       -- Harbor's in-place (shared-container) grading
+    "verifier_fresh" -- harness/eval_fresh.py's clean-container regrade
+
+    Both live side by side under the same trial, so the same trial can be
+    published twice and the two scores compared directly.
+    """
     if not trial.exists():
         sys.exit(f"trial not found: {trial}")
+    vdir = trial / verifier_dir
+    if not vdir.is_dir():
+        sys.exit(f"no {verifier_dir}/ in {trial} -- has that grading run happened?")
 
     config = _load_json(trial / "config.json")
     result = _load_json(trial / "result.json")
     lock = _load_json(trial / "lock.json")
 
-    task_name = result.get("task_name", "").split("/")[-1] or trial.name.split("__")[0]
-    task_name = _slug(task_name)
+    # Prefer the TRIAL DIRECTORY name over result.json's `task_name`.
+    #
+    # `task_name` is the [task].name declared inside task.toml, which several
+    # tasks share: tasks/oracle-streak declares "ethara/streak-habit-tracker"
+    # because it is a variant of it. Trusting that filed oracle-streak's run under
+    # output/streak-habit-tracker/ next to genuine streak runs -- and worse, made
+    # _task_services() read tasks/streak-habit-tracker/, reporting the wrong
+    # task's service slots as this run's provenance.
+    #
+    # The directory name comes from the task path that was actually run, so it is
+    # the identity that matches tasks/<name>/ on disk. Fall back to the declared
+    # name only when the trial directory has no `__` suffix to split on.
+    task_name = _slug(
+        trial.name.split("__")[0]
+        or result.get("task_name", "").split("/")[-1]
+    )
     agent_info = result.get("agent_info") or {}
     model = _slug(
         (config.get("agent") or {}).get("model_name")
@@ -136,7 +161,7 @@ def repackage(trial: Path) -> Path:
 
     # --- reward + workflows (the score) ---
     for fn in ("reward.json", "workflows.json"):
-        src = trial / "verifier" / fn
+        src = vdir / fn
         if src.exists():
             shutil.copy2(src, dest / fn)
 
@@ -162,7 +187,7 @@ def repackage(trial: Path) -> Path:
 
     # --- screenshots ---
     shots = 0
-    for cand in (trial / "verifier" / "shots", trial / "verifier" / "screenshots"):
+    for cand in (vdir / "shots", vdir / "screenshots"):
         shots += _copytree(cand, dest / "screenshots")
 
     # --- services evidence ---
@@ -176,10 +201,10 @@ def repackage(trial: Path) -> Path:
     logs.mkdir(exist_ok=True)
     log_map = {
         trial / "trial.log": "orchestration.log",
-        trial / "verifier" / "test-stdout.txt": "verifier_stdout.txt",
-        trial / "verifier" / "ctrf.json": "pytest_ctrf.json",
-        trial / "verifier" / "judge.json": "judge.json",
-        trial / "verifier" / "ctrf-error.json": "pytest_collection_error.json",
+        vdir / "test-stdout.txt": "verifier_stdout.txt",
+        vdir / "ctrf.json": "pytest_ctrf.json",
+        vdir / "judge.json": "judge.json",
+        vdir / "ctrf-error.json": "pytest_collection_error.json",
         trial / "artifacts" / "manifest.json": "artifacts_manifest.json",
     }
     for src, name in log_map.items():
@@ -187,7 +212,16 @@ def repackage(trial: Path) -> Path:
             shutil.copy2(src, logs / name)
 
     # --- manifest (provenance) ---
-    rewards = result.get("verifier_result", {}).get("rewards", {})
+    #
+    # result.json only ever records HARBOR's grading, so it is the wrong source
+    # when publishing a regrade: a fresh-container run that scored 0.0 would be
+    # published carrying the shared-container 0.9 beside its own
+    # invalid:["no_start_script"] -- a manifest that contradicts itself.
+    # Prefer the reward file of the grading run actually being published.
+    rewards = (result.get("verifier_result") or {}).get("rewards") or {}
+    published = _load_json(vdir / "reward.json")
+    if "reward" in published:
+        rewards = {**rewards, "reward": published["reward"]}
     manifest = {
         "task": task_name,
         "model": model,
@@ -196,7 +230,7 @@ def repackage(trial: Path) -> Path:
         "task_checksum": lock.get("task_checksum") or result.get("task_checksum"),
         "reward": rewards.get("reward"),
         "deployed": rewards.get("deployed"),
-        "invalid": _load_json(dest / "workflows.json").get("summary", {}).get("invalid", []),
+        "invalid": (_load_json(dest / "workflows.json").get("summary") or {}).get("invalid") or [],
         "exception": result.get("exception_info"),
         "started_at": result.get("started_at"),
         "finished_at": result.get("finished_at"),
@@ -205,18 +239,19 @@ def repackage(trial: Path) -> Path:
             for s in ("environment_setup", "agent_setup", "agent_execution", "verifier")
         },
         "agent": {
-            "version": result.get("agent_info", {}).get("version"),
-            "cost_usd": result.get("agent_result", {}).get("cost_usd"),
+            "version": (result.get("agent_info") or {}).get("version"),
+            "cost_usd": (result.get("agent_result") or {}).get("cost_usd"),
         },
         "repackaged_from": "harness/repackage.py",
+        "graded_by": verifier_dir,
     }
     (dest / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
-    _write_debug_log(dest / "harness-debug.log", manifest, trial, result)
+    _write_debug_log(dest / "harness-debug.log", manifest, trial, result, vdir)
     return dest
 
 
-def _write_debug_log(path: Path, m: dict, trial: Path, result: dict) -> None:
+def _write_debug_log(path: Path, m: dict, trial: Path, result: dict, vdir: Path) -> None:
     """One human-readable start->end timeline of the whole trial."""
     L: list[str] = []
     add = L.append
@@ -238,20 +273,24 @@ def _write_debug_log(path: Path, m: dict, trial: Path, result: dict) -> None:
     add(tl.read_text()[-4000:] if tl.exists() else "  (no trial.log)")
     add("")
     add("--- 2. AGENT EXECUTION ---")
-    ar = result.get("agent_result", {})
+    # `or {}` not `.get(k, {})`: Harbor writes an explicit null for agent_result
+    # whenever the agent phase produced no usable result, and the {} default only
+    # covers a MISSING key. Every such trial -- exactly the failed runs a debug
+    # log is most wanted for -- was skipped whole with a bare AttributeError.
+    ar = result.get("agent_result") or {}
     add(f"  cost_usd={ar.get('cost_usd')}  stop_reason={ar.get('stop_reason')}")
     add(f"  trajectory: trajectory/trajectory.json  (raw: trajectory/claude-code.txt)")
     add("")
     add("--- 3. VERIFIER (deploy gate -> browser -> pytest -> judge -> score) ---")
-    vs = (trial / "verifier" / "test-stdout.txt")
+    vs = (vdir / "test-stdout.txt")
     add(vs.read_text() if vs.exists() else "  (no verifier stdout)")
-    ctrf = _load_json(trial / "verifier" / "ctrf.json")
+    ctrf = _load_json(vdir / "ctrf.json")
     if ctrf:
-        summ = ctrf.get("results", {}).get("summary", {})
+        summ = (ctrf.get("results") or {}).get("summary") or {}
         add(f"  pytest: {summ}")
     add("")
     add("--- 4. SCORE ---")
-    wf = _load_json(trial / "verifier" / "workflows.json")
+    wf = _load_json(vdir / "workflows.json")
     if wf:
         add(f"  {json.dumps(wf.get('summary', {}), indent=2)}")
         for w in wf.get("workflows", []):
@@ -269,11 +308,22 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("trial", nargs="?", help="path to a jobs/<ts>/<task>__<id> trial dir")
     ap.add_argument("--all", action="store_true", help="repackage every trial under jobs/")
+    ap.add_argument(
+        "--verifier-dir",
+        default="verifier",
+        help="which grading run to publish: 'verifier' (Harbor, shared "
+             "container) or 'verifier_fresh' (harness/eval_fresh.py, clean "
+             "container). Both can be published from the same trial.",
+    )
     args = ap.parse_args()
 
     trials: list[Path] = []
     if args.all:
         trials = [p for p in JOBS.glob("*/*__*") if p.is_dir()]
+        # With --verifier-dir verifier_fresh, most trials have never been
+        # regraded. Filter rather than emit a SKIP line for each.
+        if args.verifier_dir != "verifier":
+            trials = [p for p in trials if (p / args.verifier_dir).is_dir()]
     elif args.trial:
         trials = [Path(args.trial).resolve()]
     else:
@@ -282,7 +332,7 @@ def main() -> int:
     failed = 0
     for t in trials:
         try:
-            dest = repackage(t)
+            dest = repackage(t, verifier_dir=args.verifier_dir)
             print(f"repackaged {t.name}  ->  {dest.relative_to(REPO)}")
         except Exception as exc:  # one bad trial must not abort the batch
             failed += 1

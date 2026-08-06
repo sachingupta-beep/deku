@@ -1,0 +1,28 @@
+{
+  "task": "smoke-tip-calculator",
+  "model": "unknown-model",
+  "trial_id": "smoke-tip-calculator__oHdgPHQ",
+  "source_job": "jobs/2026-08-04__12-27-50/smoke-tip-calculator__oHdgPHQ",
+  "task_checksum": "1165be4c3c764b9f1fa94ac57b0bb72a4164a220b5f589014d7bf579e2ac08be",
+  "reward": 0.0,
+  "deployed": null,
+  "invalid": [
+    "browser_substeps_ungraded",
+    "grader_unavailable",
+    "workflow_timeout"
+  ],
+  "exception": null,
+  "started_at": "2026-08-04T06:57:51.479892Z",
+  "finished_at": "2026-08-04T07:12:02.301792Z",
+  "stage_seconds": {
+    "environment_setup": 11.6,
+    "agent_setup": 0.0,
+    "agent_execution": 1.4,
+    "verifier": 824.9
+  },
+  "agent": {
+    "version": "1.0.0",
+    "cost_usd": null
+  },
+  "repackaged_from": "harness/repackage.py"
+}

@@ -1,0 +1,29 @@
+{
+  "task": "smoke-tip-calculator",
+  "model": "unknown-model",
+  "trial_id": "smoke-tip-calculator__QQFJ8KW",
+  "source_job": "jobs/2026-08-04__10-43-26/smoke-tip-calculator__QQFJ8KW",
+  "task_checksum": "61b3ff494d01d051cd4f47e19e8bcc84dc72cfbd5062efbc228d267a98b7298a",
+  "reward": null,
+  "deployed": null,
+  "invalid": [],
+  "exception": {
+    "exception_type": "CancelledError",
+    "exception_message": "",
+    "exception_traceback": "Traceback (most recent call last):\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py\", line 195, in run\n    return runner.run(main)\n           ^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py\", line 118, in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/base_events.py\", line 678, in run_until_complete\n    self.run_forever()\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/base_events.py\", line 645, in run_forever\n    self._run_once()\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/base_events.py\", line 1961, in _run_once\n    event_list = self._selector.select(timeout)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/selectors.py\", line 566, in select\n    kev_list = self._selector.control(None, max_ev, timeout)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/cli/jobs.py\", line 317, in _handle_sigterm\n    raise KeyboardInterrupt\nKeyboardInterrupt\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/trial.py\", line 351, in run\n    await self._prepare()\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/trial.py\", line 386, in _prepare\n    await self.agent_environment.run_healthcheck()\n  File \"/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/environments/base.py\", line 1381, in run_healthcheck\n    await asyncio.sleep(hc.interval_sec)\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py\", line 665, in sleep\n    return await future\n           ^^^^^^^^^^^^\nasyncio.exceptions.CancelledError\n",
+    "occurred_at": "2026-08-04T11:08:59.276932"
+  },
+  "started_at": "2026-08-04T05:13:28.143230Z",
+  "finished_at": "2026-08-04T05:39:13.474138Z",
+  "stage_seconds": {
+    "environment_setup": 65.7,
+    "agent_setup": null,
+    "agent_execution": null,
+    "verifier": null
+  },
+  "agent": {
+    "version": "1.0.0",
+    "cost_usd": null
+  },
+  "repackaged_from": "harness/repackage.py"
+}

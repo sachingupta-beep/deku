@@ -49,7 +49,14 @@ fi
 
 # 3. Browser pass -- drives the UI through real user actions. Runs FIRST so the
 #    pytest pass only ever sees state a user actually created (PLAN.md 4.5).
-BROWSER_RESULTS=/tmp/browser_results.json
+# /logs/verifier is COLLECTED; /tmp is not. This file carries the only record of
+# WHY grading failed -- meta.grader_model / meta.grader_provider, and the
+# per-substep `note` holding the actual exception text. Parking it in /tmp meant
+# every grader fault reduced to a bare `invalid` reason code with the diagnosis
+# thrown away, so a 401, a bad request and a transport timeout were
+# indistinguishable after the run (2026-08-05: `grader_llm_error` on all 7
+# substeps, cause unrecoverable).
+BROWSER_RESULTS=/logs/verifier/browser_results.json
 if [ -x /tests/run_workflows.py ]; then
   /tests/run_workflows.py \
     --workflows /tests/workflows.yaml \

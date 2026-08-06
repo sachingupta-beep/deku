@@ -1,4 +1,4 @@
-#!/Users/apple/Downloads/testing/.venv/bin/python
+#!/Users/apple/Desktop/Green_Field/deku/.venv/bin/python
 import sys
 from fastapi.cli import main
 if __name__ == '__main__':

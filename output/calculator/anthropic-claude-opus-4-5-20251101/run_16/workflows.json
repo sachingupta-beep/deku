@@ -1,0 +1,112 @@
+{
+  "summary": {
+    "reward": 0.9,
+    "invalid": [],
+    "workflows_total": 10,
+    "workflows_passed": 9,
+    "substeps_total": 16,
+    "substeps_passed": 15,
+    "browser_substeps_declared": 7,
+    "browser_substeps_total": 7,
+    "browser_substeps_passed": 6,
+    "browser_substeps_ungraded": 0,
+    "pytest_substeps_total": 9,
+    "pytest_substeps_passed": 9,
+    "critical_substeps_failed": 0,
+    "browser_graded": true,
+    "deployed": 1.0,
+    "judge_score": null
+  },
+  "workflows": [
+    {
+      "id": "page_loads_and_renders_calculator",
+      "purpose": "The single-page app loads and shows a display, a keypad, and a history panel",
+      "passed": false,
+      "substeps_passed": 1,
+      "substeps_graded": 2,
+      "ratio": 0.5,
+      "critical_failed": false
+    },
+    {
+      "id": "keypad_calculation_shows_result",
+      "purpose": "Entering an expression and pressing equals shows the correct answer on the display",
+      "passed": true,
+      "substeps_passed": 2,
+      "substeps_graded": 2,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "calculation_appears_in_history",
+      "purpose": "A calculation made in the UI is recorded server-side, not just in the page",
+      "passed": true,
+      "substeps_passed": 2,
+      "substeps_graded": 2,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "api_health_endpoint_reachable",
+      "purpose": "/api/health answers 200 so the healthcheck can go green",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "api_respects_operator_precedence",
+      "purpose": "Multiplication and division bind tighter than addition and subtraction",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "api_handles_parentheses_and_negatives",
+      "purpose": "Parentheses override precedence and unary minus parses in both positions",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "history_newest_first_and_capped",
+      "purpose": "History is ordered newest first and holds at most 20 entries",
+      "passed": true,
+      "substeps_passed": 1,
+      "substeps_graded": 1,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "history_cleared_leaves_empty_log",
+      "purpose": "Clearing the history empties it server-side, not just visually",
+      "passed": true,
+      "substeps_passed": 2,
+      "substeps_graded": 2,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "division_by_zero_rejected",
+      "purpose": "Dividing by zero is a 400 with a JSON error, not a 5xx, an Infinity, or a silent 200",
+      "passed": true,
+      "substeps_passed": 2,
+      "substeps_graded": 2,
+      "ratio": 1.0,
+      "critical_failed": false
+    },
+    {
+      "id": "invalid_expression_rejected",
+      "purpose": "Malformed and non-arithmetic input is rejected and never reaches the history",
+      "passed": true,
+      "substeps_passed": 2,
+      "substeps_graded": 2,
+      "ratio": 1.0,
+      "critical_failed": false
+    }
+  ]
+}

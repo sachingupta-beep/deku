@@ -1,0 +1,139 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 12,
+            "passed": 1,
+            "failed": 11,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1785758154.1484344,
+            "stop": 1785758154.8846984
+        },
+        "tests": [
+            {
+                "name": "test_authorization.py::test_unauthenticated_requests_denied",
+                "status": "passed",
+                "duration": 0.0498270829999683,
+                "start": 1785758154.2294326,
+                "stop": 1785758154.2799466,
+                "retries": 0,
+                "file_path": "test_authorization.py"
+            },
+            {
+                "name": "test_authorization.py::test_other_users_habit_not_readable",
+                "status": "failed",
+                "duration": 0.5439014580000503,
+                "start": 1785758154.2805982,
+                "stop": 1785758154.8398914,
+                "retries": 0,
+                "file_path": "test_authorization.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_authorization.py::test_other_users_habit_not_mutable",
+                "status": "failed",
+                "duration": 0.0010272920000033992,
+                "start": 1785758154.84013,
+                "stop": 1785758154.8463306,
+                "retries": 0,
+                "file_path": "test_authorization.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_completions.py::test_mark_today_persists_and_streak_updates",
+                "status": "failed",
+                "duration": 0.00046508299988090585,
+                "start": 1785758154.8465006,
+                "stop": 1785758154.8505473,
+                "retries": 0,
+                "file_path": "test_completions.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_completions.py::test_unmark_removes_completion_and_recomputes",
+                "status": "failed",
+                "duration": 0.0004574170000068989,
+                "start": 1785758154.8506813,
+                "stop": 1785758154.8544116,
+                "retries": 0,
+                "file_path": "test_completions.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_completions.py::test_duplicate_completion_is_idempotent",
+                "status": "failed",
+                "duration": 0.0006127919999698861,
+                "start": 1785758154.85454,
+                "stop": 1785758154.860206,
+                "retries": 0,
+                "file_path": "test_completions.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_completions.py::test_future_dated_completion_rejected",
+                "status": "failed",
+                "duration": 0.000401415999931487,
+                "start": 1785758154.8603826,
+                "stop": 1785758154.8639026,
+                "retries": 0,
+                "file_path": "test_completions.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_habits.py::test_created_habit_persisted",
+                "status": "failed",
+                "duration": 0.00045208300002741453,
+                "start": 1785758154.864058,
+                "stop": 1785758154.8676853,
+                "retries": 0,
+                "file_path": "test_habits.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_habits.py::test_duplicate_name_case_insensitive_rejected",
+                "status": "failed",
+                "duration": 0.0008070830000406204,
+                "start": 1785758154.867789,
+                "stop": 1785758154.8725111,
+                "retries": 0,
+                "file_path": "test_habits.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_habits.py::test_soft_delete_hides_habit_and_keeps_completions",
+                "status": "failed",
+                "duration": 0.00037091600006533554,
+                "start": 1785758154.8726277,
+                "stop": 1785758154.8765879,
+                "retries": 0,
+                "file_path": "test_habits.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_streaks.py::test_seeded_streaks_match_ledger",
+                "status": "failed",
+                "duration": 0.00044579100006103545,
+                "start": 1785758154.8767316,
+                "stop": 1785758154.8802402,
+                "retries": 0,
+                "file_path": "test_streaks.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            },
+            {
+                "name": "test_streaks.py::test_dashboard_counts_match_ledger",
+                "status": "failed",
+                "duration": 0.0010389159998567266,
+                "start": 1785758154.8803663,
+                "stop": 1785758154.8841178,
+                "retries": 0,
+                "file_path": "test_streaks.py",
+                "trace": "db = <conftest.HabitStore object at 0xffffba7fa780>\n\n    @pytest.fixture(scope=\"session\")\n    def user_id(db: HabitStore) -> str:\n        record = db.user_by_email(USER_EMAIL)\n>       assert record is not None, f\"seeded user {USER_EMAIL} is missing from the users collection\"\nE       AssertionError: seeded user demo@ethara.ai is missing from the users collection\nE       assert None is not None\n\n/tests/conftest.py:111: AssertionError"
+            }
+        ]
+    }
+}

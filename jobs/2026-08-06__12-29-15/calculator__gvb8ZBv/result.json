@@ -1,0 +1,115 @@
+{
+    "id": "b3d78fe9-db2f-4087-8f2e-976a3e658b9f",
+    "task_name": "deku/calculator",
+    "trial_name": "calculator__gvb8ZBv",
+    "trial_uri": "file:///Users/apple/Desktop/Green_Field/deku/jobs/2026-08-06__12-29-15/calculator__gvb8ZBv",
+    "task_id": {
+        "path": "/Users/apple/Desktop/Green_Field/deku/tasks/calculator"
+    },
+    "source": null,
+    "task_checksum": "de88d010cd47dabc0a40796892324e2ac0cd99f6dec54ecc9991502e00d4b9af",
+    "config": {
+        "task": {
+            "path": "/Users/apple/Desktop/Green_Field/deku/tasks/calculator",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": null
+        },
+        "trial_name": "calculator__gvb8ZBv",
+        "trials_dir": "jobs/2026-08-06__12-29-15",
+        "install_only": false,
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "openhands",
+            "import_path": null,
+            "model_name": "anthropic/claude-opus-4-5-20251101",
+            "n_concurrent": 1,
+            "concurrency_group": null,
+            "skills": [],
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "resume_trajectory": false,
+            "load_trajectory": null,
+            "extra_allowed_hosts": [],
+            "kwargs": {
+                "version": "0.62.0"
+            },
+            "mcp_servers": []
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "override_tpu": null,
+            "mounts": null,
+            "extra_docker_compose": [],
+            "kwargs": {},
+            "extra_allowed_hosts": []
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "disable": false
+        },
+        "artifacts": [],
+        "extra_instruction_paths": [],
+        "job_id": "006932c8-40f3-4879-b6c2-2295fa30e3c5"
+    },
+    "agent_info": {
+        "name": "openhands",
+        "version": "0.62.0",
+        "model_info": {
+            "name": "claude-opus-4-5-20251101",
+            "provider": "anthropic"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 1729397,
+        "n_cache_tokens": 1679929,
+        "n_output_tokens": 22192,
+        "cost_usd": 1.70386575,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "reward": 0.9
+        }
+    },
+    "exception_info": null,
+    "started_at": "2026-08-06T06:59:17.647035Z",
+    "finished_at": "2026-08-06T07:17:59.219970Z",
+    "environment_setup": {
+        "started_at": "2026-08-06T06:59:17.844429Z",
+        "finished_at": "2026-08-06T06:59:21.776116Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-08-06T06:59:21.776258Z",
+        "finished_at": "2026-08-06T07:01:08.242849Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-08-06T07:01:08.243650Z",
+        "finished_at": "2026-08-06T07:08:28.336902Z"
+    },
+    "verifier": {
+        "started_at": "2026-08-06T07:08:29.514119Z",
+        "finished_at": "2026-08-06T07:17:46.543940Z"
+    },
+    "step_results": null
+}

@@ -1,0 +1,25 @@
+workflow page_loads_and_renders_calculator (2 browser substeps)
+  substep 1/2: Open the root URL and verify the page renders a tip calculator with a visible bi
+  [cooldown] waiting 60s before first grader call
+  [retry] HTTP 429, sleeping 45s (1/4)
+  [retry] HTTP 429, sleeping 90s (2/4)
+  [retry] HTTP 429, sleeping 90s (3/4)
+  substep 2/2: Verify the page shows three output labels named tip, total, and per person (case
+  -> 0/2 passed (815.8s)
+workflow interactive_calculation_updates_totals (1 browser substeps)
+  substep 1/1: Type 100 into the bill amount input, set the tip percentage to 15, and confirm t
+  -> 0/1 passed (0.2s)
+workflow api_invalid_bill_rejected (1 browser substeps)
+  substep 1/1: Type -5 into the bill amount input and confirm a visible validation message appe
+  -> 0/1 passed (0.1s)
+....                                                                     [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_smoke.py::test_health_endpoint_returns_200
+PASSED ../tests/test_smoke.py::test_calculate_basic_returns_exact_shape
+PASSED ../tests/test_smoke.py::test_calculate_split_returns_per_person
+PASSED ../tests/test_smoke.py::test_invalid_bill_returns_400
+4 passed in 0.09s
+gathering evidence @ http://localhost:4173 across 3 viewport(s)
+grading dimension `instruction_following` (weight 0.3)
+  [cooldown] waiting 60s before first grader call

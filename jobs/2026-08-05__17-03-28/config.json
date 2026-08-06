@@ -1,0 +1,13 @@
+{
+    "agents": [
+        {
+            "name": "nop",
+            "n_concurrent": 1
+        }
+    ],
+    "tasks": [
+        {
+            "path": "tasks/calculator"
+        }
+    ]
+}

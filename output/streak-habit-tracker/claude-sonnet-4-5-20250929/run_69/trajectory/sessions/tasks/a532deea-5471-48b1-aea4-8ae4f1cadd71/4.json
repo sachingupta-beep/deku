@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "Build backend API layer",
+  "description": "Create Express/Node server that proxies to PocketBase and implements the required /api endpoints with streak calculations",
+  "activeForm": "Building backend API",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

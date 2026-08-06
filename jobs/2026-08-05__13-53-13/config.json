@@ -1,0 +1,14 @@
+{
+    "job_name": "2026-08-05__13-53-13",
+    "agents": [
+        {
+            "name": "nop",
+            "n_concurrent": 1
+        }
+    ],
+    "tasks": [
+        {
+            "path": "tasks/calculator"
+        }
+    ]
+}

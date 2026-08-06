@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Configure PocketBase collections and auth",
+  "description": "Set up users, habits, and completions collections with proper schema and constraints",
+  "activeForm": "Configuring PocketBase",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

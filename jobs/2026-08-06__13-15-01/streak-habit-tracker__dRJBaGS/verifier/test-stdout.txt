@@ -1,0 +1,191 @@
+workflow user_sees_seeded_streaks (3 browser substeps)
+  substep 1/3: Sign in with the credentials documented in /app/USER_README.md
+  [cooldown] waiting 60s before first grader call
+  substep 2/3: Verify the dashboard shows three habits including Meditate, Read 20 minutes and 
+  substep 3/3: Verify Meditate shows a current streak of 5 and No soda shows a current streak o
+  -> 0/3 passed (114.2s)
+workflow user_adds_habit (3 browser substeps)
+  substep 1/3: Sign in and open the habits view
+  substep 2/3: Add a habit named Journal with the teal colour tag
+  substep 3/3: Verify the new habit is listed with current streak 0 and longest streak 0
+  -> 0/3 passed (35.8s)
+workflow user_marks_today_complete (3 browser substeps)
+  substep 1/3: Sign in and open the dashboard
+  substep 2/3: Toggle Mark today on the Read 20 minutes habit
+  substep 3/3: Verify Read 20 minutes now shows completed_today true and a current streak of at
+  -> 0/3 passed (125.5s)
+workflow user_unmarks_day (3 browser substeps)
+  substep 1/3: Sign in and open the Meditate habit detail
+  substep 2/3: Un-mark today on the completion calendar and confirm
+  substep 3/3: Verify the current streak drops from 5 to 0 and completed_today is false
+  -> 0/3 passed (290.9s)
+workflow user_deletes_habit (3 browser substeps)
+  substep 1/3: Sign in and open the habits view
+  substep 2/3: Delete the No soda habit and confirm the destructive dialog
+  substep 3/3: Verify No soda is no longer listed on the habits view or the dashboard
+  -> 0/3 passed (269.6s)
+workflow dashboard_matches_ledger (2 browser substeps)
+  substep 1/2: Sign in and open the dashboard
+  substep 2/2: Verify tiles for total habits, total completions, and habits with an active stre
+  -> 0/2 passed (24.9s)
+workflow duplicate_habit_name_rejected (2 browser substeps)
+  substep 1/2: Sign in and attempt to add a second habit named meditate in lowercase
+  substep 2/2: Verify a validation error is shown and no duplicate row appears in the list
+  -> 0/2 passed (190.0s)
+workflow unauthenticated_access_denied (1 browser substeps)
+  substep 1/1: Open the dashboard route without signing in and verify a redirect to the login p
+  -> 0/1 passed (32.9s)
+.FF.......FF                                                             [100%]
+=================================== FAILURES ===================================
+_____________________ test_other_users_habit_not_readable ______________________
+
+user_client = <httpx.Client object at 0xffffa503ca10>
+db = <conftest.HabitStore object at 0xffffa44278f0>, user_id = 'eongryfq0axsqgz'
+
+    def test_other_users_habit_not_readable(user_client, db, user_id):
+        """A second user's token cannot read the seeded user's habits."""
+        other_token, _ = _bootstrap_second_user()
+        with client(other_token) as other:
+            # The other user's own list may legitimately be empty -- what matters is
+            # they cannot pull a specific habit belonging to the seeded user.
+            seeded_habits = db.habits_for(user_id, deleted=False)
+>           assert seeded_habits, "seeded user has no habits - cross-user check is meaningless"
+E           AssertionError: seeded user has no habits - cross-user check is meaningless
+E           assert []
+
+/tests/test_authorization.py:92: AssertionError
+______________________ test_other_users_habit_not_mutable ______________________
+
+user_client = <httpx.Client object at 0xffffa503ca10>
+db = <conftest.HabitStore object at 0xffffa44278f0>, user_id = 'eongryfq0axsqgz'
+
+    def test_other_users_habit_not_mutable(user_client, db, user_id):
+        """A second user's token cannot mark, un-mark, rename or delete another user's habit."""
+        other_token, _ = _bootstrap_second_user()
+        seeded_habits = db.habits_for(user_id, deleted=False)
+>       assert seeded_habits, "seeded user has no habits - cross-user check is meaningless"
+E       AssertionError: seeded user has no habits - cross-user check is meaningless
+E       assert []
+
+/tests/test_authorization.py:106: AssertionError
+_______________________ test_seeded_streaks_match_ledger _______________________
+
+user_client = <httpx.Client object at 0xffffa503ca10>
+db = <conftest.HabitStore object at 0xffffa44278f0>, user_id = 'eongryfq0axsqgz'
+
+    def test_seeded_streaks_match_ledger(user_client, db, user_id):
+        """The seeded streak values agree with what the completions collection holds."""
+        expectations = {
+            "Meditate": {"current": 5, "longest_at_least": 5},
+            "Read 20 minutes": {"current": 0, "longest_at_least": 3},
+            "No soda": {"current": 1, "longest_at_least": 1},
+        }
+    
+        for name, expected in expectations.items():
+            habit = find_habit(user_client, name)
+            assert habit is not None, f"seeded habit {name!r} is missing from GET /api/habits"
+    
+            ledger = {
+                str(row["date"])
+                for row in db.completions_for_habit(habit["id"])
+            }
+            assert ledger, f"no completions found for seeded habit {name!r}"
+    
+            derived_current = _current_streak_from_ledger(ledger)
+            derived_longest = _longest_streak_from_ledger(ledger)
+    
+>           assert derived_current == expected["current"], (
+                f"ledger disagrees with the seeded contract for {name!r}: "
+                f"derived current_streak={derived_current}, expected {expected['current']}. "
+                f"Seed data is wrong."
+            )
+E           AssertionError: ledger disagrees with the seeded contract for 'Meditate': derived current_streak=0, expected 5. Seed data is wrong.
+E           assert 0 == 5
+
+/tests/test_streaks.py:65: AssertionError
+______________________ test_dashboard_counts_match_ledger ______________________
+
+user_client = <httpx.Client object at 0xffffa503ca10>
+db = <conftest.HabitStore object at 0xffffa44278f0>, user_id = 'eongryfq0axsqgz'
+
+    def test_dashboard_counts_match_ledger(user_client, db, user_id):
+        """Dashboard counters agree with the real state of the collections."""
+        response = user_client.get("/dashboard")
+        assert response.status_code == 200, (
+            f"GET /api/dashboard returned {response.status_code}: {response.text[:400]}"
+        )
+        payload = response.json()
+        flat = flatten(payload)
+    
+        expected_total_habits = db.count_habits(user_id, deleted=False)
+        expected_total_completions = db.count_completions(user_id)
+    
+        # Habits with a current streak of at least one: today is marked.
+        today = today_utc()
+        active = 0
+        for habit_row in db.habits_for(user_id, deleted=False):
+            if db.completion_on(habit_row["id"], today) is not None:
+                active += 1
+    
+        for label, value in (
+            ("total_habits", expected_total_habits),
+            ("total_completions", expected_total_completions),
+            ("habits_with_active_streak", active),
+        ):
+            assert str(value) in flat, (
+                f"dashboard payload is missing the true {label}={value}; "
+                f"got {flat[:600]}"
+            )
+    
+        # habits[] entries must line up with the habits collection.
+        dashboard_habits = payload.get("habits") if isinstance(payload, dict) else None
+        if dashboard_habits is None:
+            # Some implementations expose the array under an envelope key.
+            dashboard_habits = items(payload)
+        reported_names = {str(h.get("name", "")).lower() for h in dashboard_habits}
+        expected_names = {
+            str(row["name"]).lower() for row in db.habits_for(user_id, deleted=False)
+        }
+>       assert reported_names == expected_names, (
+            f"dashboard habit list disagrees with the habits collection: "
+            f"reported {sorted(reported_names)}, expected {sorted(expected_names)}"
+        )
+E       AssertionError: dashboard habit list disagrees with the habits collection: reported ['future-check-2026-08-06', 'idempotency-2026-08-06', 'meditate', 'no soda', 'read 20 minutes', 'verifier-ef45c511'], expected []
+E       assert {'future-chec...ier-ef45c511'} == set()
+E         
+E         Extra items in the left set:
+E         'meditate'
+E         'future-check-2026-08-06'
+E         'idempotency-2026-08-06'
+E         'read 20 minutes'
+E         'verifier-ef45c511'
+E         'no soda'
+E         Use -v to get more diff
+
+/tests/test_streaks.py:125: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_authorization.py::test_unauthenticated_requests_denied
+PASSED ../tests/test_completions.py::test_mark_today_persists_and_streak_updates
+PASSED ../tests/test_completions.py::test_unmark_removes_completion_and_recomputes
+PASSED ../tests/test_completions.py::test_duplicate_completion_is_idempotent
+PASSED ../tests/test_completions.py::test_future_dated_completion_rejected
+PASSED ../tests/test_habits.py::test_created_habit_persisted
+PASSED ../tests/test_habits.py::test_duplicate_name_case_insensitive_rejected
+PASSED ../tests/test_habits.py::test_soft_delete_hides_habit_and_keeps_completions
+FAILED ../tests/test_authorization.py::test_other_users_habit_not_readable - ...
+FAILED ../tests/test_authorization.py::test_other_users_habit_not_mutable - A...
+FAILED ../tests/test_streaks.py::test_seeded_streaks_match_ledger - Assertion...
+FAILED ../tests/test_streaks.py::test_dashboard_counts_match_ledger - Asserti...
+4 failed, 8 passed in 2.56s
+gathering evidence @ http://localhost:4173 across 3 viewport(s)
+grading dimension `instruction_following` (weight 0.3)
+  [cooldown] waiting 60s before first grader call
+grading dimension `functionality` (weight 0.25)
+grading dimension `ux_flow` (weight 0.15)
+grading dimension `ui_visual` (weight 0.15)
+grading dimension `motion` (weight 0.05)
+grading dimension `accessibility` (weight 0.05)
+grading dimension `responsiveness` (weight 0.05)
+judge_score = 0.1500 (advisory, see PLAN.md 1.4). wrote /logs/verifier/judge.json
+reward=0.1818 workflows=2/11 critical_failed=4 browser_graded=True ungraded_browser=0

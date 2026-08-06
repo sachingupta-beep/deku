@@ -1,0 +1,203 @@
+========================================================================
+HARNESS DEBUG TIMELINE  --  streak-habit-tracker  /  claude-sonnet-4-5-20250929  /  streak-habit-tracker__Eap4rTA
+========================================================================
+started : 2026-08-03T12:07:45.440241Z
+finished: 2026-08-03T12:33:22.143119Z
+REWARD  : 0.0   deployed=1.0   invalid=[]
+
+--- stage durations (seconds) ---
+  environment_setup   : 13.7
+  agent_setup         : 51.8
+  agent_execution     : 1456.0
+  verifier            : 2.1
+
+--- 1. ENVIRONMENT + AGENT SETUP (orchestration.log) ---
+Skipping image OS validation for hb__a5aa19087f3519504cebf8ee3367ed35: docker inspect returned 1
+Running command: if command -v apk &> /dev/null; then  apk add --no-cache curl bash nodejs npm procps; elif command -v apt-get &> /dev/null; then  apt-get update && apt-get install -y curl procps; elif command -v yum &> /dev/null; then  yum install -y curl procps-ng; else  echo "Warning: No known package manager found, assuming curl is available" >&2; fi
+Command outputs captured
+Running command: set -euo pipefail; if command -v apk &> /dev/null; then  npm install -g @anthropic-ai/claude-code; else  curl -fsSL https://downloads.claude.ai/claude-code-releases/bootstrap.sh | bash -s --; fi && echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && export PATH="$HOME/.local/bin:$PATH" && claude --version
+Command outputs captured
+Running command: mkdir -p $CLAUDE_CONFIG_DIR/debug $CLAUDE_CONFIG_DIR/projects/-app $CLAUDE_CONFIG_DIR/shell-snapshots $CLAUDE_CONFIG_DIR/statsig $CLAUDE_CONFIG_DIR/todos $CLAUDE_CONFIG_DIR/skills && if [ -d ~/.claude/skills ]; then cp -r ~/.claude/skills/. $CLAUDE_CONFIG_DIR/skills/ 2>/dev/null || true; fi
+Command outputs captured
+Running command: export PATH="$HOME/.local/bin:$PATH"; harbor_claude_code_instruction_ea687d7cba214bbb8838fd2b0521a8ff="$HARBOR_CLAUDE_CODE_INSTRUCTION_EA687D7CBA214BBB8838FD2B0521A8FF"; unset HARBOR_CLAUDE_CODE_INSTRUCTION_EA687D7CBA214BBB8838FD2B0521A8FF; printf "%s" "$harbor_claude_code_instruction_ea687d7cba214bbb8838fd2b0521a8ff" | claude --verbose --output-format=stream-json --permission-mode=bypassPermissions --print 2>&1 | tee /logs/agent/claude-code.txt
+Command outputs captured
+Wrote Claude Code trajectory to jobs/2026-08-03__17-37-44/streak-habit-tracker__Eap4rTA/agent/trajectory.json
+Collecting main service artifacts
+
+
+--- 2. AGENT EXECUTION ---
+  cost_usd=4.994529299999998  stop_reason=None
+  trajectory: trajectory/trajectory.json  (raw: trajectory/claude-code.txt)
+
+--- 3. VERIFIER (deploy gate -> browser -> pytest -> judge -> score) ---
+playwright not installed: No module named 'playwright'; emitting all-fail results
+.EEEEEEEEEEE                                                             [100%]
+==================================== ERRORS ====================================
+____________ ERROR at setup of test_other_users_habit_not_readable _____________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_____________ ERROR at setup of test_other_users_habit_not_mutable _____________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+________ ERROR at setup of test_mark_today_persists_and_streak_updates _________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_______ ERROR at setup of test_unmark_removes_completion_and_recomputes ________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+__________ ERROR at setup of test_duplicate_completion_is_idempotent ___________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+___________ ERROR at setup of test_future_dated_completion_rejected ____________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+________________ ERROR at setup of test_created_habit_persisted ________________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_______ ERROR at setup of test_duplicate_name_case_insensitive_rejected ________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_____ ERROR at setup of test_soft_delete_hides_habit_and_keeps_completions _____
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+______________ ERROR at setup of test_seeded_streaks_match_ledger ______________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+_____________ ERROR at setup of test_dashboard_counts_match_ledger _____________
+
+db = <conftest.HabitStore object at 0xffffb21db9b0>
+
+    @pytest.fixture(scope="session")
+    def user_id(db: HabitStore) -> str:
+        record = db.user_by_email(USER_EMAIL)
+>       assert record is not None, f"seeded user {USER_EMAIL} is missing from the users collection"
+E       AssertionError: seeded user demo@ethara.ai is missing from the users collection
+E       assert None is not None
+
+/tests/conftest.py:111: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_authorization.py::test_unauthenticated_requests_denied
+ERROR ../tests/test_authorization.py::test_other_users_habit_not_readable - A...
+ERROR ../tests/test_authorization.py::test_other_users_habit_not_mutable - As...
+ERROR ../tests/test_completions.py::test_mark_today_persists_and_streak_updates
+ERROR ../tests/test_completions.py::test_unmark_removes_completion_and_recomputes
+ERROR ../tests/test_completions.py::test_duplicate_completion_is_idempotent
+ERROR ../tests/test_completions.py::test_future_dated_completion_rejected - A...
+ERROR ../tests/test_habits.py::test_created_habit_persisted - AssertionError:...
+ERROR ../tests/test_habits.py::test_duplicate_name_case_insensitive_rejected
+ERROR ../tests/test_habits.py::test_soft_delete_hides_habit_and_keeps_completions
+ERROR ../tests/test_streaks.py::test_seeded_streaks_match_ledger - AssertionE...
+ERROR ../tests/test_streaks.py::test_dashboard_counts_match_ledger - Assertio...
+1 passed, 11 errors in 0.64s
+playwright not installed: No module named 'playwright'; wrote zero-score judge.json
+reward=0.0000 workflows=0/11 critical_failed=10 browser_graded=True
+
+  pytest: {'tests': 12, 'passed': 1, 'failed': 11, 'skipped': 0, 'pending': 0, 'other': 0, 'start': 1785760389.5666187, 'stop': 1785760390.2058127}
+
+--- 4. SCORE ---
+  {}
+    [FAIL] user_sees_seeded_streaks  (0/4)
+    [FAIL] user_adds_habit  (0/4)
+    [FAIL] user_marks_today_complete  (0/4)
+    [FAIL] user_unmarks_day  (0/4)
+    [FAIL] user_deletes_habit  (0/4)
+    [FAIL] dashboard_matches_ledger  (0/3)
+    [FAIL] duplicate_habit_name_rejected  (0/3)
+    [FAIL] duplicate_completion_no_double_count  (0/1)
+    [FAIL] future_dated_completion_rejected  (0/1)
+    [FAIL] unauthenticated_access_denied  (1/2)
+    [FAIL] cross_user_access_forbidden  (0/2)
+
+========================================================================
+END

@@ -1,0 +1,16 @@
+{
+    "task": {
+        "path": "tasks/calculator"
+    },
+    "trial_name": "calculator__vmrJQ4Q",
+    "trials_dir": "jobs/2026-08-05__13-59-39",
+    "agent": {
+        "name": "openhands",
+        "model_name": "anthropic/claude-opus-4-5-20251101",
+        "n_concurrent": 1,
+        "kwargs": {
+            "version": "0.62.0"
+        }
+    },
+    "job_id": "153608fd-e855-4196-ab60-01bc22fbb244"
+}

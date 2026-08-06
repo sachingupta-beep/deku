@@ -91,7 +91,17 @@ ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_VIEWPORT = "1920x1200"
 DEFAULT_MAX_STEPS = 100
 DEFAULT_CREDENTIALS_PATH = "/app/USER_README.md"
-DEFAULT_TIMEOUT_SEC = 300  # per-workflow wall clock
+# Per-workflow wall clock. MUST exceed the worst-case retry ladder, or a workflow
+# that hits a transient throttle can never recover: the ladder needs
+# GRADER_COOLDOWN_SEC + 45 + 90 + 90 = 285s at the defaults, and the old 300s
+# ceiling left 15s of margin. Measured 2026-08-05: workflow 1 spent 324.7s in the
+# ladder, blew the deadline, tripped the breaker, and workflows 2-5 then failed in
+# 0.0s each -- 7/7 browser substeps ungraded on an app that was working.
+#
+# Throttles here are kind=transient_throttle (a rate ceiling), never
+# subscription_cap, so the ladder DOES clear them given room to finish. Sizing the
+# deadline below the ladder converts a recoverable throttle into a lost run.
+DEFAULT_TIMEOUT_SEC = int(os.environ.get("DEKU_WORKFLOW_TIMEOUT_SEC", "600"))
 # Must exceed the bridge's worst-case absorb time. The bridge swallows upstream
 # 429s by sleeping (ladder 2,4,8,16,32,64,90,90 = 306s with the current
 # KAIJU_CC_MAX_INLINE_* settings). A client timeout below that converts every
@@ -329,14 +339,51 @@ TOOLS = [
 
 
 # ---------------------------------------------------------------------------
-# Anthropic Messages API client.
+# LLM clients.
+#
+# Two providers, ONE response shape. Both clients return the Anthropic Messages
+# shape -- {"content": [blocks], "stop_reason": str} -- so run_substep() below is
+# provider-agnostic and the tool-calling loop never learns which model graded.
+# Everything provider-specific is confined to the client class.
+#
+# Why a second provider at all: the grader runs the instant the agent phase ends,
+# and when both go through the same account, 429 is the steady state rather than
+# the exception (measured 2026-08-05: 7/7 browser substeps ungraded, reward
+# invalidated). A different provider is a different quota, which removes the
+# contention outright instead of pacing around it. It also removes the
+# "Claude grading Claude" objection from any published result.
 
 
-class Anthropic:
+def _resolve_provider(model: str) -> str:
+    """Pick the client for this grader model.
+
+    DEKU_GRADER_PROVIDER wins when set; otherwise infer from the model name, so
+    `--model gpt-4o` does the obvious thing with no second flag to remember.
+    """
+    explicit = os.environ.get("DEKU_GRADER_PROVIDER", "").strip().lower()
+    if explicit:
+        if explicit not in ("anthropic", "openai"):
+            raise RuntimeError(
+                f"DEKU_GRADER_PROVIDER={explicit!r} is not a known provider "
+                f"(expected 'anthropic' or 'openai')"
+            )
+        return explicit
+    name = model.lower()
+    if name.startswith(("gpt-", "o1", "o3", "o4", "chatgpt")):
+        return "openai"
+    return "anthropic"
+
+
+class _GraderLLM:
+    """Shared pacing, cooldown and retry policy.
+
+    The rate-limit handling is provider-independent and hard-won (see the
+    RETRY_/COOLDOWN_ constants above), so it lives here once rather than being
+    reimplemented per provider and drifting.
+    """
+
     def __init__(self, model: str):
         self.model = model
-        self.api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-        self.base_url = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com").rstrip("/")
         self.client = httpx.Client(timeout=LLM_TIMEOUT_SEC)
         self._cooled = False
 
@@ -352,52 +399,29 @@ class Anthropic:
                   file=sys.stderr)
             time.sleep(GRADER_COOLDOWN_SEC)
 
-    def message(self, system: str, messages: list[dict], tools: list[dict],
-                max_tokens: int = 1024) -> dict:
-        """Post one Messages request, retrying transient upstream failures.
-
-        Grading runs immediately after the agent phase, which has just spent
-        millions of tokens on the same account, so 429 is the expected steady
-        state rather than an exception. Without backoff every substep and every
-        rubric dimension fails on rate limiting and the trial scores zero for a
-        reason that has nothing to do with the app.
-
-        Honours Retry-After when the server sends it; otherwise exponential with
-        a cap. 5xx is retried on the same path since it is equally transient.
-        """
-        global _RATE_LIMITED
-        if not self.api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY not set")
+    def _preflight(self) -> None:
+        """Breaker check, first-call cooldown, and inter-call pacing."""
+        global _RATE_LIMITED, _last_call_at
         if _RATE_LIMITED:
             raise GraderUnavailable(
                 "upstream rate limit already exhausted the retry ladder; "
                 "skipping further grader calls"
             )
         self._cooldown()
-
-        global _last_call_at
         gap = time.monotonic() - _last_call_at
         if gap < MIN_CALL_INTERVAL_SEC:
             time.sleep(MIN_CALL_INTERVAL_SEC - gap)
 
-        last: Exception | None = None
+    def _post_with_retry(self, send) -> dict:
+        """Run `send()` under the shared 429/5xx ladder and breaker.
+
+        `send` is a zero-arg callable returning an httpx.Response, so each
+        provider keeps its own URL, headers and body while sharing this policy.
+        """
+        global _RATE_LIMITED, _last_call_at
         for attempt in range(RETRY_ATTEMPTS):
             _last_call_at = time.monotonic()
-            r = self.client.post(
-                f"{self.base_url}/v1/messages",
-                headers={
-                    "x-api-key": self.api_key,
-                    "anthropic-version": ANTHROPIC_VERSION,
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": self.model,
-                    "max_tokens": max_tokens,
-                    "system": system,
-                    "tools": tools,
-                    "messages": messages,
-                },
-            )
+            r = send()
             if r.status_code == 429 or r.status_code >= 500:
                 if attempt == RETRY_ATTEMPTS - 1:
                     if r.status_code == 429:
@@ -415,7 +439,198 @@ class Anthropic:
                 continue
             r.raise_for_status()
             return r.json()
-        raise RuntimeError(f"exhausted {RETRY_ATTEMPTS} attempts: {last}")
+        raise RuntimeError(f"exhausted {RETRY_ATTEMPTS} attempts")
+
+
+class Anthropic(_GraderLLM):
+    def __init__(self, model: str):
+        super().__init__(model)
+        self.api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        self.base_url = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com").rstrip("/")
+
+    def message(self, system: str, messages: list[dict], tools: list[dict],
+                max_tokens: int = 1024) -> dict:
+        """Post one Messages request, retrying transient upstream failures.
+
+        Grading runs immediately after the agent phase, which has just spent
+        millions of tokens on the same account, so 429 is the expected steady
+        state rather than an exception. Without backoff every substep and every
+        rubric dimension fails on rate limiting and the trial scores zero for a
+        reason that has nothing to do with the app.
+
+        Honours Retry-After when the server sends it; otherwise exponential with
+        a cap. 5xx is retried on the same path since it is equally transient.
+        """
+        if not self.api_key:
+            raise RuntimeError("ANTHROPIC_API_KEY not set")
+        self._preflight()
+        return self._post_with_retry(lambda: self.client.post(
+            f"{self.base_url}/v1/messages",
+            headers={
+                "x-api-key": self.api_key,
+                "anthropic-version": ANTHROPIC_VERSION,
+                "content-type": "application/json",
+            },
+            json={
+                "model": self.model,
+                "max_tokens": max_tokens,
+                "system": system,
+                "tools": tools,
+                "messages": messages,
+            },
+        ))
+
+
+# ---------------------------------------------------------------------------
+# OpenAI Chat Completions client, translated to the Anthropic response shape.
+
+
+def _tools_to_openai(tools: list[dict]) -> list[dict]:
+    """Anthropic {name, description, input_schema} -> OpenAI function tools."""
+    return [
+        {
+            "type": "function",
+            "function": {
+                "name": t["name"],
+                "description": t.get("description", ""),
+                "parameters": t.get("input_schema", {"type": "object", "properties": {}}),
+            },
+        }
+        for t in tools
+    ]
+
+
+def _messages_to_openai(system: str, messages: list[dict]) -> list[dict]:
+    """Anthropic content-block conversation -> OpenAI chat messages.
+
+    Three shapes have to survive the crossing:
+      - plain string content            -> passes through
+      - assistant blocks with tool_use  -> assistant message carrying tool_calls
+      - user blocks of tool_result      -> one {"role": "tool"} message EACH
+
+    That last one is the asymmetry that makes this more than a rename: Anthropic
+    returns several tool results inside a single user turn, OpenAI requires one
+    message per tool_call_id. Collapsing them loses the correlation and the model
+    silently regrades against the wrong observation.
+    """
+    out: list[dict] = [{"role": "system", "content": system}]
+    for m in messages:
+        content = m.get("content")
+        if isinstance(content, str):
+            out.append({"role": m["role"], "content": content})
+            continue
+
+        blocks = content or []
+        if m["role"] == "assistant":
+            text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+            tool_calls = [
+                {
+                    "id": b["id"],
+                    "type": "function",
+                    "function": {"name": b["name"], "arguments": json.dumps(b.get("input", {}))},
+                }
+                for b in blocks if b.get("type") == "tool_use"
+            ]
+            msg: dict = {"role": "assistant", "content": text or None}
+            if tool_calls:
+                msg["tool_calls"] = tool_calls
+            out.append(msg)
+            continue
+
+        # user turn: tool_result blocks become individual tool messages
+        plain: list[str] = []
+        for b in blocks:
+            if b.get("type") == "tool_result":
+                out.append({
+                    "role": "tool",
+                    "tool_call_id": b["tool_use_id"],
+                    "content": str(b.get("content", "")),
+                })
+            elif b.get("type") == "text":
+                plain.append(b.get("text", ""))
+        if plain:
+            out.append({"role": "user", "content": "\n".join(plain)})
+    return out
+
+
+def _response_to_anthropic(payload: dict) -> dict:
+    """OpenAI chat completion -> {"content": [blocks], "stop_reason": str}.
+
+    Returning the Anthropic shape (rather than teaching the loop two dialects)
+    keeps run_substep() identical for both providers, so a grader swap cannot
+    change how a substep is evaluated -- only which model evaluates it.
+    """
+    choice = (payload.get("choices") or [{}])[0]
+    message = choice.get("message") or {}
+
+    blocks: list[dict] = []
+    text = message.get("content")
+    if text:
+        blocks.append({"type": "text", "text": text})
+
+    for call in message.get("tool_calls") or []:
+        fn = call.get("function") or {}
+        raw = fn.get("arguments") or "{}"
+        try:
+            parsed = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            # A malformed arguments string is a grader-side fault, not an app
+            # failure. Surface it as an empty input so the loop reports the tool
+            # error rather than crashing the whole substep.
+            print(f"  [warn] unparseable tool arguments from grader: {raw[:200]!r}",
+                  file=sys.stderr)
+            parsed = {}
+        blocks.append({
+            "type": "tool_use",
+            "id": call.get("id", ""),
+            "name": fn.get("name", ""),
+            "input": parsed,
+        })
+
+    finish = choice.get("finish_reason")
+    stop_reason = {"tool_calls": "tool_use", "stop": "end_turn", "length": "max_tokens"}.get(
+        finish, finish or "end_turn"
+    )
+    return {"content": blocks, "stop_reason": stop_reason}
+
+
+class OpenAI(_GraderLLM):
+    """Grader backed by the OpenAI Chat Completions API.
+
+    Exists so the grader can run on a quota the agent cannot drain. Selected by
+    DEKU_GRADER_PROVIDER=openai, or automatically for gpt-*/o*-family models.
+    """
+
+    def __init__(self, model: str):
+        super().__init__(model)
+        self.api_key = os.environ.get("OPENAI_API_KEY", "")
+        self.base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+
+    def message(self, system: str, messages: list[dict], tools: list[dict],
+                max_tokens: int = 1024) -> dict:
+        if not self.api_key:
+            raise RuntimeError("OPENAI_API_KEY not set")
+        self._preflight()
+        payload = self._post_with_retry(lambda: self.client.post(
+            f"{self.base_url}/chat/completions",
+            headers={
+                "authorization": f"Bearer {self.api_key}",
+                "content-type": "application/json",
+            },
+            json={
+                "model": self.model,
+                "max_completion_tokens": max_tokens,
+                "messages": _messages_to_openai(system, messages),
+                "tools": _tools_to_openai(tools),
+            },
+        ))
+        return _response_to_anthropic(payload)
+
+
+def make_llm(model: str) -> _GraderLLM:
+    """Construct the grader client for `model`, honouring DEKU_GRADER_PROVIDER."""
+    provider = _resolve_provider(model)
+    return OpenAI(model) if provider == "openai" else Anthropic(model)
 
 
 # ---------------------------------------------------------------------------
@@ -423,7 +638,7 @@ class Anthropic:
 
 
 def run_substep(
-    llm: Anthropic,
+    llm: _GraderLLM,
     browser: Browser,
     substep: dict,
     system: str,
@@ -530,7 +745,7 @@ def run_workflow(
     browser_obj,
     url: str,
     system: str,
-    llm: Anthropic,
+    llm: _GraderLLM,
     max_steps: int,
     viewport: tuple[int, int],
     screenshot_dir: Path | None,
@@ -677,6 +892,11 @@ def main() -> int:
     model = os.environ.get("DEKU_GRADER_MODEL", DEFAULT_GRADER_MODEL)
     meta = {
         "grader_model": model,
+        # PLAN.md 4.5 pins the grader for determinism. The model string alone no
+        # longer identifies it now that two providers can serve the same loop, so
+        # record the resolved provider beside it -- a score graded by gpt-* and one
+        # graded by claude-* are not comparable, and the artifact has to say which.
+        "grader_provider": _resolve_provider(model),
         "viewport": f"{args.viewport[0]}x{args.viewport[1]}",
         "url": args.url,
         "max_steps": args.max_steps,
@@ -716,7 +936,7 @@ def main() -> int:
     else:
         system += f"\nNo credentials file at {args.credentials_path}. If a substep requires signing in, report failure with a clear note.\n"
 
-    llm = Anthropic(model=model)
+    llm = make_llm(model)
 
     try:
         with sync_playwright() as p:

@@ -1,0 +1,16 @@
+{
+    "task": {
+        "path": "/Users/apple/Desktop/Green_Field/deku/tasks/calculator"
+    },
+    "trial_name": "calculator__gvb8ZBv",
+    "trials_dir": "jobs/2026-08-06__12-29-15",
+    "agent": {
+        "name": "openhands",
+        "model_name": "anthropic/claude-opus-4-5-20251101",
+        "n_concurrent": 1,
+        "kwargs": {
+            "version": "0.62.0"
+        }
+    },
+    "job_id": "006932c8-40f3-4879-b6c2-2295fa30e3c5"
+}

@@ -1,0 +1,186 @@
+{
+  "workflows": [
+    {
+      "id": "user_sees_seeded_streaks",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "No credentials file exists at /app/USER_README.md, so cannot sign in as requested.",
+          "steps_used": 2,
+          "do": "Sign in with the credentials documented in /app/USER_README.md"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify dashboard habits because the app requires login credentials which are not provided.",
+          "steps_used": 4,
+          "do": "Verify the dashboard shows three habits including Meditate, Read 20 minutes and No soda"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify streaks because the app requires login and no credentials were provided.",
+          "steps_used": 4,
+          "do": "Verify Meditate shows a current streak of 5 and No soda shows a current streak of 1"
+        }
+      ]
+    },
+    {
+      "id": "user_adds_habit",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "No credentials available to sign in - credentials file not found at /app/USER_README.md",
+          "steps_used": 2,
+          "do": "Sign in and open the habits view"
+        },
+        {
+          "passed": false,
+          "note": "Cannot add a habit because the app requires login credentials, but no credentials were provided.",
+          "steps_used": 4,
+          "do": "Add a habit named Journal with the teal colour tag"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify habit listing because the app requires authentication and no credentials are available.",
+          "steps_used": 4,
+          "do": "Verify the new habit is listed with current streak 0 and longest streak 0"
+        }
+      ]
+    },
+    {
+      "id": "user_marks_today_complete",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "Cannot sign in because no credentials are available in the system prompt or credentials file.",
+          "steps_used": 2,
+          "do": "Sign in and open the dashboard"
+        },
+        {
+          "passed": false,
+          "note": "Cannot toggle Mark today on the Read 20 minutes habit because the app requires login and no credentials are available.",
+          "steps_used": 4,
+          "do": "Toggle Mark today on the Read 20 minutes habit"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify habit status - application requires login credentials which were not provided",
+          "steps_used": 5,
+          "do": "Verify Read 20 minutes now shows completed_today true and a current streak of at least 1"
+        }
+      ]
+    },
+    {
+      "id": "user_unmarks_day",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "Cannot sign in - no credentials provided and credential file is not available.",
+          "steps_used": 3,
+          "do": "Sign in and open the Meditate habit detail"
+        },
+        {
+          "passed": false,
+          "note": "Cannot un-mark today on the completion calendar because the app requires login and no credentials are available.",
+          "steps_used": 4,
+          "do": "Un-mark today on the completion calendar and confirm"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify streak data because the app requires login and no credentials were provided.",
+          "steps_used": 5,
+          "do": "Verify the current streak drops from 5 to 0 and completed_today is false"
+        }
+      ]
+    },
+    {
+      "id": "user_deletes_habit",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "Cannot sign in because no credentials are available - the credentials file at /app/USER_README.md does not exist.",
+          "steps_used": 2,
+          "do": "Sign in and open the habits view"
+        },
+        {
+          "passed": false,
+          "note": "Cannot complete the task: the application requires login credentials to access, but no valid credentials are available.",
+          "steps_used": 40,
+          "do": "Delete the No soda habit and confirm the destructive dialog"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify absence of \"No soda\" habit because the app requires authentication and no credentials were provided.",
+          "steps_used": 6,
+          "do": "Verify No soda is no longer listed on the habits view or the dashboard"
+        }
+      ]
+    },
+    {
+      "id": "dashboard_matches_ledger",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "Cannot sign in because no credentials are available (no credentials file found).",
+          "steps_used": 2,
+          "do": "Sign in and open the dashboard"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify tiles as the app requires login and no credentials were provided.",
+          "steps_used": 4,
+          "do": "Verify tiles for total habits, total completions, and habits with an active streak are present"
+        }
+      ]
+    },
+    {
+      "id": "duplicate_habit_name_rejected",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "Cannot complete substep - no valid credentials provided and unable to sign in after attempting multiple common test credential combinations.",
+          "steps_used": 69,
+          "do": "Sign in and attempt to add a second habit named meditate in lowercase"
+        },
+        {
+          "passed": false,
+          "note": "Cannot verify validation error or duplicate rows - application requires login credentials which were not provided.",
+          "steps_used": 5,
+          "do": "Verify a validation error is shown and no duplicate row appears in the list"
+        }
+      ]
+    },
+    {
+      "id": "duplicate_completion_no_double_count",
+      "substeps": []
+    },
+    {
+      "id": "future_dated_completion_rejected",
+      "substeps": []
+    },
+    {
+      "id": "unauthenticated_access_denied",
+      "substeps": [
+        {
+          "passed": false,
+          "note": "Navigating to /dashboard without signing in does not redirect to the login page; the URL remains at /dashboard with a blank page instead of redirecting.",
+          "steps_used": 10,
+          "do": "Open the dashboard route without signing in and verify a redirect to the login page"
+        }
+      ]
+    },
+    {
+      "id": "cross_user_access_forbidden",
+      "substeps": []
+    }
+  ],
+  "meta": {
+    "grader_model": "claude-sonnet-4-5-20250929",
+    "grader_provider": "anthropic",
+    "viewport": "1920x1200",
+    "url": "http://localhost:4173",
+    "max_steps": 100,
+    "started_at": "2026-08-06T08:41:04+00:00",
+    "finished_at": "2026-08-06T08:53:56+00:00",
+    "ungraded_substeps": 0
+  }
+}

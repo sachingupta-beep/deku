@@ -1,0 +1,367 @@
+========================================================================
+HARNESS DEBUG TIMELINE  --  streak-habit-tracker  /  anthropic-claude-opus-4-5-20251101  /  streak-habit-tracker__PTnPrHW
+========================================================================
+started : 2026-08-05T15:56:57.074189Z
+finished: 2026-08-05T16:39:09.846439Z
+REWARD  : 0.4545   deployed=None   invalid=[]
+
+--- stage durations (seconds) ---
+  environment_setup   : 176.8
+  agent_setup         : 97.2
+  agent_execution     : 1200.3
+  verifier            : 1040.3
+
+--- 1. ENVIRONMENT + AGENT SETUP (orchestration.log) ---
+n ends. Start the server fully detached, for example
+  `setsid nohup <command> > /tmp/app.log 2>&1 < /dev/null &`, so it is not a child
+  of your shell and not a session-scoped background job. A server started as an
+  ordinary background job is killed the instant your session ends, and the app
+  scores zero however correct it is.
+- Bind to `0.0.0.0`, never `127.0.0.1` or `localhost` — the grader connects from a
+  different container, so a loopback-only listener is unreachable.
+- Before you finish, verify persistence yourself: confirm the listening process is
+  still running with a parent that is not your shell, and that the port answers.
+- **The backing services are ALREADY RUNNING.** Every service named in this brief
+  is started for you before your session begins and is reachable at the environment
+  variable given for it. **Do not download, install, compile or start your own copy
+  of any of them.** Read the address from the environment; never hardcode it and
+  never substitute a local file, an embedded database, or your own instance of the
+  same product. The grader inspects the service at that address — an app that
+  writes to a different instance scores zero no matter how well it works.
+- Use **only** the PocketBase instance at `BACKEND_URL`. No other backing
+  service.
+- No persistent volumes, no fixed container names, no custom networks. The app
+  must tear down and re-run cleanly.
+
+### API shapes
+
+Everything internal is your choice. These request and response shapes are not —
+they are the interface the grader holds you to. Field names are exact.
+
+| Endpoint | Request body | Success | On success returns |
+|---|---|---|---|
+| `POST /api/auth/login` | `{"email": str, "password": str}` | `200` | `{"access_token": str, ...}` |
+| `GET  /api/habits` | — | `200` | JSON array of `{"id", "name", "color", "current_streak", "longest_streak", "completed_today", ...}` |
+| `POST /api/habits` | `{"name": str, "color": str, "description"?: str}` | `200` or `201` | the created habit including `id` |
+| `GET  /api/habits/{id}` | — | `200` | the habit, including `current_streak`, `longest_streak`, `completed_today` |
+| `PATCH /api/habits/{id}` | `{"name"?: str, "color"?: str, "description"?: str}` | `200` | the updated habit |
+| `DELETE /api/habits/{id}` | — | `200`, `202` or `204` | — (habit is soft-deleted) |
+| `POST /api/habits/{id}/complete` | `{"date": "YYYY-MM-DD"}` | `200` or `201` | the completion or the current streak |
+| `DELETE /api/habits/{id}/complete` | `{"date": "YYYY-MM-DD"}` | `200`, `202` or `204` | — |
+| `GET  /api/dashboard` | — | `200` | `{"total_habits", "total_completions", "habits_with_active_streak", "habits": [...]}` |
+| `GET  /api/health` | — | `200` | — |
+
+Rules:
+
+- Every business-rule violation returns a `4xx` with a message naming the
+  reason. Never a `5xx`, never a silent `200` on a rule violation.
+- Every endpoint except `POST /api/auth/login` and `GET /api/health` requires a
+  valid bearer token; anonymous callers get `401` or `403`.
+- A token whose user does not own the referenced habit gets `401` or `403` on
+  every habit and completion endpoint.
+- List endpoints return a JSON array at the top level.
+
+---
+
+## Definition of done
+
+The app is deployed and healthy; the seeded user can sign in and see the three
+seeded habits with the seeded streak values; new habits can be added, renamed,
+and deleted through the browser; a habit can be marked complete and un-marked
+for a day and the streak counters recompute correctly; a duplicate mark for the
+same day is a no-op; a future-dated mark is rejected; a token from one user
+cannot read or mutate another user'"'"'s habits; the dashboard matches the
+completion ledger.
+
+Test your own work in a browser before you finish.
+' 2>&1 </dev/null | stdbuf -oL tee /logs/agent/openhands.txt
+Command outputs captured
+Collecting main service artifacts
+The verifier.env contains an API key (often the case for LLM-based verifiers). You will incur costs associated with the API calls.
+
+
+--- 2. AGENT EXECUTION ---
+  cost_usd=5.827215749999999  stop_reason=None
+  trajectory: trajectory/trajectory.json  (raw: trajectory/claude-code.txt)
+
+--- 3. VERIFIER (deploy gate -> browser -> pytest -> judge -> score) ---
+workflow user_sees_seeded_streaks (3 browser substeps)
+  substep 1/3: Sign in with the credentials documented in /app/USER_README.md
+  [cooldown] waiting 60s before first grader call
+  substep 2/3: Verify the dashboard shows three habits including Meditate, Read 20 minutes and 
+  substep 3/3: Verify Meditate shows a current streak of 5 and No soda shows a current streak o
+  -> 3/3 passed (97.1s)
+workflow user_adds_habit (3 browser substeps)
+  substep 1/3: Sign in and open the habits view
+  substep 2/3: Add a habit named Journal with the teal colour tag
+  substep 3/3: Verify the new habit is listed with current streak 0 and longest streak 0
+  -> 3/3 passed (85.1s)
+workflow user_marks_today_complete (3 browser substeps)
+  substep 1/3: Sign in and open the dashboard
+  substep 2/3: Toggle Mark today on the Read 20 minutes habit
+  substep 3/3: Verify Read 20 minutes now shows completed_today true and a current streak of at
+  -> 3/3 passed (49.2s)
+workflow user_unmarks_day (3 browser substeps)
+  substep 1/3: Sign in and open the Meditate habit detail
+  substep 2/3: Un-mark today on the completion calendar and confirm
+  substep 3/3: Verify the current streak drops from 5 to 0 and completed_today is false
+  -> 3/3 passed (457.8s)
+workflow user_deletes_habit (3 browser substeps)
+  substep 1/3: Sign in and open the habits view
+  substep 2/3: Delete the No soda habit and confirm the destructive dialog
+  substep 3/3: Verify No soda is no longer listed on the habits view or the dashboard
+  -> 3/3 passed (70.0s)
+workflow dashboard_matches_ledger (2 browser substeps)
+  substep 1/2: Sign in and open the dashboard
+  substep 2/2: Verify tiles for total habits, total completions, and habits with an active stre
+  -> 2/2 passed (31.7s)
+workflow duplicate_habit_name_rejected (2 browser substeps)
+  substep 1/2: Sign in and attempt to add a second habit named meditate in lowercase
+  substep 2/2: Verify a validation error is shown and no duplicate row appears in the list
+  -> 2/2 passed (59.8s)
+workflow unauthenticated_access_denied (1 browser substeps)
+  substep 1/1: Open the dashboard route without signing in and verify a redirect to the login p
+  -> 0/1 passed (49.3s)
+.FFFF.....FF                                                             [100%]
+=================================== FAILURES ===================================
+_____________________ test_other_users_habit_not_readable ______________________
+
+user_client = <httpx.Client object at 0xffff87bf88f0>
+db = <conftest.HabitStore object at 0xffff878ebd70>, user_id = 'kiyi7s4qsngg7yp'
+
+    def test_other_users_habit_not_readable(user_client, db, user_id):
+        """A second user's token cannot read the seeded user's habits."""
+        other_token, _ = _bootstrap_second_user()
+        with client(other_token) as other:
+            # The other user's own list may legitimately be empty -- what matters is
+            # they cannot pull a specific habit belonging to the seeded user.
+            seeded_habits = db.habits_for(user_id, deleted=False)
+>           assert seeded_habits, "seeded user has no habits - cross-user check is meaningless"
+E           AssertionError: seeded user has no habits - cross-user check is meaningless
+E           assert []
+
+/tests/test_authorization.py:92: AssertionError
+______________________ test_other_users_habit_not_mutable ______________________
+
+user_client = <httpx.Client object at 0xffff87bf88f0>
+db = <conftest.HabitStore object at 0xffff878ebd70>, user_id = 'kiyi7s4qsngg7yp'
+
+    def test_other_users_habit_not_mutable(user_client, db, user_id):
+        """A second user's token cannot mark, un-mark, rename or delete another user's habit."""
+        other_token, _ = _bootstrap_second_user()
+        seeded_habits = db.habits_for(user_id, deleted=False)
+>       assert seeded_habits, "seeded user has no habits - cross-user check is meaningless"
+E       AssertionError: seeded user has no habits - cross-user check is meaningless
+E       assert []
+
+/tests/test_authorization.py:106: AssertionError
+_________________ test_mark_today_persists_and_streak_updates __________________
+
+user_client = <httpx.Client object at 0xffff87bf88f0>
+db = <conftest.HabitStore object at 0xffff878ebd70>, user_id = 'kiyi7s4qsngg7yp'
+
+    def test_mark_today_persists_and_streak_updates(user_client, db, user_id):
+        """Marking today writes a completion and lifts current_streak to at least one."""
+        habit = find_habit(user_client, "Read 20 minutes")
+        assert habit is not None, "seeded habit 'Read 20 minutes' is missing from GET /api/habits"
+        habit_id = habit["id"]
+    
+        before = db.count_completions(user_id, habit_id=habit_id)
+    
+        response = user_client.post(f"/habits/{habit_id}/complete", json={"date": today_utc()})
+        assert response.status_code in (200, 201), (
+            f"POST /api/habits/{{id}}/complete returned {response.status_code}: "
+            f"{response.text[:400]}"
+        )
+    
+        assert db.completion_on(habit_id, today_utc()) is not None, (
+            "a completion row was not written for today"
+        )
+>       assert db.count_completions(user_id, habit_id=habit_id) == before + 1, (
+            "exactly one completion row should have been added"
+        )
+E       AssertionError: exactly one completion row should have been added
+E       assert 4 == (4 + 1)
+E        +  where 4 = count_completions('kiyi7s4qsngg7yp', habit_id='7jzuj7nch3nz0ee')
+E        +    where count_completions = <conftest.HabitStore object at 0xffff878ebd70>.count_completions
+
+/tests/test_completions.py:29: AssertionError
+________________ test_unmark_removes_completion_and_recomputes _________________
+
+user_client = <httpx.Client object at 0xffff87bf88f0>
+db = <conftest.HabitStore object at 0xffff878ebd70>, user_id = 'kiyi7s4qsngg7yp'
+
+    def test_unmark_removes_completion_and_recomputes(user_client, db, user_id):
+        """Un-marking a day removes the ledger row and the streak recomputes to 0."""
+        habit = find_habit(user_client, "Meditate")
+        assert habit is not None, "seeded habit 'Meditate' is missing"
+        habit_id = habit["id"]
+    
+        # Precondition: today is currently marked (seeded current_streak = 5).
+>       assert db.completion_on(habit_id, today_utc()) is not None, (
+            "seeded state assumption failed: today's completion for Meditate should exist"
+        )
+E       AssertionError: seeded state assumption failed: today's completion for Meditate should exist
+E       assert None is not None
+E        +  where None = completion_on('0nytck3dnfl94gt', '2026-08-05')
+E        +    where completion_on = <conftest.HabitStore object at 0xffff878ebd70>.completion_on
+E        +    and   '2026-08-05' = today_utc()
+
+/tests/test_completions.py:50: AssertionError
+_______________________ test_seeded_streaks_match_ledger _______________________
+
+user_client = <httpx.Client object at 0xffff87bf88f0>
+db = <conftest.HabitStore object at 0xffff878ebd70>, user_id = 'kiyi7s4qsngg7yp'
+
+    def test_seeded_streaks_match_ledger(user_client, db, user_id):
+        """The seeded streak values agree with what the completions collection holds."""
+        expectations = {
+            "Meditate": {"current": 5, "longest_at_least": 5},
+            "Read 20 minutes": {"current": 0, "longest_at_least": 3},
+            "No soda": {"current": 1, "longest_at_least": 1},
+        }
+    
+        for name, expected in expectations.items():
+            habit = find_habit(user_client, name)
+            assert habit is not None, f"seeded habit {name!r} is missing from GET /api/habits"
+    
+            ledger = {
+                str(row["date"])
+                for row in db.completions_for_habit(habit["id"])
+            }
+            assert ledger, f"no completions found for seeded habit {name!r}"
+    
+            derived_current = _current_streak_from_ledger(ledger)
+            derived_longest = _longest_streak_from_ledger(ledger)
+    
+>           assert derived_current == expected["current"], (
+                f"ledger disagrees with the seeded contract for {name!r}: "
+                f"derived current_streak={derived_current}, expected {expected['current']}. "
+                f"Seed data is wrong."
+            )
+E           AssertionError: ledger disagrees with the seeded contract for 'Meditate': derived current_streak=0, expected 5. Seed data is wrong.
+E           assert 0 == 5
+
+/tests/test_streaks.py:65: AssertionError
+______________________ test_dashboard_counts_match_ledger ______________________
+
+user_client = <httpx.Client object at 0xffff87bf88f0>
+db = <conftest.HabitStore object at 0xffff878ebd70>, user_id = 'kiyi7s4qsngg7yp'
+
+    def test_dashboard_counts_match_ledger(user_client, db, user_id):
+        """Dashboard counters agree with the real state of the collections."""
+        response = user_client.get("/dashboard")
+        assert response.status_code == 200, (
+            f"GET /api/dashboard returned {response.status_code}: {response.text[:400]}"
+        )
+        payload = response.json()
+        flat = flatten(payload)
+    
+        expected_total_habits = db.count_habits(user_id, deleted=False)
+        expected_total_completions = db.count_completions(user_id)
+    
+        # Habits with a current streak of at least one: today is marked.
+        today = today_utc()
+        active = 0
+        for habit_row in db.habits_for(user_id, deleted=False):
+            if db.completion_on(habit_row["id"], today) is not None:
+                active += 1
+    
+        for label, value in (
+            ("total_habits", expected_total_habits),
+            ("total_completions", expected_total_completions),
+            ("habits_with_active_streak", active),
+        ):
+            assert str(value) in flat, (
+                f"dashboard payload is missing the true {label}={value}; "
+                f"got {flat[:600]}"
+            )
+    
+        # habits[] entries must line up with the habits collection.
+        dashboard_habits = payload.get("habits") if isinstance(payload, dict) else None
+        if dashboard_habits is None:
+            # Some implementations expose the array under an envelope key.
+            dashboard_habits = items(payload)
+        reported_names = {str(h.get("name", "")).lower() for h in dashboard_habits}
+        expected_names = {
+            str(row["name"]).lower() for row in db.habits_for(user_id, deleted=False)
+        }
+>       assert reported_names == expected_names, (
+            f"dashboard habit list disagrees with the habits collection: "
+            f"reported {sorted(reported_names)}, expected {sorted(expected_names)}"
+        )
+E       AssertionError: dashboard habit list disagrees with the habits collection: reported ['future-check-2026-08-05', 'idempotency-2026-08-05', 'journal', 'meditate', 'read 20 minutes', 'verifier-c29ad796'], expected []
+E       assert {'future-chec...ier-c29ad796'} == set()
+E         
+E         Extra items in the left set:
+E         'meditate'
+E         'journal'
+E         'read 20 minutes'
+E         'future-check-2026-08-05'
+E         'idempotency-2026-08-05'
+E         'verifier-c29ad796'
+E         Use -v to get more diff
+
+/tests/test_streaks.py:125: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_authorization.py::test_unauthenticated_requests_denied
+PASSED ../tests/test_completions.py::test_duplicate_completion_is_idempotent
+PASSED ../tests/test_completions.py::test_future_dated_completion_rejected
+PASSED ../tests/test_habits.py::test_created_habit_persisted
+PASSED ../tests/test_habits.py::test_duplicate_name_case_insensitive_rejected
+PASSED ../tests/test_habits.py::test_soft_delete_hides_habit_and_keeps_completions
+FAILED ../tests/test_authorization.py::test_other_users_habit_not_readable - ...
+FAILED ../tests/test_authorization.py::test_other_users_habit_not_mutable - A...
+FAILED ../tests/test_completions.py::test_mark_today_persists_and_streak_updates
+FAILED ../tests/test_completions.py::test_unmark_removes_completion_and_recomputes
+FAILED ../tests/test_streaks.py::test_seeded_streaks_match_ledger - Assertion...
+FAILED ../tests/test_streaks.py::test_dashboard_counts_match_ledger - Asserti...
+6 failed, 6 passed in 2.34s
+gathering evidence @ http://localhost:4173 across 3 viewport(s)
+grading dimension `instruction_following` (weight 0.3)
+  [cooldown] waiting 60s before first grader call
+grading dimension `functionality` (weight 0.25)
+grading dimension `ux_flow` (weight 0.15)
+grading dimension `ui_visual` (weight 0.15)
+grading dimension `motion` (weight 0.05)
+grading dimension `accessibility` (weight 0.05)
+grading dimension `responsiveness` (weight 0.05)
+judge_score = 0.1500 (advisory, see PLAN.md 1.4). wrote /logs/verifier/judge.json
+reward=0.4545 workflows=5/11 critical_failed=6 browser_graded=True ungraded_browser=0
+
+  pytest: {'tests': 12, 'passed': 6, 'failed': 6, 'skipped': 0, 'pending': 0, 'other': 0, 'start': 1785947796.5320241, 'stop': 1785947798.8649123}
+
+--- 4. SCORE ---
+  {
+  "reward": 0.4545,
+  "invalid": [],
+  "workflows_total": 11,
+  "workflows_passed": 5,
+  "substeps_total": 32,
+  "substeps_passed": 25,
+  "browser_substeps_declared": 20,
+  "browser_substeps_total": 20,
+  "browser_substeps_passed": 19,
+  "browser_substeps_ungraded": 0,
+  "pytest_substeps_total": 12,
+  "pytest_substeps_passed": 6,
+  "critical_substeps_failed": 6,
+  "browser_graded": true,
+  "deployed": 1.0,
+  "judge_score": 0.15
+}
+    [FAIL] user_sees_seeded_streaks  (3/4)
+    [PASS] user_adds_habit  (4/4)
+    [FAIL] user_marks_today_complete  (3/4)
+    [FAIL] user_unmarks_day  (3/4)
+    [PASS] user_deletes_habit  (4/4)
+    [FAIL] dashboard_matches_ledger  (2/3)
+    [PASS] duplicate_habit_name_rejected  (3/3)
+    [PASS] duplicate_completion_no_double_count  (1/1)
+    [PASS] future_dated_completion_rejected  (1/1)
+    [FAIL] unauthenticated_access_denied  (1/2)
+    [FAIL] cross_user_access_forbidden  (0/2)
+
+========================================================================
+END

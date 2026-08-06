@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deku Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            gap: 30px;
+            max-width: 800px;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .calculator {
+            background: #1f1f3d;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            width: 320px;
+        }
+        
+        .display {
+            background: #0f0f23;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 100px;
+        }
+        
+        .expression {
+            color: #8888aa;
+            font-size: 16px;
+            min-height: 24px;
+            word-break: break-all;
+        }
+        
+        .result {
+            color: #fff;
+            font-size: 36px;
+            font-weight: 600;
+            text-align: right;
+            min-height: 44px;
+            word-break: break-all;
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .btn {
+            background: #2d2d5a;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 20px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .btn:hover {
+            background: #3d3d7a;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn.operator {
+            background: #4a4a8a;
+        }
+        
+        .btn.operator:hover {
+            background: #5a5a9a;
+        }
+        
+        .btn.equals {
+            background: #6c5ce7;
+            grid-column: span 2;
+        }
+        
+        .btn.equals:hover {
+            background: #7c6cf7;
+        }
+        
+        .btn.clear {
+            background: #e74c3c;
+        }
+        
+        .btn.clear:hover {
+            background: #f75c4c;
+        }
+        
+        .history-panel {
+            background: #1f1f3d;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            width: 320px;
+            max-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .history-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .clear-history-btn {
+            background: #e74c3c;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 12px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .clear-history-btn:hover {
+            background: #f75c4c;
+        }
+        
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .history-list::-webkit-scrollbar-track {
+            background: #0f0f23;
+            border-radius: 3px;
+        }
+        
+        .history-list::-webkit-scrollbar-thumb {
+            background: #4a4a8a;
+            border-radius: 3px;
+        }
+        
+        .history-entry {
+            background: #0f0f23;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .history-expression {
+            color: #8888aa;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        
+        .history-result {
+            color: #6c5ce7;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .empty-history {
+            color: #555;
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        @media (max-width: 700px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <div class="display">
+                <div class="expression" id="expression"></div>
+                <div class="result" id="result">0</div>
+                <div class="error-message" id="error"></div>
+            </div>
+            <div class="keypad">
+                <button class="btn clear" onclick="clearAll()">C</button>
+                <button class="btn operator" onclick="appendChar('(')">(</button>
+                <button class="btn operator" onclick="appendChar(')')">)</button>
+                <button class="btn operator" onclick="appendChar('/')">÷</button>
+                
+                <button class="btn" onclick="appendChar('7')">7</button>
+                <button class="btn" onclick="appendChar('8')">8</button>
+                <button class="btn" onclick="appendChar('9')">9</button>
+                <button class="btn operator" onclick="appendChar('*')">×</button>
+                
+                <button class="btn" onclick="appendChar('4')">4</button>
+                <button class="btn" onclick="appendChar('5')">5</button>
+                <button class="btn" onclick="appendChar('6')">6</button>
+                <button class="btn operator" onclick="appendChar('-')">−</button>
+                
+                <button class="btn" onclick="appendChar('1')">1</button>
+                <button class="btn" onclick="appendChar('2')">2</button>
+                <button class="btn" onclick="appendChar('3')">3</button>
+                <button class="btn operator" onclick="appendChar('+')">+</button>
+                
+                <button class="btn" onclick="appendChar('0')">0</button>
+                <button class="btn" onclick="appendChar('.')">.</button>
+                <button class="btn equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+        
+        <div class="history-panel">
+            <div class="history-header">
+                <span class="history-title">History</span>
+                <button class="clear-history-btn" onclick="clearHistory()">Clear</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="empty-history">No calculations yet</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentExpression = '';
+        let lastResult = null;
+        
+        function updateDisplay() {
+            document.getElementById('expression').textContent = currentExpression || '';
+            document.getElementById('error').textContent = '';
+        }
+        
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('result').textContent = '—';
+            lastResult = null;
+        }
+        
+        function showResult(result) {
+            document.getElementById('result').textContent = result;
+            document.getElementById('error').textContent = '';
+            lastResult = result;
+        }
+        
+        function appendChar(char) {
+            currentExpression += char;
+            updateDisplay();
+        }
+        
+        function clearAll() {
+            currentExpression = '';
+            document.getElementById('expression').textContent = '';
+            document.getElementById('result').textContent = '0';
+            document.getElementById('error').textContent = '';
+            lastResult = null;
+        }
+        
+        async function calculate() {
+            if (!currentExpression.trim()) {
+                showError('Enter an expression');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ expression: currentExpression })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    showError(data.error || 'Calculation failed');
+                    return;
+                }
+                
+                showResult(data.result);
+                loadHistory();
+                currentExpression = '';
+                document.getElementById('expression').textContent = data.expression + ' =';
+            } catch (err) {
+                showError('Network error');
+            }
+        }
+        
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                
+                const historyList = document.getElementById('historyList');
+                
+                if (data.entries.length === 0) {
+                    historyList.innerHTML = '<div class="empty-history">No calculations yet</div>';
+                    return;
+                }
+                
+                historyList.innerHTML = data.entries.map(entry => `
+                    <div class="history-entry">
+                        <div class="history-expression">${escapeHtml(entry.expression)}</div>
+                        <div class="history-result">= ${entry.result}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Failed to load history:', err);
+            }
+        }
+        
+        async function clearHistory() {
+            try {
+                await fetch('/api/history', { method: 'DELETE' });
+                loadHistory();
+            } catch (err) {
+                console.error('Failed to clear history:', err);
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                appendChar(e.key);
+            } else if (['+', '-', '*', '/', '(', ')', '.'].includes(e.key)) {
+                appendChar(e.key);
+            } else if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
+                calculate();
+            } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
+                clearAll();
+            } else if (e.key === 'Backspace') {
+                currentExpression = currentExpression.slice(0, -1);
+                updateDisplay();
+            }
+        });
+        
+        // Load history on page load
+        loadHistory();
+    </script>
+</body>
+</html>

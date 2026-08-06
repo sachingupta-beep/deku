@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "Set up production build and deployment",
+  "description": "Configure production build, preview server, create USER_README.md, and ensure health endpoint works",
+  "activeForm": "Setting up deployment",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

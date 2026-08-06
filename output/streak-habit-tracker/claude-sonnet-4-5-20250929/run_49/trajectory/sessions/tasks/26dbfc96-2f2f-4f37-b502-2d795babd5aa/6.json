@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Test the application end-to-end",
+  "description": "Test login, habit management, completion tracking, streak calculations, and all user flows in a browser",
+  "activeForm": "Testing application",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Initialize project structure",
+  "description": "Create Vite + React + TypeScript project with all dependencies",
+  "activeForm": "Initializing project",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

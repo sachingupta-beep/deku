@@ -1,0 +1,27 @@
+{
+  "task": "oracle-streak",
+  "model": "unknown-model",
+  "trial_id": "oracle-streak__B47QeFC",
+  "source_job": "jobs/2026-08-04__19-48-47/oracle-streak__B47QeFC",
+  "task_checksum": "7f2712f16f680373c0645843fff9d94eb8a8c81d1997f2fa2a6d9cb9c2701e0f",
+  "reward": 0.0,
+  "deployed": null,
+  "invalid": [
+    "browser_results_missing",
+    "browser_substeps_ungraded"
+  ],
+  "exception": null,
+  "started_at": "2026-08-04T14:18:48.388972Z",
+  "finished_at": "2026-08-04T14:24:15.264281Z",
+  "stage_seconds": {
+    "environment_setup": 172.0,
+    "agent_setup": 0.0,
+    "agent_execution": 0.3,
+    "verifier": 151.2
+  },
+  "agent": {
+    "version": "1.0.0",
+    "cost_usd": null
+  },
+  "repackaged_from": "harness/repackage.py"
+}

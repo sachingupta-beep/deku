@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Set up project structure and dependencies",
+  "description": "Create frontend and backend directories, initialize package.json files, install dependencies",
+  "activeForm": "Setting up project structure",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

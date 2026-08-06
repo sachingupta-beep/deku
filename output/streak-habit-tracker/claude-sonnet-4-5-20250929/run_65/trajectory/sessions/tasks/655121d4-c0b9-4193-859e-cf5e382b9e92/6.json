@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Deploy and verify",
+  "description": "Build production bundle, start detached server, verify health and functionality",
+  "activeForm": "Deploying application",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

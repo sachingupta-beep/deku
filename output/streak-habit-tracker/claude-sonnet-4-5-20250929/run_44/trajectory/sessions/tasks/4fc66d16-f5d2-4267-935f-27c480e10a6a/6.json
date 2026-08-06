@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Deploy and verify application",
+  "description": "Build production bundle, start detached server on port 4173, verify all features work, create USER_README.md with credentials",
+  "activeForm": "Deploying application",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

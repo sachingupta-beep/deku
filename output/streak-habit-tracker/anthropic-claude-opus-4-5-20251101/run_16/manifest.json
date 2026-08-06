@@ -1,0 +1,25 @@
+{
+  "task": "streak-habit-tracker",
+  "model": "anthropic-claude-opus-4-5-20251101",
+  "trial_id": "streak-habit-tracker__dRJBaGS",
+  "source_job": "jobs/2026-08-06__13-15-01/streak-habit-tracker__dRJBaGS",
+  "task_checksum": "b499805b14ea035980f606ac829013df8e300b9af1fc073bdbd497a8b57f4385",
+  "reward": 0.1818,
+  "deployed": null,
+  "invalid": [],
+  "exception": null,
+  "started_at": "2026-08-06T07:45:05.387073Z",
+  "finished_at": "2026-08-06T08:24:03.168396Z",
+  "stage_seconds": {
+    "environment_setup": 15.8,
+    "agent_setup": 98.3,
+    "agent_execution": 979.6,
+    "verifier": 1227.3
+  },
+  "agent": {
+    "version": "0.62.0",
+    "cost_usd": 3.5842809999999994
+  },
+  "repackaged_from": "harness/repackage.py",
+  "graded_by": "verifier"
+}

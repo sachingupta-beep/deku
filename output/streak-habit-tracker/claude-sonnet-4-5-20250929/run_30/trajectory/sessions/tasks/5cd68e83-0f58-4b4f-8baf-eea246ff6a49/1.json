@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Set up project structure and initialize Vite + React app",
+  "description": "Create the base Vite + React + TypeScript project with Tailwind CSS and all required dependencies",
+  "activeForm": "Setting up project structure",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

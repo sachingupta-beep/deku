@@ -315,6 +315,24 @@ process that knows nothing about your code, so the following must hold exactly.
   different container, so a loopback-only listener is unreachable.
 - Before you finish, verify persistence yourself: confirm the listening process is
   still running with a parent that is not your shell, and that the port answers.
+- **Write `/app/start.sh`, and make it executable.** Grading may redeploy your app
+  into a *clean* container: same base image, your `/app` files copied in, and
+  nothing else — no processes running, no caches you warmed, no packages you
+  installed outside `/app`, no state you created by hand. The backing services are
+  still there at the same addresses, but their data is **re-seeded from scratch**,
+  so anything you wrote into them during your session is gone. `start.sh` is the
+  only thing that turns your files back into a running app, so it must:
+  - install whatever it needs (vendor dependencies into `/app`, or install them
+    inside the script — do not assume anything you installed during your session
+    still exists),
+  - read the port from `APP_PUBLIC_PORT` and every service address from the
+    environment, never hardcoded,
+  - start the server detached exactly as described above,
+  - exit `0` once the app is answering, and non-zero if it cannot start.
+- **Prove `start.sh` works before you finish.** Kill every process you started, run
+  `bash /app/start.sh` yourself, and confirm the app answers afterwards. An app that
+  only runs because of something you did by hand in this session is not a deployable
+  app, and will score zero.
 - **The backing services are ALREADY RUNNING.** Every service named in this brief
   is started for you before your session begins and is reachable at the environment
   variable given for it. **Do not download, install, compile or start your own copy

@@ -1,0 +1,37 @@
+workflow page_loads_and_renders_calculator (2 browser substeps)
+  substep 1/2: Open the root URL and verify the page renders a calculator with a visible displa
+  [cooldown] waiting 60s before first grader call
+  [retry] HTTP 429, sleeping 45s (1/4)
+  [retry] HTTP 429, sleeping 90s (2/4)
+  [retry] HTTP 429, sleeping 90s (3/4)
+  substep 2/2: Verify the page shows a history area (a list, panel, or section labelled history
+  -> 0/2 passed (324.7s)
+workflow keypad_calculation_shows_result (2 browser substeps)
+  substep 1/2: Using the on-screen controls enter the expression 12+5*3 and activate the equals
+  substep 2/2: Clear the display, enter 7/2, activate equals, and confirm the display shows 3.5
+  -> 0/2 passed (0.0s)
+workflow calculation_appears_in_history (1 browser substeps)
+  substep 1/1: After evaluating an expression, confirm a history row appears showing that expre
+  -> 0/1 passed (0.0s)
+workflow history_cleared_leaves_empty_log (1 browser substeps)
+  substep 1/1: Activate the clear-history control and confirm the history panel no longer lists
+  -> 0/1 passed (0.0s)
+workflow division_by_zero_rejected (1 browser substeps)
+  substep 1/1: Enter the expression 1/0 and activate equals, then confirm a visible error messa
+  -> 0/1 passed (0.0s)
+.........                                                                [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED ../tests/test_calculator.py::test_health_endpoint_returns_200
+PASSED ../tests/test_calculator.py::test_calculate_respects_operator_precedence
+PASSED ../tests/test_calculator.py::test_calculate_handles_parentheses_and_negatives
+PASSED ../tests/test_calculator.py::test_history_records_calculation
+PASSED ../tests/test_calculator.py::test_history_is_newest_first_and_capped
+PASSED ../tests/test_calculator.py::test_history_clear_empties_the_log
+PASSED ../tests/test_calculator.py::test_division_by_zero_returns_400
+PASSED ../tests/test_calculator.py::test_invalid_expression_returns_400
+PASSED ../tests/test_calculator.py::test_rejected_expression_is_not_recorded
+9 passed in 0.07s
+DEKU_SKIP_RUBRIC=1 - skipping the advisory rubric judge
+INVALID RUN (browser_substeps_ungraded, grader_unavailable, workflow_timeout): the app was not fully observed; reward forced to 0.0 and must not be read as an agent failure
+reward=0.0000 workflows=8/10 critical_failed=0 browser_graded=True ungraded_browser=7

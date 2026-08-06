@@ -1,0 +1,39 @@
+{
+    "id": "7eb6e79c-c201-4558-b11c-423e005e0fca",
+    "started_at": "2026-08-06T13:15:03.398662",
+    "updated_at": "2026-08-06T13:54:04.125023",
+    "finished_at": "2026-08-06T13:54:04.125023",
+    "n_total_trials": 1,
+    "stats": {
+        "n_completed_trials": 1,
+        "n_errored_trials": 0,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "openhands__claude-opus-4-5-20251101__adhoc": {
+                "n_trials": 1,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "mean": 0.1818
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0.1818": [
+                            "streak-habit-tracker__dRJBaGS"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 4280548,
+        "n_cache_tokens": 4212682,
+        "n_output_tokens": 42156,
+        "cost_usd": 3.5842809999999994
+    }
+}

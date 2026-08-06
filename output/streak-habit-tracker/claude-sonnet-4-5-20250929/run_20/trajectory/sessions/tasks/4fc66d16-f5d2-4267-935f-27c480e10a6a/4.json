@@ -1,0 +1,9 @@
+{
+  "id": "4",
+  "subject": "Implement streak calculation logic",
+  "description": "Build server-side streak calculation for current_streak and longest_streak based on completions data",
+  "activeForm": "Implementing streak calculations",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

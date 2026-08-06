@@ -1,0 +1,27 @@
+{
+  "task": "calculator",
+  "model": "unknown-model",
+  "trial_id": "calculator__nxrEFcC",
+  "source_job": "jobs/2026-08-05__17-03-28/calculator__nxrEFcC",
+  "task_checksum": "3826c08445706824ea0586cf5f0b3f8f55d83361d0f04429ce28f592cf8a08c8",
+  "reward": 0.0,
+  "deployed": null,
+  "invalid": [
+    "browser_results_missing",
+    "browser_substeps_ungraded"
+  ],
+  "exception": null,
+  "started_at": "2026-08-05T11:33:28.992347Z",
+  "finished_at": "2026-08-05T11:36:26.988221Z",
+  "stage_seconds": {
+    "environment_setup": 14.3,
+    "agent_setup": 0.0,
+    "agent_execution": 0.0,
+    "verifier": 151.2
+  },
+  "agent": {
+    "version": "1.0.0",
+    "cost_usd": null
+  },
+  "repackaged_from": "harness/repackage.py"
+}

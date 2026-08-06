@@ -1,0 +1,56 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.4.1"
+        },
+        "summary": {
+            "tests": 4,
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1785824479.2789652,
+            "stop": 1785824479.3635976
+        },
+        "tests": [
+            {
+                "name": "test_smoke.py::test_health_endpoint_returns_200",
+                "status": "passed",
+                "duration": 0.04738033300009192,
+                "start": 1785824479.2986982,
+                "stop": 1785824479.3467903,
+                "retries": 0,
+                "file_path": "test_smoke.py"
+            },
+            {
+                "name": "test_smoke.py::test_calculate_basic_returns_exact_shape",
+                "status": "passed",
+                "duration": 0.005009666000660218,
+                "start": 1785824479.347066,
+                "stop": 1785824479.3525388,
+                "retries": 0,
+                "file_path": "test_smoke.py"
+            },
+            {
+                "name": "test_smoke.py::test_calculate_split_returns_per_person",
+                "status": "passed",
+                "duration": 0.0038251670002864557,
+                "start": 1785824479.3527763,
+                "stop": 1785824479.3574004,
+                "retries": 0,
+                "file_path": "test_smoke.py"
+            },
+            {
+                "name": "test_smoke.py::test_invalid_bill_returns_400",
+                "status": "passed",
+                "duration": 0.0049708749993442325,
+                "start": 1785824479.3576999,
+                "stop": 1785824479.3630993,
+                "retries": 0,
+                "file_path": "test_smoke.py"
+            }
+        ]
+    }
+}

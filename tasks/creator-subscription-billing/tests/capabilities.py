@@ -145,10 +145,40 @@ class PocketBaseBackend(Backend):
             headers={"Authorization": token},
         )
 
+    @staticmethod
+    def _literal(value: Any) -> str:
+        """Render a Python value as a PocketBase filter literal.
+
+        PocketBase's filter language is TEXT -- there is no parameter binding, so
+        the adapter is responsible for typing. Wrapping every value in quotes (the
+        original implementation) turns a boolean into the string "False", and a
+        boolean column never equals a string, so the query matched nothing and
+        returned [] instead of erroring.
+
+        Measured cost of that one line: every substep filtering `deleted=False`
+        was unpassable by ANY app. On streak-habit-tracker that silently capped
+        the reward and read as "the app stores data outside PocketBase" -- three
+        of four pytest failures on 2026-08-06 were this, not the app.
+
+        `bool` MUST be tested before `int`: in Python bool subclasses int, so an
+        isinstance(v, int) check first renders False as `0` and reintroduces the
+        bug in a subtler form.
+        """
+        if value is None:
+            return "null"
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, (int, float)):
+            return str(value)
+        # Escape embedded quotes so a value cannot terminate the literal early.
+        return '"{}"'.format(str(value).replace('"', '\\"'))
+
     def _fetch(self, table: str, where: dict, per_page: int) -> dict:
         params: dict[str, Any] = {"perPage": per_page}
         if where:
-            params["filter"] = " && ".join(f'{k}="{v}"' for k, v in where.items())
+            params["filter"] = " && ".join(
+                f"{k}={self._literal(v)}" for k, v in where.items()
+            )
         response = self._client.get(f"/api/collections/{table}/records", params=params)
         assert response.status_code == 200, (
             f"PocketBase {table} query returned {response.status_code}: "
