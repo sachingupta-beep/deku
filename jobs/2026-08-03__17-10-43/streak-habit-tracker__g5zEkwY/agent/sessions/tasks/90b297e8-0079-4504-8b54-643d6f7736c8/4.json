@@ -1,9 +1,0 @@
-{
-  "id": "4",
-  "subject": "Build habit management features",
-  "description": "Create habits list page, add/edit/delete modals, soft delete logic, validation for unique names",
-  "activeForm": "Building habit management",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

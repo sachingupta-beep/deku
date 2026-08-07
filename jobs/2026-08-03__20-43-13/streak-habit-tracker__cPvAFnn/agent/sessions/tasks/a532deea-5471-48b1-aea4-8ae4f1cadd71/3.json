@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Seed database with demo user and habits",
-  "description": "Create seeded account (demo@ethara.ai) and three habits with completion data that produces the required streak values",
-  "activeForm": "Seeding database",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

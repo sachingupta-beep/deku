@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Deploy application and verify",
-  "description": "Build production bundle, start server, test in browser, write USER_README.md",
-  "activeForm": "Deploying application",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

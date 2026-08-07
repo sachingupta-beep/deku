@@ -1,8 +1,0 @@
-{
-  "id": "1",
-  "subject": "Set up project structure and dependencies",
-  "description": "Create monorepo with frontend (React+Vite+Tailwind) and backend (Express wrapper for PocketBase)",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

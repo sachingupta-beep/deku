@@ -1,2 +1,0 @@
-No /app artifact was captured for this trial. On a deploy-failed run the
-app is often not collected. On a successful run this holds the built app.

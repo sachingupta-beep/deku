@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "Configure PocketBase collections and seeding",
-  "description": "Set up PocketBase collections (habits, completions) with proper constraints, indexes, and seed data including the demo user and three habits with specific streak patterns",
-  "activeForm": "Configuring PocketBase",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

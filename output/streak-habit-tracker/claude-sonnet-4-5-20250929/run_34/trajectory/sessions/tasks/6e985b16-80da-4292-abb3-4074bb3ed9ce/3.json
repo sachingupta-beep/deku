@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Create API server layer for routing",
-  "description": "Set up Express/Node server to proxy PocketBase and implement streak calculation endpoints",
-  "activeForm": "Creating API server",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

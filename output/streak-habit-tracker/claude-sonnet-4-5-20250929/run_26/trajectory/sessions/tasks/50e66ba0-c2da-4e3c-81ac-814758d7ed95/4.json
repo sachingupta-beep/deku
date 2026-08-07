@@ -1,9 +1,0 @@
-{
-  "id": "4",
-  "subject": "Implement habit management and completions",
-  "description": "Create habit CRUD operations, completion tracking, and streak calculation logic",
-  "activeForm": "Implementing core features",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

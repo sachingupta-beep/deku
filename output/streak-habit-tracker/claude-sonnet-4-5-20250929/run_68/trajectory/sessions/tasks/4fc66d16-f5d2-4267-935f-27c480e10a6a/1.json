@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Set up project structure and dependencies",
-  "description": "Initialize Vite + React + TypeScript project with all required dependencies: Tailwind, TanStack Query, React Router, react-hook-form, Zod, etc.",
-  "activeForm": "Setting up project structure",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,3 +1,0 @@
-app never became reachable at http://localhost:4173 - scoring 0
-INVALID RUN (browser_results_missing, browser_substeps_ungraded): the app was not fully observed; reward forced to 0.0 and must not be read as an agent failure
-reward=0.0000 workflows=0/11 critical_failed=11 browser_graded=False ungraded_browser=20

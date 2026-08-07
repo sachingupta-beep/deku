@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Set up project structure and PocketBase",
-  "description": "Initialize project directories, install PocketBase, configure collections (users, habits, completions), set up constraints and seed data",
-  "activeForm": "Setting up project structure and PocketBase",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

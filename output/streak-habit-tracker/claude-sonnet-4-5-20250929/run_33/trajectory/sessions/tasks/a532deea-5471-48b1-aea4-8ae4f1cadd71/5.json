@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Build frontend components and pages",
-  "description": "Create login, dashboard, habits list, habit detail pages with proper routing, auth, and UI components",
-  "activeForm": "Building frontend",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

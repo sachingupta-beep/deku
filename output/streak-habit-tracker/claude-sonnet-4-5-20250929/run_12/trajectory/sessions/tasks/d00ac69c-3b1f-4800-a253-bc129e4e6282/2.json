@@ -1,8 +1,0 @@
-{
-  "id": "2",
-  "subject": "Configure PocketBase collections and seed data",
-  "description": "Set up habits and completions collections in PocketBase, create seed user and initial data",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Initialize Vite + React + TypeScript project",
-  "description": "Set up the frontend project with Vite, React 18, TypeScript in strict mode, and install all required dependencies (TanStack Query, React Router, Tailwind, etc.)",
-  "activeForm": "Initializing project structure",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

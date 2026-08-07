@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Implement completion tracking and streak calculation",
-  "description": "Build completion API endpoints, streak calculation logic (current and longest), completion calendar UI",
-  "activeForm": "Implementing completion tracking",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

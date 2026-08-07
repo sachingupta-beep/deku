@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Build React frontend",
-  "description": "Create all pages, components, auth flow, and API integration",
-  "activeForm": "Building frontend",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}

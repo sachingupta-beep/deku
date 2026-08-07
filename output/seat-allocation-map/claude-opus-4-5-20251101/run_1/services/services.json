@@ -1,9 +1,0 @@
-{
-  "declared": {},
-  "images": {
-    "postgres": "postgres:16-alpine"
-  },
-  "seed_files": [
-    "postgres-init.sh"
-  ]
-}

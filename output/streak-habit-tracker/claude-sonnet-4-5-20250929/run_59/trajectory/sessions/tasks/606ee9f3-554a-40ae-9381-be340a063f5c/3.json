@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Build backend API layer",
-  "description": "Create Express server with auth, habits, completions, and dashboard endpoints",
-  "activeForm": "Building backend API",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Build API layer",
-  "description": "Create Express server to proxy PocketBase and provide required API endpoints",
-  "activeForm": "Building API layer",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

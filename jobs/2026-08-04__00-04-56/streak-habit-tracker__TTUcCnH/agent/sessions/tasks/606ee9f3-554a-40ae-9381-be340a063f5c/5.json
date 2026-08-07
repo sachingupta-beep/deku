@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Deploy application in production mode",
-  "description": "Build frontend, start server with setsid nohup, verify health check and persistence",
-  "activeForm": "Deploying application",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

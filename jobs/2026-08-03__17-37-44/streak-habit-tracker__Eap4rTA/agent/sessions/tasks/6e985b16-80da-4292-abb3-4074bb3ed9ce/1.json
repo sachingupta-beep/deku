@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Set up PocketBase backend with collections and seed data",
-  "description": "Download PocketBase, create users, habits, and completions collections with proper schemas and constraints. Seed with demo account and test data.",
-  "activeForm": "Setting up PocketBase backend",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

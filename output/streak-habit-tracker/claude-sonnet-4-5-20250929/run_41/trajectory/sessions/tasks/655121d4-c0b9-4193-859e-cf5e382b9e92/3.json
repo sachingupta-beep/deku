@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Seed database with demo data",
-  "description": "Create demo user, habits, and completions with proper streaks",
-  "activeForm": "Seeding database",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}

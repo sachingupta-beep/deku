@@ -1,8 +1,0 @@
-exit=0
-
---- stdout ---
-Starting Deku Calculator on port 4173...
-Server is ready on port 4173
-
---- stderr ---
-

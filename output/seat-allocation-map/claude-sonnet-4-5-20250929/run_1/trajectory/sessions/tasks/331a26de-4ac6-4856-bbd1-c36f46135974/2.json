@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "Build backend infrastructure",
-  "description": "FastAPI app, SQLAlchemy models, Alembic migrations, auth system",
-  "activeForm": "Building backend infrastructure",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

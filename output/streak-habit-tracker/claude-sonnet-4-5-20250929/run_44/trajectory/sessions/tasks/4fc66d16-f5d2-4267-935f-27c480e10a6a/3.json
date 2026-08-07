@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Build API layer and authentication",
-  "description": "Create API endpoints matching the contract, implement auth flow, typed fetch wrapper with bearer token injection",
-  "activeForm": "Building API layer",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

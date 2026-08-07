@@ -1,3 +1,0 @@
-solution/app is not populated - the oracle gate cannot pass.
-Author the reference implementation into /solution/app before admitting
-this task (PLAN.md 2.2 step 2).

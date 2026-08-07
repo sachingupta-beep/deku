@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Implement API endpoints",
-  "description": "All REST endpoints with proper auth, validation, and business logic",
-  "activeForm": "Implementing API endpoints",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

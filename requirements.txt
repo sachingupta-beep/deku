@@ -1,0 +1,44 @@
+# Deku harness — host-side dependencies.
+#
+#     python3.12 -m venv .venv
+#     .venv/bin/pip install -r requirements.txt
+#
+# Python 3.12 specifically: harbor 0.20.0 is built against it, and the harness
+# uses tomllib (3.11+). 3.13+ is untested here.
+#
+# This file covers what runs ON YOUR MACHINE: the Harbor runner, the OAuth
+# bridge, and the harness scripts. The graders themselves run INSIDE the task
+# container, and their dependencies are installed by each task's
+# environment/Dockerfile -- see the "Grader runtime" block there, and
+# validate_task.py check C12 which enforces its presence. They are listed at the
+# bottom for reference, not installed here.
+
+# --- the benchmark runner --------------------------------------------------
+# Pinned, not floating: a runner upgrade changes trial semantics (verifier
+# modes, artifact collection, network policy), so it is a deliberate act.
+harbor==0.20.0
+
+# --- Claude Code OAuth bridge (claude_code/) -------------------------------
+# An Anthropic-compatible proxy backed by subscription OAuth, so agent and
+# grader traffic can run without an API key.
+fastapi==0.141.1
+uvicorn==0.52.1
+
+# --- harness scripts -------------------------------------------------------
+# httpx  : bridge forwarding, probe_grader.py, and the graders when run locally
+# pyyaml : workflows.yaml parsing in score.py and run_workflows.py
+httpx==0.28.1
+pyyaml==6.0.3
+
+# ---------------------------------------------------------------------------
+# NOT installed here — these belong to the task container, and installing them
+# on the host does not put them where the verifier runs:
+#
+#   pytest==8.4.1              substep tests
+#   pytest-json-ctrf==0.3.5    the ctrf.json report score.py reads
+#   playwright==1.49.1         browser grader (plus `playwright install chromium`)
+#   psycopg[binary]==3.2.3     postgres capability adapter
+#
+# A task whose environment/Dockerfile omits any of them fails validate_task.py
+# with "the verifier runs in this image, so ...".
+# ---------------------------------------------------------------------------

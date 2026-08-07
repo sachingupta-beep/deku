@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Deploy and verify",
-  "description": "Build production frontend, start detached server, create USER_README.md, verify health",
-  "activeForm": "Deploying application",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

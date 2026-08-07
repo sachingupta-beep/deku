@@ -1,8 +1,0 @@
-{
-  "id": "3",
-  "subject": "Build API proxy layer",
-  "description": "Create Express server to proxy /api routes to PocketBase and add custom endpoints",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

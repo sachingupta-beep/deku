@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Initialize React + Vite + TypeScript project",
-  "description": "Create the frontend project with Vite, React 18, TypeScript, Tailwind CSS, and all required dependencies",
-  "activeForm": "Initializing frontend project",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

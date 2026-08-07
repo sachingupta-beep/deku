@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/trial.py", line 351, in run
-    await self._prepare()
-  File "/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/trial/trial.py", line 386, in _prepare
-    await self.agent_environment.run_healthcheck()
-  File "/Users/macbookpro/Desktop/greenfield/testing/.venv/lib/python3.12/site-packages/harbor/environments/base.py", line 1377, in run_healthcheck
-    raise HealthcheckError(
-harbor.environments.base.HealthcheckError: Healthcheck failed after 30 consecutive retries: curl -fsS http://localhost:4173/api/health > /dev/null

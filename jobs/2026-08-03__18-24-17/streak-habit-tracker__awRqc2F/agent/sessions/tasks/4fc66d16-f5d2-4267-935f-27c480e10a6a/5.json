@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Build frontend UI components",
-  "description": "Create all React components: Login, Dashboard, Habits list, Habit detail with calendar, following the design system specification",
-  "activeForm": "Building UI components",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

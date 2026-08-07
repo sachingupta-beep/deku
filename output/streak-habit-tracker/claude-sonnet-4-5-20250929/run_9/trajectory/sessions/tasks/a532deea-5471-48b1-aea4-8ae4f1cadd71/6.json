@@ -1,9 +1,0 @@
-{
-  "id": "6",
-  "subject": "Deploy production build and verify",
-  "description": "Build for production, start detached server on port 4173 bound to 0.0.0.0, verify health and functionality",
-  "activeForm": "Deploying application",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

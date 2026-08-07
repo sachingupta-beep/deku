@@ -1,8 +1,0 @@
-{
-  "id": "5",
-  "subject": "Seed database and deploy",
-  "description": "Seed demo user and habits, create USER_README.md, start server detached",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

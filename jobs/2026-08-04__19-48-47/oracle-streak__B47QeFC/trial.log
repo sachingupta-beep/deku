@@ -1,5 +1,0 @@
-Skipping image OS validation for hb__98db060145f90872d389cd8c171829b3: docker inspect returned 1
-Running healthcheck: curl -fsS http://pocketbase:8090/api/health > /dev/null
-Healthcheck passed
-Collecting main service artifacts
-The verifier.env contains an API key (often the case for LLM-based verifiers). You will incur costs associated with the API calls.

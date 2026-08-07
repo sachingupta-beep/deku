@@ -1,1 +1,0 @@
-app never became reachable at http://host.docker.internal:4173 - scoring 0

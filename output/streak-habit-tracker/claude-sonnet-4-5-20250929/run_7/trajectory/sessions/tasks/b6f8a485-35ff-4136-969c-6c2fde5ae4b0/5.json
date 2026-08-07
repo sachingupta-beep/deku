@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Deploy production build",
-  "description": "Build frontend, start server as detached process, verify health endpoint",
-  "activeForm": "Deploying application",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}
