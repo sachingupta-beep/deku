@@ -159,7 +159,17 @@ about your code, so the following must hold exactly.
 - There are no backing services. Do not download, install, compile or start
   a database, queue, cache, auth provider, or any other service. If you catch
   yourself typing `docker`, `psql`, `redis`, or `pocketbase`, stop.
-- Write the default (empty) login section into `/app/USER_README.md` so a
+- Write the login into `/app/USER_README.md` **in this exact shape**, one field
+  per line, so the grader can read it without guessing:
+
+  ```
+  Email: demo@ethara.ai
+  Password: deku-demo-pw-2026
+  ```
+
+  A markdown table is also accepted, but the two lines above are the contract.
+  The grader extracts only credential-shaped lines from this file; prose around
+  them is ignored, so anything not in that shape is invisible to it.
   grader knows there are no credentials.
 
 ---

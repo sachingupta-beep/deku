@@ -1,0 +1,152 @@
+[
+  {
+    "number": "R1",
+    "criterion": "The agent ships a set entry form offering the exercise, the load in kilograms, the rep count as separate labelled inputs.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "instruction_following",
+    "evaluation_target": "state_change",
+    "importance": "critically_important",
+    "score": 5
+  },
+  {
+    "number": "R2",
+    "criterion": "The agent shows the logged sets of the open session as a list a lifter reads between sets on a phone.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ux_flow",
+    "evaluation_target": "state_change",
+    "importance": "critically_important",
+    "score": 5
+  },
+  {
+    "number": "R3",
+    "criterion": "The agent renders the weekly trend so a lifter can tell at a glance whether the top load on an exercise is rising across weeks.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "critically_important",
+    "score": 5
+  },
+  {
+    "number": "R4",
+    "criterion": "The response names the reason a submitted set was refused in language a lifter understands rather than a raw status line.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "instruction_following",
+    "evaluation_target": "user_facing_message",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R5",
+    "criterion": "The agent presents the sign in, session, history, trend surfaces as one navigable whole from a single signed in view.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ux_flow",
+    "evaluation_target": "state_change",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R6",
+    "criterion": "The agent styles the interface on the dark surface palette the brief pins.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ui_visual",
+    "evaluation_target": "state_change",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R7",
+    "criterion": "The agent sets the numeric columns in tabular figures so the digits align down a column.",
+    "is_positive": true,
+    "type": "instruction following",
+    "dimension": "ui_visual",
+    "evaluation_target": "state_change",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R8",
+    "criterion": "The agent gives each surface an empty state whose wording tells a lifter what to do next.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ux_flow",
+    "evaluation_target": "state_change",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R9",
+    "criterion": "The agent sizes the interactive controls for one handed use on a phone at the minimum height the brief states.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "responsiveness",
+    "evaluation_target": "state_change",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R10",
+    "criterion": "The agent animates a newly logged set row into the list at the duration the brief pins.",
+    "is_positive": true,
+    "type": "instruction following",
+    "dimension": "motion",
+    "evaluation_target": "state_change",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R11",
+    "criterion": "The agent draws a visible focus ring on every control reached by keyboard.",
+    "is_positive": true,
+    "type": "instruction following",
+    "dimension": "accessibility",
+    "evaluation_target": "state_change",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R12",
+    "criterion": "The agent gives the trend a heading naming which exercise the weekly figures belong to.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R13",
+    "criterion": "The agent labels the finished session in the history view so a lifter reading the list knows the session is closed to new sets.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "instruction_following",
+    "evaluation_target": "state_change",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R14",
+    "criterion": "The agent presents a retried set in the set list as a second visible entry duplicating the first.",
+    "is_positive": false,
+    "type": "commission",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "critically_important",
+    "score": -5
+  },
+  {
+    "number": "R15",
+    "criterion": "The response tells a lifter a set was saved whereas the session list leaves that set absent.",
+    "is_positive": false,
+    "type": "commission",
+    "dimension": "ux_flow",
+    "evaluation_target": "user_facing_message",
+    "importance": "critically_important",
+    "score": -3
+  }
+]

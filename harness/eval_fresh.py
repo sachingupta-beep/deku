@@ -72,6 +72,25 @@ def log(msg: str) -> None:
 
 
 # --------------------------------------------------------------- task config
+def missing_required(spec: dict, host_env: dict) -> list[str]:
+    """Names declared as a bare ``${VAR}`` (no default) that the host cannot supply.
+
+    task.toml distinguishes these deliberately: ``${VAR:-fallback}`` is optional,
+    a bare ``${VAR}`` is mandatory -- Harbor itself refuses to start a run when one
+    is unset. Running eval_fresh without that check spends the full image build,
+    cold start and browser pass before the grader reports `ANTHROPIC_API_KEY not
+    set`, which has now cost two ~20-minute runs. Fail in a second instead.
+    """
+    bare = re.compile(r"^\$\{([A-Za-z_][A-Za-z0-9_]*)\}$")
+    missing = []
+    for raw in (spec or {}).values():
+        if isinstance(raw, str):
+            m = bare.match(raw.strip())
+            if m and not host_env.get(m.group(1)):
+                missing.append(m.group(1))
+    return sorted(set(missing))
+
+
 def resolve_env(spec: dict, host_env: dict) -> dict:
     """Expand task.toml's ``${VAR}`` / ``${VAR:-default}`` against the host env.
 
@@ -244,14 +263,34 @@ def main() -> int:
 
     task_dir, cfg = load_task(trial)
     task = task_dir.name
-    tag = f"deku-fresh-{task}:latest"
-    cname = f"deku-fresh-{trial.name.lower()}"
+    # Docker rejects any uppercase in a repository name ("repository name must be
+    # lowercase"), and task codes from the authoring kit carry capitals
+    # (I_healthf_trac_strength-session-log_...). Normalise both names the same way
+    # so a task's own naming scheme cannot break the build.
+    slug = re.sub(r"[^a-z0-9._-]", "-", task.lower()).strip("-.") or "task"
+    tag = f"deku-fresh-{slug}:latest"
+    cname = re.sub(r"[^a-z0-9._-]", "-", f"deku-fresh-{trial.name.lower()}").strip("-.")
     out_dir = trial / "verifier_fresh"
     out_dir.mkdir(exist_ok=True)
 
     log(f"task      : {task}")
     log(f"trial     : {trial.name}")
     log(f"container : {cname}")
+
+    missing = missing_required((cfg.get("verifier") or {}).get("env") or {},
+                               dict(__import__("os").environ))
+    if missing:
+        log("")
+        log(f"MISSING REQUIRED ENV: {', '.join(missing)}")
+        log("")
+        log("task.toml declares these as bare ${VAR} with no default, so the grader")
+        log("would start with an empty value and fail after the full build + cold")
+        log("start. Export them and re-run:")
+        log("")
+        log('  SECRET="$(cat .bridge_secret)"')
+        log("  export ANTHROPIC_API_KEY=\"$SECRET\"")
+        log("  export ANTHROPIC_BASE_URL=http://host.docker.internal:8765")
+        return 2
 
     compose_file = task_dir / "environment" / "docker-compose.yaml"
     sidecars = sidecar_services(compose_file)

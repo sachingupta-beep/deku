@@ -298,6 +298,44 @@ def _write_debug_log(path: Path, m: dict, trial: Path, result: dict, vdir: Path)
                 f"({w.get('substeps_passed')}/{w.get('substeps_graded')})")
     else:
         add("  (no workflows.json -- grading did not complete; see verifier stdout above)")
+
+    # --- 5. RUBRIC -------------------------------------------------------
+    # judge.json holds a per-criterion breakdown, but nothing surfaced it: the
+    # timeline showed only the single composite `judge_score`, so seeing WHICH
+    # criteria failed meant hand-parsing a nested JSON file. For a task rubric
+    # that breakdown is the useful part -- it names the specific product
+    # qualities the app missed, and it corroborates (or contradicts) the browser
+    # substeps from an independent grader.
+    judge = _load_json(vdir / "judge.json")
+    dims = judge.get("dimensions") or {}
+    if dims:
+        add("")
+        jmeta = judge.get("meta") or {}
+        n = jmeta.get("rubric_criteria")
+        kind = f"task rubric, {n} criteria" if n else "generic dimensions"
+        add(f"--- 5. RUBRIC ({kind}) ---")
+        add(f"  judge_score = {judge.get('judge_score')}   ADVISORY ONLY -- "
+            f"never enters reward (PLAN.md 1.4)")
+        add("")
+        # Worst first: the failures are what a reviewer is looking for.
+        for _key, v in sorted(dims.items(), key=lambda kv: (kv[1].get("score", 0.0),
+                                                            str(kv[1].get("number", "")))):
+            score = float(v.get("score", 0.0) or 0.0)
+            mark = "PASS" if score >= 0.8 else ("PART" if score > 0 else "FAIL")
+            # A negative criterion is an anti-pattern: 1.0 means the defect is
+            # ABSENT. Flag it so the row is not read backwards.
+            neg = "" if v.get("is_positive", True) else " [NEG: 1.0 = defect absent]"
+            label = v.get("number") or _key
+            add(f"  [{mark}] {label:5} {score:.2f}  w={v.get('weight', 0):.3f}  "
+                f"{v.get('dimension', '')}{neg}")
+            crit = str(v.get("criterion", "")).strip()
+            if crit:
+                add(f"          {crit[:100]}")
+            if mark != "PASS":
+                why = str(v.get("rationale", "")).replace("\n", " ").strip()
+                if why:
+                    add(f"          why: {why[:220]}")
+
     add("")
     add("=" * 72)
     add("END")

@@ -113,8 +113,10 @@ def main() -> int:
         f"grader_error must survive into score.py, got {rl_errors}"
     print("[4/4] rate-limited run: grader_error propagates, substeps ungraded")
 
-    # Step-cap and no-tool-call substeps are harness/grader-budget faults, not app
-    # verdicts: they must load as None (ungraded), never False. Regression guard.
+    # SKIPPED substeps -- never attempted because an earlier substep consumed the
+    # workflow budget (steps_used=0) -- are genuinely unobserved and must load as
+    # None. A substep that EXHAUSTED the cap while driving the app is different
+    # and is asserted separately below.
     step_cap_stub = {"passed": False, "error": "grader_step_cap",
                      "note": "skipped: workflow step cap already hit",
                      "do": "x", "steps_used": 0}
@@ -131,7 +133,29 @@ def main() -> int:
     infra_loaded, _, _ = score.load_browser(infra_path)
     assert infra_loaded["employee_finds_own_seat"] == [None, None, None], \
         f"step-cap and no-tool-call must load as None, got {infra_loaded['employee_finds_own_seat']}"
-    print("[5/6] step-cap and no-tool-call substeps load as None (ungraded), not False")
+    print("[5/6] SKIPPED step-cap and no-tool-call substeps load as None (ungraded)")
+
+    # ...but a substep that burned its whole allowance while driving the app is a
+    # FAILURE, not an unobserved substep. The grader looked -- for 100 steps -- and
+    # never reached a verdict, and the commonest cause is a control that does
+    # nothing. Treating it as unobserved invalidated an entire run that had really
+    # scored 7/9 (strength-session-log, 2026-08-06), publishing 0.0 instead of 0.78.
+    exhausted_stub = {"passed": False, "reason": "cap_exhausted",
+                      "note": "step cap hit (100 steps used) without reaching a verdict; "
+                              "scored as a failure, not as unobserved",
+                      "do": "x", "steps_used": 100}
+    exhausted_payload = {"workflows": [
+        {"id": "employee_finds_own_seat", "substeps": [exhausted_stub]},
+    ]}
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+        json.dump(exhausted_payload, f)
+        exhausted_path = Path(f.name)
+    ex_loaded, _, ex_errors = score.load_browser(exhausted_path)
+    assert ex_loaded["employee_finds_own_seat"] == [False], \
+        f"an exhausted-cap substep must load as False (failed), got {ex_loaded['employee_finds_own_seat']}"
+    assert not ex_errors, \
+        f"an exhausted-cap substep must NOT invalidate the run, got errors {ex_errors}"
+    print("[5b/6] cap-EXHAUSTED substep loads as False (failed) and does not invalidate")
 
     # Workflow-crash results must carry error='grader_workflow_crash' so score.py
     # excludes them from the ratio instead of billing the app.

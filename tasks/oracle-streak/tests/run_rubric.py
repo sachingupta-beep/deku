@@ -139,6 +139,104 @@ def _slug(title: str) -> str:
 WORKS_HEADROOM = 0.15
 
 
+# ---------------------------------------------------------------------------
+# Task-authored rubric (tests/rubric.json).
+#
+# The seven dimensions above are generic: they ask the same questions of every
+# task. A task rubric asks about THIS product -- "renders the weekly trend so a
+# lifter can tell whether the top load is rising" -- which the generic set cannot
+# express. When tests/rubric.json exists it is graded INSTEAD of the generic
+# dimensions, one LLM call per criterion, reusing the same evidence bundle.
+#
+# It stays advisory. PLAN.md 1.4: a judge-driven reward is trivially gamed, and
+# score.py never reads anything from here into `reward`. What changes is that the
+# advisory number now says something task-specific instead of something generic.
+
+# `importance` -> relative weight. Ratio matters, not the absolute values; the
+# weights are normalised so the composite stays in [0, 1] for any rubric.
+IMPORTANCE_WEIGHT = {
+    "critically_important": 5.0,
+    "important": 3.0,
+    "somewhat_important": 1.0,
+}
+DEFAULT_IMPORTANCE_WEIGHT = 1.0
+
+
+def load_task_rubric(path: Path) -> list[dict]:
+    """Read tests/rubric.json into the (name, weight, asks) shape used above.
+
+    Criteria carry `is_positive`. A NEGATIVE criterion describes an anti-pattern
+    the app must not exhibit -- "presents a retried set as a second visible
+    entry". The judge is asked whether the anti-pattern is PRESENT, and the score
+    is inverted, so detecting it lowers the composite. Grading a negative
+    criterion the same way as a positive one rewards the app for being broken.
+    """
+    raw = json.loads(path.read_text())
+    if not isinstance(raw, list):
+        raise ValueError(f"{path} must be a JSON array of criteria")
+
+    out: list[dict] = []
+    for i, c in enumerate(raw):
+        number = str(c.get("number") or f"R{i + 1}")
+        criterion = str(c.get("criterion") or "").strip()
+        if not criterion:
+            raise ValueError(f"{path}: criterion {number} has no `criterion` text")
+        positive = bool(c.get("is_positive", True))
+        weight = IMPORTANCE_WEIGHT.get(
+            str(c.get("importance", "")), DEFAULT_IMPORTANCE_WEIGHT
+        )
+        if positive:
+            asks = (
+                f"{criterion}\n\n"
+                "Score 1.0 if the deployed app fully satisfies this, 0.0 if it does "
+                "not at all, and in between for partial. Judge ONLY this criterion. "
+                "Cite concrete evidence -- computed styles, screenshots, the DOM, "
+                "console output -- not impressions."
+            )
+        else:
+            asks = (
+                f"ANTI-PATTERN -- score how strongly the app AVOIDS this:\n\n"
+                f"{criterion}\n\n"
+                "Score 1.0 if the app does NOT exhibit this at all, 0.0 if it "
+                "clearly does. This describes a defect, so a high score means the "
+                "defect is absent. Cite concrete evidence."
+            )
+        out.append({
+            "key": f"{number}_{c.get('dimension', 'unspecified')}",
+            "number": number,
+            "dimension": str(c.get("dimension", "unspecified")),
+            "importance": str(c.get("importance", "")),
+            "is_positive": positive,
+            "raw_weight": weight,
+            "asks": asks,
+            "criterion": criterion,
+        })
+
+    total = sum(c["raw_weight"] for c in out) or 1.0
+    for c in out:
+        c["weight"] = round(c["raw_weight"] / total, 6)
+    return out
+
+
+def compute_task_rubric_score(criteria: list[dict], graded: dict[str, dict]) -> float:
+    """Normalised weighted mean of the per-criterion scores.
+
+    No functionality cap here: unlike the generic rubric there is no single
+    `functionality` dimension to tie a ceiling to. The cap existed to stop
+    aesthetics disguising a broken app -- a task rubric is mostly behavioural, and
+    the reward is set by workflows + pytest regardless, so the guard is redundant.
+    """
+    total = 0.0
+    for c in criteria:
+        d = graded.get(c["key"]) or {}
+        score = max(0.0, min(1.0, float(d.get("score", 0.0) or 0.0)))
+        total += score * c["weight"]
+    # Per-criterion weights are rounded to 6dp, so a long rubric can sum to
+    # marginally over 1.0 (15 criteria -> 1.000003). Clamp so a perfect run
+    # reports exactly 1.0 and the score can never leave [0, 1].
+    return round(min(1.0, max(0.0, total)), 4)
+
+
 def compute_judge_score(dimensions: dict[str, dict]) -> float:
     """Weighted sum capped by how well the app actually works.
 
@@ -683,14 +781,59 @@ def _shortlist_styles(styles_by_route: dict, limit_routes: int = 3) -> dict:
     return out
 
 
-def _shortlist_shots(shots: list[dict], per_viewport: int = 2) -> list[dict]:
-    """Pick up to N per viewport, dropping the base64 payload for logging."""
-    by_vp: dict[str, list[dict]] = {}
+def _shortlist_shots(shots: list[dict], limit: int = 6) -> list[dict]:
+    """Pick a spread of screenshots that covers EVERY route.
+
+    The previous version grouped by viewport and kept the first N of each. Since
+    shots are captured route-by-route, that always kept the first N routes and
+    silently dropped the rest -- with three routes and two per viewport, /trend
+    never reached the judge. It then scored "renders the weekly trend" 0.00 with
+    the rationale "no screenshots of the /trend page were provided", on a page the
+    browser grader had just driven successfully (2026-08-06).
+
+    Absence of evidence read as evidence of absence, caused by a silent truncation.
+
+    Route coverage now comes first: one shot per route (widest viewport, where
+    layout is most legible), then the remaining budget is spent on additional
+    viewports round-robin so responsive checks still get material. A route is only
+    dropped when there are more routes than `limit`, and that is a real cap rather
+    than an accident of ordering.
+    """
+    if not shots:
+        return []
+
+    by_route: dict[str, list[dict]] = {}
     for s in shots:
-        by_vp.setdefault(s["viewport"], []).append(s)
+        by_route.setdefault(s.get("route", "?"), []).append(s)
+
+    def widest_first(lst: list[dict]) -> list[dict]:
+        def width(s: dict) -> int:
+            try:
+                return int(str(s.get("viewport", "0x0")).split("x")[0])
+            except ValueError:
+                return 0
+        return sorted(lst, key=width, reverse=True)
+
+    ordered = {r: widest_first(lst) for r, lst in by_route.items()}
+
     picked: list[dict] = []
-    for vp, lst in by_vp.items():
-        picked.extend(lst[:per_viewport])
+    # Pass 1: guarantee every route is represented.
+    for route, lst in ordered.items():
+        if len(picked) >= limit:
+            break
+        picked.append(lst[0])
+
+    # Pass 2: spend what's left on further viewports, round-robin across routes so
+    # no single route monopolises the budget.
+    depth = 1
+    while len(picked) < limit and any(len(lst) > depth for lst in ordered.values()):
+        for lst in ordered.values():
+            if len(picked) >= limit:
+                break
+            if len(lst) > depth:
+                picked.append(lst[depth])
+        depth += 1
+
     return picked
 
 
@@ -736,6 +879,14 @@ def grade_dimension(llm: JudgeAnthropic, name: str, asks: str,
         "- Ground every claim in the evidence provided. Cite screenshot filenames, "
         "computed-style values, console errors, or specific routes.\n"
         "- Do NOT invent evidence. If evidence is thin, say so and score cautiously.\n"
+        "- MISSING EVIDENCE IS NOT A FAILING APP. If the evidence bundle does not "
+        "contain what this criterion needs -- no screenshot of the relevant route, "
+        "no computed style for the element in question -- you have NOT observed a "
+        "defect. Say plainly in the rationale that the criterion could not be "
+        "assessed from the evidence, and score 0.5 rather than 0.0. Reserve 0.0 "
+        "for a defect you can actually point at. Scoring an unobserved criterion "
+        "as absent turns a gap in the harness into a mark against the app, and a "
+        "route WAS reachable if it appears in routes_visited.\n"
         "- Score AGAINST THE PROVIDED SPEC below, not a generic notion of good.\n"
         "- Call report_dimension exactly once. That call ends grading.\n\n"
         "=== SPEC EXCERPTS ===\n" + spec_text
@@ -871,6 +1022,10 @@ def build_argparser() -> argparse.ArgumentParser:
                     help="Directory for screenshots (default: <out-dir>/shots/).")
     ap.add_argument("--max-steps", type=int, default=DEFAULT_MAX_STEPS,
                     help="Max LLM steps per dimension.")
+    ap.add_argument("--rubric", type=Path, default=None,
+                    help="tests/rubric.json. When present, the task's own criteria "
+                         "are graded INSTEAD of the seven generic dimensions. Still "
+                         "advisory -- score.py never reads it into `reward`.")
     ap.add_argument("--routes", default="",
                     help="Comma-separated routes to visit. Auto-discovered if empty.")
     ap.add_argument("--viewports", default=DEFAULT_VIEWPORTS,
@@ -951,23 +1106,61 @@ def main() -> int:
     # Grade each dimension. Any exception per-dimension -> score 0.0.
     llm = JudgeAnthropic(model=model)
     dimensions: dict[str, dict] = {}
+
+    task_criteria: list[dict] = []
+    if args.rubric and args.rubric.exists():
+        try:
+            task_criteria = load_task_rubric(args.rubric)
+            print(f"task rubric: {len(task_criteria)} criteria from {args.rubric}",
+                  file=sys.stderr)
+        except Exception as exc:
+            # A malformed rubric must not lose the whole judge pass -- fall back to
+            # the generic dimensions and say so, rather than scoring everything 0.
+            print(f"  [warn] {args.rubric} unreadable ({exc}); falling back to the "
+                  f"generic dimensions", file=sys.stderr)
+            meta["rubric_error"] = f"{exc.__class__.__name__}: {exc}"
+
     try:
-        for name, weight, asks in RUBRIC:
-            print(f"grading dimension `{name}` (weight {weight})", file=sys.stderr)
-            def _runner(_name=name, _asks=asks) -> dict:
-                return grade_dimension(llm, _name, _asks, sections, evidence,
-                                       args.max_steps)
-            dimensions[name] = safe_dimension(name, weight, asks, _runner)
-            payload["dimensions"] = dimensions
-            payload["judge_score"] = compute_judge_score(dimensions)
-            _write_json(args.out, payload)  # incremental persistence
+        if task_criteria:
+            meta["rubric_source"] = str(args.rubric)
+            meta["rubric_criteria"] = len(task_criteria)
+            for c in task_criteria:
+                print(f"grading {c['number']} [{c['dimension']}/{c['importance']}"
+                      f"{'' if c['is_positive'] else '/NEGATIVE'}] "
+                      f"weight {c['weight']:.3f}", file=sys.stderr)
+                def _runner(_c=c) -> dict:
+                    return grade_dimension(llm, _c["key"], _c["asks"], sections,
+                                           evidence, args.max_steps)
+                graded = safe_dimension(c["key"], c["weight"], c["asks"], _runner)
+                graded.update({
+                    "number": c["number"], "dimension": c["dimension"],
+                    "importance": c["importance"], "is_positive": c["is_positive"],
+                    "criterion": c["criterion"],
+                })
+                dimensions[c["key"]] = graded
+                payload["dimensions"] = dimensions
+                payload["judge_score"] = compute_task_rubric_score(task_criteria, dimensions)
+                _write_json(args.out, payload)
+        else:
+            for name, weight, asks in RUBRIC:
+                print(f"grading dimension `{name}` (weight {weight})", file=sys.stderr)
+                def _runner(_name=name, _asks=asks) -> dict:
+                    return grade_dimension(llm, _name, _asks, sections, evidence,
+                                           args.max_steps)
+                dimensions[name] = safe_dimension(name, weight, asks, _runner)
+                payload["dimensions"] = dimensions
+                payload["judge_score"] = compute_judge_score(dimensions)
+                _write_json(args.out, payload)  # incremental persistence
     finally:
         try:
             llm.close()
         except Exception:
             pass
 
-    payload["judge_score"] = compute_judge_score(dimensions)
+    payload["judge_score"] = (
+        compute_task_rubric_score(task_criteria, dimensions) if task_criteria
+        else compute_judge_score(dimensions)
+    )
     payload["dimensions"] = dimensions
     payload["missing_features"] = detect_missing_features(sections, evidence)
     payload["console_errors"] = [

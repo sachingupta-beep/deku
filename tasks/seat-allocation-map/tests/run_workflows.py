@@ -147,6 +147,23 @@ CREDENTIAL_LINE = re.compile(
     r"^.{0,40}?\b(?:e-?mail|user(?:name)?|login|password|passwd|pass|pin|code|role|account)\b\s*[:=]\s*\S.{0,120}$",
     re.IGNORECASE,
 )
+
+# instruction.md tells the agent to write the login into /app/USER_README.md but
+# historically did not pin a FORMAT, so agents chose reasonably and differently.
+# A markdown table -- `| demo@ethara.ai | deku-demo-pw-2026 |` -- has no `:` or
+# `=`, so the key/value pattern above extracted nothing, the grader was told "no
+# credentials", and all 20 browser substeps failed at sign-in on an app that was
+# fine (2026-08-06, streak-habit-tracker). Accept the table shape too.
+#
+# The whitelist itself stays: /app/USER_README.md is agent-authored and is spliced
+# into the grader's own system prompt, so passing it through verbatim would hand a
+# graded agent a write channel into its grader's instructions. Widening the shapes
+# we recognise does not widen that hole -- each captured field is still a bare
+# token, never free prose.
+CREDENTIAL_TABLE_ROW = re.compile(
+    r"^\|(?P<cells>[^|].*)\|\s*$"
+)
+EMAIL_TOKEN = re.compile(r"^[^@\s|]+@[^@\s|]+\.[^@\s|]+$")
 MAX_CREDENTIAL_LINES = 40
 
 
@@ -167,8 +184,62 @@ def read_credentials(path: str) -> str:
         text = p.read_text(errors="replace")
     except Exception as exc:  # pragma: no cover
         return f"[credentials file at {path} unreadable: {exc}]"
-    lines = [ln.strip() for ln in text.splitlines() if CREDENTIAL_LINE.match(ln.strip())]
-    return "\n".join(lines[:MAX_CREDENTIAL_LINES])
+
+    raw_lines = [ln.strip() for ln in text.splitlines()]
+    kept: list[str] = []
+    for line in raw_lines:
+        if CREDENTIAL_LINE.match(line):
+            kept.append(line)
+            continue
+        kept.extend(_credentials_from_table_row(line))
+
+    if raw_lines and not kept:
+        # A file that exists but yields nothing produced the SAME message as a
+        # missing file, so a format mismatch was indistinguishable from an agent
+        # that never wrote the file -- and read as an agent failure. Say which.
+        print(
+            f"  [warn] {path} exists ({len(raw_lines)} lines) but no credential "
+            f"lines were recognised. The grader will report that it cannot sign "
+            f"in. Expected `Email: <value>` / `Password: <value>` lines or a "
+            f"markdown table row.",
+            file=sys.stderr,
+        )
+    return "\n".join(kept[:MAX_CREDENTIAL_LINES])
+
+
+def _credentials_from_table_row(line: str) -> list[str]:
+    """Pull `Email:`/`Password:` pairs out of a markdown table row.
+
+    Turns  `| demo@ethara.ai | deku-demo-pw-2026 |`  into
+        Email: demo@ethara.ai
+        Password: deku-demo-pw-2026
+
+    so the grader receives the same normalised shape either way. Header and
+    separator rows are skipped: a header has no email, a separator is all dashes.
+
+    Only two token kinds are emitted -- an address matching EMAIL_TOKEN, and the
+    single adjacent cell taken as its password. Arbitrary prose in other cells is
+    dropped, so the injection guard the whitelist exists for still holds.
+    """
+    m = CREDENTIAL_TABLE_ROW.match(line)
+    if not m:
+        return []
+    cells = [c.strip() for c in m.group("cells").split("|")]
+    if not any(EMAIL_TOKEN.match(c) for c in cells):
+        return []          # header row, separator row, or a table of something else
+
+    out: list[str] = []
+    for i, cell in enumerate(cells):
+        if not EMAIL_TOKEN.match(cell):
+            continue
+        out.append(f"Email: {cell}")
+        # The password is the next non-empty cell; that is the column order every
+        # observed README used, and guessing further would start capturing prose.
+        for candidate in cells[i + 1:]:
+            if candidate and not EMAIL_TOKEN.match(candidate):
+                out.append(f"Password: {candidate}")
+                break
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -708,10 +779,26 @@ def run_substep(
             return {"passed": False, "note": "model ended without report_result",
                     "steps_used": steps_used}, steps_used
 
-    # Step cap is a HARNESS BUDGET, not an app verdict: the grader ran out of its
-    # own tool-call allowance before the app got a chance to prove itself.
-    return {"passed": False, "error": "grader_step_cap",
-            "note": f"step cap hit ({steps_remaining} steps)",
+    # Exhausting the cap ON THIS SUBSTEP is a FAILURE, not an unobserved substep.
+    #
+    # It used to carry `error`, which score.py maps to None (ungraded) and which
+    # invalidates the whole run. But the grader did not fail to look -- it drove
+    # the app for its entire allowance and never reached a reportable outcome.
+    # That is evidence about the app, and the commonest cause is the app itself:
+    # a control that does nothing leaves the agent retrying until the budget is
+    # gone. Measured 2026-08-06 on strength-session-log, where the set list never
+    # updated, one substep burned all 100 steps, and a run that had genuinely
+    # scored 7/9 published 0.0 with `invalid` instead of 0.78.
+    #
+    # `grader_unavailable` stays the only true "we never looked" case -- there the
+    # grader could not reach its model at all and observed nothing.
+    #
+    # The reason is still recorded (`cap_exhausted`) so a reviewer can tell this
+    # apart from an ordinary reported failure; score.py only treats `error` as
+    # ungrading, so a non-`error` key does not invalidate the run.
+    return {"passed": False, "reason": "cap_exhausted",
+            "note": f"step cap hit ({steps_used} steps used) without reaching a "
+                    f"verdict; scored as a failure, not as unobserved",
             "steps_used": steps_used}, steps_used
 
 
@@ -792,6 +879,12 @@ def run_workflow(
                                 "error": "workflow_timeout",
                                 "note": f"skipped: workflow exceeded {timeout_sec:.0f}s budget"})
                 continue
+            # These two keep `error` -- and therefore still invalidate the run --
+            # because they are genuinely UNOBSERVED: an earlier substep consumed
+            # the workflow's budget and these were never attempted at all. That is
+            # the opposite of a substep that exhausted the cap while driving the
+            # app, which is now scored as a failure (see run_substep). steps_used=0
+            # is the tell: nothing was tried here.
             if cap_hit:
                 results.append({"passed": False, "do": do, "steps_used": 0,
                                 "error": "grader_step_cap",

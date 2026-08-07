@@ -92,10 +92,20 @@ if [ "${DEKU_SKIP_RUBRIC:-0}" = "1" ]; then
   echo "DEKU_SKIP_RUBRIC=1 - skipping the advisory rubric judge" >&2
   printf '{"judge_score": null, "dimensions": {}, "meta": {"skipped": "DEKU_SKIP_RUBRIC"}}\n' > "$JUDGE_RESULTS"
 elif [ -x /tests/run_rubric.py ] && [ -f /tests/instruction.md ]; then
+  # A task-authored rubric (tests/rubric.json) replaces the seven generic
+  # dimensions with criteria written for THIS product. Optional: tasks without
+  # one keep the generic read. Advisory either way -- score.py never reads
+  # judge.json into `reward` (PLAN.md 1.4).
+  RUBRIC_FLAG=""
+  if [ -f /tests/rubric.json ]; then
+    RUBRIC_FLAG="--rubric /tests/rubric.json"
+    echo "task rubric found - grading tests/rubric.json instead of the generic dimensions" >&2
+  fi
   /tests/run_rubric.py \
     --instruction /tests/instruction.md \
     --url "$APP_PUBLIC_URL" \
     --screenshot-dir /logs/verifier/shots \
+    $RUBRIC_FLAG \
     --out "$JUDGE_RESULTS" || true
 else
   echo "no rubric judge in this image (or no instruction.md) - skipping" >&2
