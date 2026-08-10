@@ -1,0 +1,5 @@
+[service]
+name = "ory-kratos-api"
+port = 8119
+env_var_name = "ORY_KRATOS_API_URL"
+healthcheck_path = "/health"

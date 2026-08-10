@@ -1,0 +1,84 @@
+{
+  "version": "8.0.36",
+  "version_comment": "MySQL Community Server - GPL",
+  "version_compile_os": "Linux",
+  "version_compile_machine": "x86_64",
+  "database": "orbit_shop",
+  "character_set_server": "utf8mb4",
+  "collation_server": "utf8mb4_0900_ai_ci",
+  "default_storage_engine": "InnoDB",
+  "sql_mode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+  "time_zone": "SYSTEM",
+  "uptime_seconds": 1231913,
+  "data_dir": "/var/lib/mysql/",
+  "socket": "/var/run/mysqld/mysqld.sock",
+  "port": 3306,
+  "databases": ["information_schema", "mysql", "orbit_shop", "performance_schema", "sys"],
+  "variables": [
+    {"Variable_name": "max_connections", "Value": "500"},
+    {"Variable_name": "innodb_buffer_pool_size", "Value": "8589934592"},
+    {"Variable_name": "innodb_flush_log_at_trx_commit", "Value": "1"},
+    {"Variable_name": "innodb_log_file_size", "Value": "536870912"},
+    {"Variable_name": "transaction_isolation", "Value": "REPEATABLE-READ"},
+    {"Variable_name": "character_set_server", "Value": "utf8mb4"},
+    {"Variable_name": "collation_server", "Value": "utf8mb4_0900_ai_ci"},
+    {"Variable_name": "default_storage_engine", "Value": "InnoDB"},
+    {"Variable_name": "wait_timeout", "Value": "28800"},
+    {"Variable_name": "max_allowed_packet", "Value": "67108864"},
+    {"Variable_name": "slow_query_log", "Value": "ON"},
+    {"Variable_name": "long_query_time", "Value": "1.000000"},
+    {"Variable_name": "log_bin", "Value": "ON"},
+    {"Variable_name": "binlog_format", "Value": "ROW"},
+    {"Variable_name": "gtid_mode", "Value": "ON"},
+    {"Variable_name": "sql_mode", "Value": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"}
+  ],
+  "status": [
+    {"Variable_name": "Uptime", "Value": "1231913"},
+    {"Variable_name": "Threads_connected", "Value": "34"},
+    {"Variable_name": "Threads_running", "Value": "3"},
+    {"Variable_name": "Connections", "Value": "884120"},
+    {"Variable_name": "Aborted_connects", "Value": "118"},
+    {"Variable_name": "Queries", "Value": "48210442"},
+    {"Variable_name": "Slow_queries", "Value": "1877"},
+    {"Variable_name": "Innodb_buffer_pool_reads", "Value": "412008"},
+    {"Variable_name": "Innodb_buffer_pool_read_requests", "Value": "88214003"},
+    {"Variable_name": "Innodb_row_lock_waits", "Value": "204"},
+    {"Variable_name": "Innodb_deadlocks", "Value": "3"},
+    {"Variable_name": "Table_locks_waited", "Value": "12"},
+    {"Variable_name": "Created_tmp_disk_tables", "Value": "9128"},
+    {"Variable_name": "Open_tables", "Value": "418"},
+    {"Variable_name": "Bytes_sent", "Value": "918273645012"}
+  ],
+  "engines": [
+    {"Engine": "InnoDB", "Support": "DEFAULT", "Comment": "Supports transactions, row-level locking, and foreign keys", "Transactions": "YES", "XA": "YES", "Savepoints": "YES"},
+    {"Engine": "MEMORY", "Support": "YES", "Comment": "Hash based, stored in memory, useful for temporary tables", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "MyISAM", "Support": "YES", "Comment": "MyISAM storage engine", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "CSV", "Support": "YES", "Comment": "CSV storage engine", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "ARCHIVE", "Support": "YES", "Comment": "Archive storage engine", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "BLACKHOLE", "Support": "YES", "Comment": "/dev/null storage engine (anything you write to it disappears)", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"}
+  ],
+  "replication": {
+    "source": {"File": "binlog.000412", "Position": 884120993, "Binlog_Do_DB": "", "Binlog_Ignore_DB": "", "Executed_Gtid_Set": "9f3c1a7e-5b2d-4086-af51-c7e93b0d6248:1-88412003"},
+    "replicas": [
+      {"Server_id": 2, "Host": "10.42.0.22", "Port": 3306, "Source_UUID": "9f3c1a7e-5b2d-4086-af51-c7e93b0d6248", "Replica_IO_Running": "Yes", "Replica_SQL_Running": "Yes", "Seconds_Behind_Source": 0},
+      {"Server_id": 3, "Host": "10.42.0.23", "Port": 3306, "Source_UUID": "9f3c1a7e-5b2d-4086-af51-c7e93b0d6248", "Replica_IO_Running": "Yes", "Replica_SQL_Running": "No", "Seconds_Behind_Source": 1842, "Last_SQL_Error": "Error 'Duplicate entry 5001 for key orders.PRIMARY' on query. Default database: 'orbit_shop'"}
+    ]
+  },
+  "table_meta": [
+    {"TABLE_NAME": "customers", "ENGINE": "InnoDB", "TABLE_ROWS": 6, "AVG_ROW_LENGTH": 2730, "DATA_LENGTH": 16384, "INDEX_LENGTH": 32768, "AUTO_INCREMENT": 7, "TABLE_COLLATION": "utf8mb4_0900_ai_ci", "CREATE_TIME": "2024-02-01 09:00:00"},
+    {"TABLE_NAME": "products", "ENGINE": "InnoDB", "TABLE_ROWS": 8, "AVG_ROW_LENGTH": 2048, "DATA_LENGTH": 16384, "INDEX_LENGTH": 32768, "AUTO_INCREMENT": 9, "TABLE_COLLATION": "utf8mb4_0900_ai_ci", "CREATE_TIME": "2024-02-01 09:00:00"},
+    {"TABLE_NAME": "inventory", "ENGINE": "InnoDB", "TABLE_ROWS": 8, "AVG_ROW_LENGTH": 2048, "DATA_LENGTH": 16384, "INDEX_LENGTH": 0, "AUTO_INCREMENT": null, "TABLE_COLLATION": "utf8mb4_0900_ai_ci", "CREATE_TIME": "2024-02-01 09:00:00"},
+    {"TABLE_NAME": "orders", "ENGINE": "InnoDB", "TABLE_ROWS": 8, "AVG_ROW_LENGTH": 4096, "DATA_LENGTH": 1073741824, "INDEX_LENGTH": 402653184, "AUTO_INCREMENT": 5009, "TABLE_COLLATION": "utf8mb4_0900_ai_ci", "CREATE_TIME": "2024-02-01 09:00:00"},
+    {"TABLE_NAME": "order_items", "ENGINE": "InnoDB", "TABLE_ROWS": 12, "AVG_ROW_LENGTH": 1365, "DATA_LENGTH": 536870912, "INDEX_LENGTH": 201326592, "AUTO_INCREMENT": 13, "TABLE_COLLATION": "utf8mb4_0900_ai_ci", "CREATE_TIME": "2024-02-01 09:00:00"},
+    {"TABLE_NAME": "shipments", "ENGINE": "InnoDB", "TABLE_ROWS": 3, "AVG_ROW_LENGTH": 5461, "DATA_LENGTH": 16384, "INDEX_LENGTH": 16384, "AUTO_INCREMENT": 4, "TABLE_COLLATION": "utf8mb4_0900_ai_ci", "CREATE_TIME": "2024-02-01 09:00:00"}
+  ],
+  "auth": {
+    "default_user": "orbit_shop",
+    "passwords": {
+      "root": "OrbitRoot2026!",
+      "orbit_shop": "OrbitShop2026!",
+      "orbit_report": "OrbitReport2026!",
+      "orbit_etl": "OrbitEtl2026!"
+    }
+  }
+}

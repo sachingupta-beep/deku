@@ -1,0 +1,26 @@
+[
+  {
+    "id": "team_aurora",
+    "name": "Aurora Bistro",
+    "total": "2",
+    "prefs_plan": "starter",
+    "createdAt": "2025-03-04T10:25:00.000+00:00",
+    "updatedAt": "2026-05-12T11:00:00.000+00:00"
+  },
+  {
+    "id": "team_helix",
+    "name": "Helix Robotics",
+    "total": "2",
+    "prefs_plan": "enterprise",
+    "createdAt": "2024-09-12T08:10:00.000+00:00",
+    "updatedAt": "2026-04-28T09:30:00.000+00:00"
+  },
+  {
+    "id": "team_lumen",
+    "name": "Lumen Design Studio",
+    "total": "2",
+    "prefs_plan": "pro",
+    "createdAt": "2025-06-18T14:35:00.000+00:00",
+    "updatedAt": "2025-12-01T16:20:00.000+00:00"
+  }
+]

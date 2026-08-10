@@ -1,0 +1,47 @@
+[
+  {
+    "_pk": "1#receipt-4417@orbit-labs.com",
+    "message_id": "1",
+    "cid": "receipt-4417@orbit-labs.com",
+    "filename": "receipt-ORD-2026-4417.pdf",
+    "type": "application/pdf",
+    "is_attachment": "1",
+    "body": "JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKdHJhaWxlcgo8PC9Sb290IDEgMCBSPj4KJSVFT0YK"
+  },
+  {
+    "_pk": "2#invoice-0417@orbit-labs.com",
+    "message_id": "2",
+    "cid": "invoice-0417@orbit-labs.com",
+    "filename": "invoice-INV-2026-0417.csv",
+    "type": "text/csv",
+    "is_attachment": "1",
+    "body": "bGluZSxkZXNjcmlwdGlvbixxdHksdW5pdCxhbW91bnQNCjEsT3JiaXQgTGFicyBUZWFtIHBsYW4gKGFubnVhbCksMTIsMTIwLjAwLDE0NDAuMDANCjIsQWRkaXRpb25hbCBzZWF0cyw0LDQ4LjAwLDE5Mi4wMA0KMyxQcmlvcml0eSBzdXBwb3J0LDEsMzAwLjAwLDMwMC4wMA0K"
+  },
+  {
+    "_pk": "5#partner-hero@orbit-labs.com",
+    "message_id": "5",
+    "cid": "partner-hero@orbit-labs.com",
+    "filename": "partner-hero.png",
+    "type": "image/png",
+    "is_attachment": "0",
+    "body": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+  },
+  {
+    "_pk": "6#orbit-logo@orbit-labs.com",
+    "message_id": "6",
+    "cid": "orbit-logo@orbit-labs.com",
+    "filename": "orbit-logo.png",
+    "type": "image/png",
+    "is_attachment": "0",
+    "body": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+  },
+  {
+    "_pk": "6#uptime-w21@orbit-labs.com",
+    "message_id": "6",
+    "cid": "uptime-w21@orbit-labs.com",
+    "filename": "uptime-2026-w21.csv",
+    "type": "text/csv",
+    "is_attachment": "1",
+    "body": "c2VydmljZSx1cHRpbWUsaW5jaWRlbnRzCmFwaSw5OS45OCwxCnN0YXR1cywxMDAuMDAsMApiaWxsaW5nLDk5LjkxLDIK"
+  }
+]

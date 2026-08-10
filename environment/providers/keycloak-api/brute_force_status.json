@@ -1,0 +1,4 @@
+[
+  {"userId": "d4a86f20-5c31-49b7-b0e8-73f1a2c65d94", "realm": "orbit-labs", "numFailures": "6", "disabled": "1", "lastIPFailure": "198.51.100.12", "lastFailure": "1780642800000"},
+  {"userId": "3b60e5c1-7a94-42d8-9f01-2c86d47e0b53", "realm": "orbit-labs", "numFailures": "2", "disabled": "0", "lastIPFailure": "203.0.113.77", "lastFailure": "1780560000000"}
+]

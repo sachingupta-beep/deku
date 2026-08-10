@@ -20,15 +20,37 @@ APP_PUBLIC_URL="${APP_PUBLIC_URL%/}"
 export APP_PUBLIC_URL
 
 # 2. Deploy gate. A deploy failure is a hard zero with no partial credit.
+# /api/health is THE contract -- every spec says it returns 200 once the app is
+# ready. It used to be `curl /api/health || curl /`, and that fallback accepted an
+# app whose health endpoint was actively failing: on 2026-08-07 an app returned 503
+# on /api/health for the entire wait ("will self-provision when the database is
+# available") while serving its static frontend on /, so the gate recorded
+# deployed:1.0 and graded 45 substeps against an app that had told us it was not
+# ready. Gate on the contract, and record the status actually observed.
 DEPLOYED=0.0
+HEALTH_CODE=""
 for _ in $(seq 1 30); do
-  if curl -fsS --max-time 10 "${APP_PUBLIC_URL}/api/health" > /dev/null 2>&1 \
-     || curl -fsS --max-time 10 "${APP_PUBLIC_URL}/" > /dev/null 2>&1; then
+  HEALTH_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+                "${APP_PUBLIC_URL}/api/health" 2>/dev/null)
+  if [ "$HEALTH_CODE" = "200" ]; then
     DEPLOYED=1.0
     break
   fi
   sleep 5
 done
+
+# A task whose spec genuinely exposes no /api/health would 404 forever. Fall back
+# to `/` ONLY for that case, and say so -- a 503, 500 or 502 is the app reporting
+# its own failure and must never be read as deployed.
+if [ "$DEPLOYED" != "1.0" ] && [ "$HEALTH_CODE" = "404" ]; then
+  echo "no /api/health endpoint (404); falling back to GET / for the deploy gate" >&2
+  if curl -fsS --max-time 10 "${APP_PUBLIC_URL}/" > /dev/null 2>&1; then
+    DEPLOYED=1.0
+  fi
+elif [ "$DEPLOYED" != "1.0" ]; then
+  echo "deploy gate: /api/health last returned '${HEALTH_CODE:-no response}' - the app" >&2
+  echo "is reporting itself NOT ready, so this is a deploy failure even if / serves." >&2
+fi
 
 if [ "$DEPLOYED" != "1.0" ]; then
   echo "app never became reachable at ${APP_PUBLIC_URL} - scoring 0" >&2

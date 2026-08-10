@@ -1,0 +1,30 @@
+[
+  {
+    "id": "app_uploads",
+    "name": "App Uploads",
+    "enabled": "true",
+    "fileSecurity": "true",
+    "permissions": "create(\"users\")",
+    "maximumFileSize": "10485760",
+    "allowedFileExtensions": "png;jpg;jpeg;heic",
+    "compression": "gzip",
+    "encryption": "true",
+    "antivirus": "true",
+    "createdAt": "2024-09-10T09:12:00.000+00:00",
+    "updatedAt": "2026-02-08T10:00:00.000+00:00"
+  },
+  {
+    "id": "release_artifacts",
+    "name": "Release Artifacts",
+    "enabled": "true",
+    "fileSecurity": "false",
+    "permissions": "read(\"team:team_helix\")",
+    "maximumFileSize": "524288000",
+    "allowedFileExtensions": "ipa;apk;aab",
+    "compression": "none",
+    "encryption": "true",
+    "antivirus": "false",
+    "createdAt": "2024-09-10T09:14:00.000+00:00",
+    "updatedAt": "2026-05-22T09:05:00.000+00:00"
+  }
+]

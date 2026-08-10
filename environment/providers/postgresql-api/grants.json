@@ -1,0 +1,19 @@
+[
+  {"id": "1", "grantee": "orbit_app", "table_name": "organizations", "privileges": "SELECT;INSERT;UPDATE;DELETE"},
+  {"id": "2", "grantee": "orbit_app", "table_name": "api_keys", "privileges": "SELECT;INSERT;UPDATE;DELETE"},
+  {"id": "3", "grantee": "orbit_app", "table_name": "api_key_scopes", "privileges": "SELECT;INSERT;UPDATE;DELETE"},
+  {"id": "4", "grantee": "orbit_app", "table_name": "endpoints", "privileges": "SELECT"},
+  {"id": "5", "grantee": "orbit_app", "table_name": "request_stats", "privileges": "SELECT;INSERT"},
+  {"id": "6", "grantee": "orbit_app", "table_name": "webhooks", "privileges": "SELECT;INSERT;UPDATE;DELETE"},
+  {"id": "7", "grantee": "orbit_app", "table_name": "webhook_deliveries", "privileges": "SELECT;INSERT;UPDATE"},
+  {"id": "8", "grantee": "orbit_readonly", "table_name": "organizations", "privileges": "SELECT"},
+  {"id": "9", "grantee": "orbit_readonly", "table_name": "api_keys", "privileges": "SELECT"},
+  {"id": "10", "grantee": "orbit_readonly", "table_name": "api_key_scopes", "privileges": "SELECT"},
+  {"id": "11", "grantee": "orbit_readonly", "table_name": "endpoints", "privileges": "SELECT"},
+  {"id": "12", "grantee": "orbit_readonly", "table_name": "request_stats", "privileges": "SELECT"},
+  {"id": "13", "grantee": "orbit_readonly", "table_name": "webhooks", "privileges": "SELECT"},
+  {"id": "14", "grantee": "orbit_readonly", "table_name": "webhook_deliveries", "privileges": "SELECT"},
+  {"id": "15", "grantee": "orbit_analytics", "table_name": "organizations", "privileges": "SELECT"},
+  {"id": "16", "grantee": "orbit_analytics", "table_name": "endpoints", "privileges": "SELECT"},
+  {"id": "17", "grantee": "orbit_analytics", "table_name": "request_stats", "privileges": "SELECT"}
+]

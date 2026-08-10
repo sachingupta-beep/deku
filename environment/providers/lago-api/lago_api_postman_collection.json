@@ -1,0 +1,681 @@
+{
+  "info": {
+    "name": "Lago Mock API v1.17.0",
+    "description": "Test collection for the mock Lago service. Base URL defaults to http://localhost:8127. In docker-compose, the service is reachable at http://lago-api:8127.\n\nLago is **usage-based billing**, which makes it a different animal from the in-house payments service next door. Nothing here charges anyone.\n\n**You ingest events, not charges.** A usage event names a subscription, a billable-metric code and some properties. What it costs is computed later, by aggregating the period's events and running the plan's charges over the result.\n\n**The aggregation type decides what 'how much' means** -- `sum_agg` adds a property up, `max_agg` takes the peak, `unique_count_agg` counts distinct values, `count_agg` counts events. **The charge model decides what that number costs**, and the five models disagree wildly on the same units: `graduated` bills each tier at its own rate, `volume` finds the one tier the whole quantity falls in and bills all of it there, `package` sells blocks, `percentage` takes basis points of a monetary metric, `standard` is a flat per-unit rate.\n\n**`current_usage` exists before any invoice does** and is recomputed on every read -- it is the endpoint people actually integrate against.\n\n**Ingestion is idempotent on the caller's own `transaction_id`**: a repeat is refused rather than double-billed, and a batch is all-or-nothing.\n\nIdentity is dual: a `lago_id` the service owns and an `external_id` the caller owns. Responses are wrapped and errors carry a per-field `error_details` map, both because Lago's do. Amounts are integer cents; per-unit rates are **millicents** (1 cent = 1000) so a sub-cent rate stays exact. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8127"},
+    {"key": "orbitLabs", "value": "cust_orbit_labs"},
+    {"key": "acme", "value": "cust_acme"},
+    {"key": "northwind", "value": "cust_northwind"},
+    {"key": "helios", "value": "cust_helios"},
+    {"key": "growthSub", "value": "sub_orbit_growth"},
+    {"key": "starterSub", "value": "sub_acme_starter"},
+    {"key": "scaleSub", "value": "sub_northwind_scale"},
+    {"key": "legacySub", "value": "sub_acme_legacy"},
+    {"key": "paidInvoice", "value": "inv_3f7e1b0c2d54f001"},
+    {"key": "draftInvoice", "value": "inv_5b07d21f8c64f002"},
+    {"key": "failedInvoice", "value": "inv_9f14c73e0b2af003"},
+    {"key": "seedCreditNote", "value": "cn_3f7e1b0c2d54c001"},
+    {"key": "seedWallet", "value": "wal_5b07d21f8c64w001"}
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "service configuration",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/service"}
+    },
+    {
+      "name": "billable metrics: what is measured",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/billable_metrics"}
+    },
+    {
+      "name": "one metric and its aggregation",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/billable_metrics/active_seats"}
+    },
+    {
+      "name": "an unknown metric (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/billable_metrics/nope"}
+    },
+    {
+      "name": "plans and their charges",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/plans"}
+    },
+    {
+      "name": "the graduated / volume / standard plan",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/plans/orbit_growth"}
+    },
+    {
+      "name": "the package plan",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/plans/orbit_starter"}
+    },
+    {
+      "name": "the percentage plan, priced in USD",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/plans/orbit_scale"}
+    },
+    {
+      "name": "an unknown plan (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/plans/nope"}
+    },
+    {
+      "name": "customers",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers"}
+    },
+    {
+      "name": "one customer, by the id you own",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{orbitLabs}}"}
+    },
+    {
+      "name": "an unknown customer (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/cust_nope"}
+    },
+    {
+      "name": "subscriptions",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/subscriptions"}
+    },
+    {
+      "name": "subscriptions for one customer, including a terminated one",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/subscriptions?external_customer_id={{acme}}"}
+    },
+    {
+      "name": "only the active ones",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/subscriptions?status=active"}
+    },
+    {
+      "name": "one subscription",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/subscriptions/{{growthSub}}"}
+    },
+    {
+      "name": "an unknown subscription (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/subscriptions/sub_nope"}
+    },
+    {
+      "name": "usage: graduated tiers, volume tiers and a per-seat charge",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{orbitLabs}}/current_usage?external_subscription_id={{growthSub}}"}
+    },
+    {
+      "name": "usage: packages and a count_agg",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{acme}}/current_usage?external_subscription_id={{starterSub}}"}
+    },
+    {
+      "name": "usage: a percentage charge and a unique_count_agg",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{northwind}}/current_usage?external_subscription_id={{scaleSub}}"}
+    },
+    {
+      "name": "usage without naming a subscription (422 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{orbitLabs}}/current_usage"}
+    },
+    {
+      "name": "usage for someone else's subscription (422 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{acme}}/current_usage?external_subscription_id={{growthSub}}"}
+    },
+    {
+      "name": "usage on a terminated subscription (422 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{acme}}/current_usage?external_subscription_id={{legacySub}}"}
+    },
+    {
+      "name": "usage for an unknown customer (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/cust_nope/current_usage?external_subscription_id={{growthSub}}"}
+    },
+    {
+      "name": "the events behind that usage",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/events?external_subscription_id={{growthSub}}"}
+    },
+    {
+      "name": "events for one metric",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/events?external_subscription_id={{growthSub}}&code=active_seats"}
+    },
+    {
+      "name": "one event by the transaction id you chose",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/events/evt_growth_seats_2026_05_18"}
+    },
+    {
+      "name": "an unknown transaction id (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/events/evt_nope"}
+    },
+    {
+      "name": "estimate what 700 GB would cost, without ingesting it",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"data_egress_gb\", \"properties\": {\"gb\": 700}}}"},
+        "url": "{{baseUrl}}/api/v1/events/estimate_fees"
+      }
+    },
+    {
+      "name": "estimate for a metric the plan does not charge (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"external_subscription_id\": \"sub_acme_starter\", \"code\": \"data_egress_gb\", \"properties\": {\"gb\": 10}}}"},
+        "url": "{{baseUrl}}/api/v1/events/estimate_fees"
+      }
+    },
+    {
+      "name": "estimate for an unknown subscription (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"external_subscription_id\": \"sub_nope\", \"code\": \"api_calls\", \"properties\": {\"count\": 1}}}"},
+        "url": "{{baseUrl}}/api/v1/events/estimate_fees"
+      }
+    },
+    {
+      "name": "ingest usage",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-growth-api-2026-05-30\", \"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"api_calls\", \"timestamp\": \"2026-05-30T12:00:00Z\", \"properties\": {\"count\": 80000, \"region\": \"eu-west\"}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "the usage moved, and the third tier absorbed it",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{orbitLabs}}/current_usage?external_subscription_id={{growthSub}}"}
+    },
+    {
+      "name": "the same transaction_id again (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-growth-api-2026-05-30\", \"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"api_calls\", \"timestamp\": \"2026-05-30T12:00:00Z\", \"properties\": {\"count\": 80000, \"region\": \"eu-west\"}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "a seat reading below the peak leaves max_agg alone",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-growth-seats-2026-05-31\", \"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"active_seats\", \"timestamp\": \"2026-05-31T12:00:00Z\", \"properties\": {\"seats\": 19}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "the seat charge is unchanged, because max_agg took the peak",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{orbitLabs}}/current_usage?external_subscription_id={{growthSub}}"}
+    },
+    {
+      "name": "a repeat user does not move unique_count_agg",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-northwind-user-repeat\", \"external_subscription_id\": \"sub_northwind_scale\", \"code\": \"unique_users\", \"timestamp\": \"2026-05-30T10:00:00Z\", \"properties\": {\"user_id\": \"u_priya\"}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "a new user does",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-northwind-user-new\", \"external_subscription_id\": \"sub_northwind_scale\", \"code\": \"unique_users\", \"timestamp\": \"2026-05-31T10:00:00Z\", \"properties\": {\"user_id\": \"u_helena\"}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "three distinct users now, four events",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{northwind}}/current_usage?external_subscription_id={{scaleSub}}"}
+    },
+    {
+      "name": "an event outside the open period does not count",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-growth-api-out-of-period\", \"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"api_calls\", \"timestamp\": \"2026-06-14T12:00:00Z\", \"properties\": {\"count\": 500000}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "the open period is untouched by it",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{orbitLabs}}/current_usage?external_subscription_id={{growthSub}}"}
+    },
+    {
+      "name": "ingest with no transaction_id (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"api_calls\", \"properties\": {\"count\": 10}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "ingest without the field the aggregation needs (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-bad-properties\", \"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"data_egress_gb\", \"properties\": {\"gigabytes\": 12}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "ingest a metric the plan does not charge (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-bad-metric\", \"external_subscription_id\": \"sub_acme_starter\", \"code\": \"data_egress_gb\", \"properties\": {\"gb\": 5}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "ingest against a terminated subscription (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-bad-terminated\", \"external_subscription_id\": \"sub_acme_legacy\", \"code\": \"api_calls\", \"properties\": {\"count\": 5}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "ingest against an unknown subscription (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-bad-subscription\", \"external_subscription_id\": \"sub_nope\", \"code\": \"api_calls\", \"properties\": {\"count\": 5}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "ingest an unknown metric (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-bad-code\", \"external_subscription_id\": \"sub_orbit_growth\", \"code\": \"nope\", \"properties\": {}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "a batch of two",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"events\": [{\"transaction_id\": \"run-batch-ticket-1\", \"external_subscription_id\": \"sub_acme_starter\", \"code\": \"support_tickets\", \"timestamp\": \"2026-05-30T09:00:00Z\", \"properties\": {\"ticket\": \"OPS-4421\"}}, {\"transaction_id\": \"run-batch-ticket-2\", \"external_subscription_id\": \"sub_acme_starter\", \"code\": \"support_tickets\", \"timestamp\": \"2026-05-31T09:00:00Z\", \"properties\": {\"ticket\": \"OPS-4422\"}}]}"},
+        "url": "{{baseUrl}}/api/v1/events/batch"
+      }
+    },
+    {
+      "name": "six tickets now",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{acme}}/current_usage?external_subscription_id={{starterSub}}"}
+    },
+    {
+      "name": "a batch with the same id twice (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"events\": [{\"transaction_id\": \"run-batch-dup\", \"external_subscription_id\": \"sub_acme_starter\", \"code\": \"support_tickets\", \"properties\": {}}, {\"transaction_id\": \"run-batch-dup\", \"external_subscription_id\": \"sub_acme_starter\", \"code\": \"support_tickets\", \"properties\": {}}]}"},
+        "url": "{{baseUrl}}/api/v1/events/batch"
+      }
+    },
+    {
+      "name": "a batch is all or nothing (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"events\": [{\"transaction_id\": \"run-batch-good\", \"external_subscription_id\": \"sub_acme_starter\", \"code\": \"support_tickets\", \"properties\": {}}, {\"transaction_id\": \"run-batch-bad\", \"external_subscription_id\": \"sub_nope\", \"code\": \"support_tickets\", \"properties\": {}}]}"},
+        "url": "{{baseUrl}}/api/v1/events/batch"
+      }
+    },
+    {
+      "name": "the good half of that batch was not applied (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/events/run-batch-good"}
+    },
+    {
+      "name": "an empty batch (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"events\": []}"},
+        "url": "{{baseUrl}}/api/v1/events/batch"
+      }
+    },
+    {
+      "name": "invoices",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices"}
+    },
+    {
+      "name": "invoices for one customer",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices?external_customer_id={{orbitLabs}}"}
+    },
+    {
+      "name": "only the drafts",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices?status=draft"}
+    },
+    {
+      "name": "only the unpaid ones",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices?payment_status=failed"}
+    },
+    {
+      "name": "an invalid status filter (422 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices?status=maybe"}
+    },
+    {
+      "name": "a finalized invoice with its fee breakdown",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices/{{paidInvoice}}"}
+    },
+    {
+      "name": "an unknown invoice (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices/inv_nope"}
+    },
+    {
+      "name": "a draft cannot record a payment (422 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"invoice\": {\"payment_status\": \"succeeded\"}}"},
+        "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}"
+      }
+    },
+    {
+      "name": "a draft cannot be voided (422 expected)",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}/void"}
+    },
+    {
+      "name": "a credit note needs a finalized invoice (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"credit_note\": {\"invoice_id\": \"inv_5b07d21f8c64f002\", \"reason\": \"other\", \"credit_amount_cents\": 500}}"},
+        "url": "{{baseUrl}}/api/v1/credit_notes"
+      }
+    },
+    {
+      "name": "refresh the draft against the usage as it stands now",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}/refresh"}
+    },
+    {
+      "name": "finalize it",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}/finalize"}
+    },
+    {
+      "name": "finalizing again (422 expected)",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}/finalize"}
+    },
+    {
+      "name": "refreshing a finalized invoice (422 expected)",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}/refresh"}
+    },
+    {
+      "name": "now it can record a payment",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"invoice\": {\"payment_status\": \"succeeded\"}}"},
+        "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}"
+      }
+    },
+    {
+      "name": "an invalid payment status (422 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"invoice\": {\"payment_status\": \"maybe\"}}"},
+        "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}"
+      }
+    },
+    {
+      "name": "a paid invoice is credited, not voided (422 expected)",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{draftInvoice}}/void"}
+    },
+    {
+      "name": "an unpaid one can be voided",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{failedInvoice}}/void"}
+    },
+    {
+      "name": "voiding it twice (422 expected)",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/invoices/{{failedInvoice}}/void"}
+    },
+    {
+      "name": "credit notes",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/credit_notes"}
+    },
+    {
+      "name": "one credit note",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/credit_notes/{{seedCreditNote}}"}
+    },
+    {
+      "name": "credit part of a paid invoice",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"credit_note\": {\"invoice_id\": \"inv_3f7e1b0c2d54f001\", \"reason\": \"order_change\", \"credit_amount_cents\": 2000, \"description\": \"Seats over-counted for the last week of April\"}}"},
+        "url": "{{baseUrl}}/api/v1/credit_notes"
+      }
+    },
+    {
+      "name": "the invoice now shows less due",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/invoices/{{paidInvoice}}"}
+    },
+    {
+      "name": "crediting more than remains (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"credit_note\": {\"invoice_id\": \"inv_3f7e1b0c2d54f001\", \"reason\": \"other\", \"credit_amount_cents\": 9999999}}"},
+        "url": "{{baseUrl}}/api/v1/credit_notes"
+      }
+    },
+    {
+      "name": "an unknown credit-note reason (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"credit_note\": {\"invoice_id\": \"inv_3f7e1b0c2d54f001\", \"reason\": \"vibes\", \"credit_amount_cents\": 100}}"},
+        "url": "{{baseUrl}}/api/v1/credit_notes"
+      }
+    },
+    {
+      "name": "wallets",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/wallets"}
+    },
+    {
+      "name": "one wallet",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/wallets/{{seedWallet}}"}
+    },
+    {
+      "name": "grant prepaid credits",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"wallet\": {\"external_customer_id\": \"cust_helios\", \"name\": \"Helios pilot credits\", \"granted_credits\": 500, \"rate_amount_cents\": 100, \"expiration_at\": \"2027-05-01T00:00:00Z\"}}"},
+        "url": "{{baseUrl}}/api/v1/wallets"
+      }
+    },
+    {
+      "name": "a wallet with no credits (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"wallet\": {\"external_customer_id\": \"cust_helios\", \"granted_credits\": 0}}"},
+        "url": "{{baseUrl}}/api/v1/wallets"
+      }
+    },
+    {
+      "name": "define a new metric",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"billable_metric\": {\"code\": \"storage_gb\", \"name\": \"Storage\", \"description\": \"Peak stored gigabytes\", \"aggregation_type\": \"max_agg\", \"field_name\": \"gb\", \"recurring\": true}}"},
+        "url": "{{baseUrl}}/api/v1/billable_metrics"
+      }
+    },
+    {
+      "name": "an aggregation with nothing to aggregate (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"billable_metric\": {\"code\": \"bad_metric\", \"aggregation_type\": \"sum_agg\"}}"},
+        "url": "{{baseUrl}}/api/v1/billable_metrics"
+      }
+    },
+    {
+      "name": "an unknown aggregation type (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"billable_metric\": {\"code\": \"bad_metric2\", \"aggregation_type\": \"vibes_agg\", \"field_name\": \"x\"}}"},
+        "url": "{{baseUrl}}/api/v1/billable_metrics"
+      }
+    },
+    {
+      "name": "a metric code that already exists (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"billable_metric\": {\"code\": \"api_calls\", \"aggregation_type\": \"count_agg\"}}"},
+        "url": "{{baseUrl}}/api/v1/billable_metrics"
+      }
+    },
+    {
+      "name": "define a plan that charges it",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"plan\": {\"code\": \"orbit_archive\", \"name\": \"Orbit Archive\", \"interval\": \"monthly\", \"amount_cents\": 1900, \"amount_currency\": \"EUR\", \"charges\": [{\"billable_metric_code\": \"storage_gb\", \"charge_model\": \"standard\", \"properties\": {\"per_unit_amount_millicents\": 3000}}]}}"},
+        "url": "{{baseUrl}}/api/v1/plans"
+      }
+    },
+    {
+      "name": "a plan with an unknown charge model (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"plan\": {\"code\": \"orbit_bad\", \"interval\": \"monthly\", \"amount_cents\": 100, \"charges\": [{\"billable_metric_code\": \"storage_gb\", \"charge_model\": \"vibes\", \"properties\": {}}]}}"},
+        "url": "{{baseUrl}}/api/v1/plans"
+      }
+    },
+    {
+      "name": "a graduated charge with no tiers (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"plan\": {\"code\": \"orbit_bad2\", \"interval\": \"monthly\", \"amount_cents\": 100, \"charges\": [{\"billable_metric_code\": \"storage_gb\", \"charge_model\": \"graduated\", \"properties\": {}}]}}"},
+        "url": "{{baseUrl}}/api/v1/plans"
+      }
+    },
+    {
+      "name": "a charge on a metric that does not exist (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"plan\": {\"code\": \"orbit_bad3\", \"interval\": \"monthly\", \"amount_cents\": 100, \"charges\": [{\"billable_metric_code\": \"nope\", \"charge_model\": \"standard\", \"properties\": {\"per_unit_amount_millicents\": 1}}]}}"},
+        "url": "{{baseUrl}}/api/v1/plans"
+      }
+    },
+    {
+      "name": "an unknown interval (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"plan\": {\"code\": \"orbit_bad4\", \"interval\": \"fortnightly\", \"amount_cents\": 100}}"},
+        "url": "{{baseUrl}}/api/v1/plans"
+      }
+    },
+    {
+      "name": "upsert a customer on the id you own",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"customer\": {\"external_id\": \"cust_helios\", \"name\": \"Helios Robotics AG\", \"city\": \"Munich\"}}"},
+        "url": "{{baseUrl}}/api/v1/customers"
+      }
+    },
+    {
+      "name": "the lago_id survived the upsert",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{helios}}"}
+    },
+    {
+      "name": "a customer with no external_id (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"customer\": {\"name\": \"Nameless\"}}"},
+        "url": "{{baseUrl}}/api/v1/customers"
+      }
+    },
+    {
+      "name": "subscribe them to the new plan",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"subscription\": {\"external_id\": \"sub_helios_archive\", \"external_customer_id\": \"cust_helios\", \"plan_code\": \"orbit_archive\", \"billing_time\": \"calendar\", \"current_period_from\": \"2026-05-01T00:00:00Z\", \"current_period_to\": \"2026-06-01T00:00:00Z\"}}"},
+        "url": "{{baseUrl}}/api/v1/subscriptions"
+      }
+    },
+    {
+      "name": "meter against it",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"event\": {\"transaction_id\": \"run-helios-storage-1\", \"external_subscription_id\": \"sub_helios_archive\", \"code\": \"storage_gb\", \"timestamp\": \"2026-05-20T00:00:00Z\", \"properties\": {\"gb\": 340}}}"},
+        "url": "{{baseUrl}}/api/v1/events"
+      }
+    },
+    {
+      "name": "and read the usage back",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/customers/{{helios}}/current_usage?external_subscription_id=sub_helios_archive"}
+    },
+    {
+      "name": "a plan in the wrong currency for the customer (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"subscription\": {\"external_id\": \"sub_helios_scale\", \"external_customer_id\": \"cust_helios\", \"plan_code\": \"orbit_scale\"}}"},
+        "url": "{{baseUrl}}/api/v1/subscriptions"
+      }
+    },
+    {
+      "name": "a subscription id that is taken (422 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"subscription\": {\"external_id\": \"sub_helios_archive\", \"external_customer_id\": \"cust_helios\", \"plan_code\": \"orbit_archive\"}}"},
+        "url": "{{baseUrl}}/api/v1/subscriptions"
+      }
+    },
+    {
+      "name": "an unknown plan (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"subscription\": {\"external_id\": \"sub_helios_nope\", \"external_customer_id\": \"cust_helios\", \"plan_code\": \"nope\"}}"},
+        "url": "{{baseUrl}}/api/v1/subscriptions"
+      }
+    },
+    {
+      "name": "terminate it",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/subscriptions/sub_helios_archive"}
+    },
+    {
+      "name": "terminating it again (422 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/subscriptions/sub_helios_archive"}
+    },
+    {
+      "name": "terminating an unknown subscription (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/subscriptions/sub_nope"}
+    },
+    {
+      "name": "gross revenue by month and currency",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/analytics/gross_revenue"}
+    },
+    {
+      "name": "MRR, plan fees only",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/analytics/mrr"}
+    },
+    {
+      "name": "MRR in one currency",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/analytics/mrr?currency=EUR"}
+    },
+    {
+      "name": "audit trail of this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/requests?limit=5"}
+    },
+    {
+      "name": "audit summary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/summary"}
+    }
+  ]
+}

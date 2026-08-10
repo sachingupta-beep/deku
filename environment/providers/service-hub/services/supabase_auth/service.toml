@@ -1,0 +1,52 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "supabase-auth"
+name     = "Supabase Auth (GoTrue)"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.supabase_auth.service:SupabaseAuthService"
+upstream = "https://supabase.com/docs/reference/api/auth"
+summary  = """
+GoTrue: email/password sign-up and sign-in, refresh-token rotation, magic links, password recovery and the admin user API."""
+tags = [
+  "gotrue",
+  "jwt",
+  "refresh-token",
+  "magic-link",
+  "oauth",
+]
+
+[data]
+dir = "supabase-auth"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "anon",
+  "authenticated",
+  "service_role",
+]
+description = """
+`apikey` plus `Authorization: Bearer <access_token>`. The service key unlocks /auth/v1/admin; a user access token identifies the caller for /auth/v1/user."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/auth/v1/signup",
+  "/auth/v1/token",
+  "/auth/v1/user",
+  "/auth/v1/logout",
+  "/auth/v1/recover",
+  "/auth/v1/otp",
+  "/auth/v1/admin/users",
+]

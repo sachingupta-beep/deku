@@ -1,0 +1,1380 @@
+{
+  "info": {
+    "name": "Dex Mock API v2.41.1",
+    "description": "Test collection for the mock Dex service. Base URL defaults to http://localhost:8120. In docker-compose, the service is reachable at http://dex-api:8120.\n\nDex is a **federator, not an identity provider**. It has no user database: real identities live behind connectors, and the only thing Dex stores locally is the `local` connector's static passwords. Everything else it knows about a person exists only because a refresh token remembers it -- which is why `/api/v2/refresh/{user_id}` and `/api/v2/offline-sessions` are the closest thing to a user list.\n\nThree consequences the collection walks through: connectors decide what is possible (the password grant works via `local` and `ldap`, is refused by `github`, and a disabled connector is refused outright); the device authorization grant (RFC 8628) is first-class, with `authorization_pending`, `slow_down`, `access_denied` and `expired_token` each demonstrated; and a client may borrow another client's audience only if listed on that client's `trustedPeers`.\n\nThe gRPC API under `/api/v2` keeps Dex's success-with-flag envelopes: creating a client that exists is 200 with `already_exists: true`, not 409, and deleting one that does not is 200 with `not_found: true`, not 404. Those requests are labelled with the flag they assert rather than '(N expected)', because they really are successful calls.\n\nSeed passwords: amelia OrbitDex2026!, jonas OrbitJonas2026!, rohit OrbitRohit2026!, orbit_sync_bot OrbitSyncBot2026!. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8120"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "healthz",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/healthz"
+      }
+    },
+    {
+      "name": "openid configuration",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/.well-known/openid-configuration"
+      }
+    },
+    {
+      "name": "jwks",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/keys"
+      }
+    },
+    {
+      "name": "list connectors",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/connectors"
+      }
+    },
+    {
+      "name": "authorize and get the connector chooser",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth?client_id=orbit-status-web&redirect_uri=https://status.orbit-labs.com/callback&response_type=code&scope=openid%20profile%20email%20groups%20offline_access&state=orbit-status-42&nonce=n-0S6_WzA2Mj&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256"
+      }
+    },
+    {
+      "name": "authorize straight to a connector",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth/local?client_id=orbit-status-web&redirect_uri=https://status.orbit-labs.com/callback&response_type=code&scope=openid%20profile%20email%20groups%20offline_access&state=direct-1"
+      }
+    },
+    {
+      "name": "authorize with an unknown client (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth?client_id=not-a-client&redirect_uri=https://x/cb&response_type=code"
+      }
+    },
+    {
+      "name": "authorize with an unregistered redirect uri (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth?client_id=orbit-status-web&redirect_uri=https://evil.example.com/cb&response_type=code"
+      }
+    },
+    {
+      "name": "authorize with an unsupported response type (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth?client_id=orbit-cli&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=token"
+      }
+    },
+    {
+      "name": "authorize through a disabled connector (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth/orbit-saml?client_id=orbit-status-web&redirect_uri=https://status.orbit-labs.com/callback&response_type=code"
+      }
+    },
+    {
+      "name": "authorize through an unknown connector (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth/okta?client_id=orbit-status-web&redirect_uri=https://status.orbit-labs.com/callback&response_type=code"
+      }
+    },
+    {
+      "name": "request a trusted peer's audience",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth?client_id=orbit-kubectl&redirect_uri=http://localhost:8000&response_type=code&scope=openid%20email%20audience:server:client_id:orbit-grafana"
+      }
+    },
+    {
+      "name": "request an audience without being a trusted peer (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth?client_id=orbit-status-web&redirect_uri=https://status.orbit-labs.com/callback&response_type=code&scope=openid%20audience:server:client_id:orbit-grafana"
+      }
+    },
+    {
+      "name": "request an unknown client's audience (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/auth?client_id=orbit-kubectl&redirect_uri=http://localhost:8000&response_type=code&scope=openid%20audience:server:client_id:not-a-client"
+      }
+    },
+    {
+      "name": "approve an authorization request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/approval",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"req\": \"arq-status-web-0001\", \"connector_id\": \"local\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitDex2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "approve with a wrong password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/approval",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"req\": \"arq-status-web-0001\", \"connector_id\": \"local\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "approve through a connector with no password support (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/approval",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"req\": \"arq-grafana-000001\", \"connector_id\": \"github\", \"username\": \"helena.park@orbit-labs.com\", \"password\": \"anything\"}"
+        }
+      }
+    },
+    {
+      "name": "approve an expired authorization request (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/approval",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"req\": \"arq-expired-000001\", \"connector_id\": \"local\", \"username\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "approve an unknown authorization request (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/approval",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"req\": \"arq-does-not-exist\", \"connector_id\": \"local\", \"username\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange the seeded authorization code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"code\": \"dex-code-amelia-e70b2c948d15\", \"code_verifier\": \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\", \"redirect_uri\": \"https://status.orbit-labs.com/callback\"}"
+        }
+      }
+    },
+    {
+      "name": "replay the same authorization code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"code\": \"dex-code-amelia-e70b2c948d15\", \"code_verifier\": \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\", \"redirect_uri\": \"https://status.orbit-labs.com/callback\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange an already-used code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"orbit-cli\", \"code\": \"dex-code-jonas-used-5a1c93e08b74\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange an expired code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"orbit-grafana\", \"client_secret\": \"dex-secret-grafana-5b07d21f8c64\", \"code\": \"dex-code-helena-expired-3a6d80e5\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange a code with the wrong client (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"orbit-kubectl\", \"client_secret\": \"dex-secret-kubectl-1c84f065\", \"code\": \"dex-code-jonas-used-5a1c93e08b74\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange with a wrong client secret (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"not-the-secret\", \"code\": \"anything\"}"
+        }
+      }
+    },
+    {
+      "name": "use an unsupported grant type (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"implicit\", \"client_id\": \"orbit-cli\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant through the local connector",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitDex2026!\", \"scope\": \"openid profile email groups offline_access\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant through the ldap connector",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"connector_id\": \"ldap\", \"username\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\", \"scope\": \"openid email groups offline_access\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant through github, which has no passwords (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"connector_id\": \"github\", \"username\": \"helena.park@orbit-labs.com\", \"password\": \"anything\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant through a disabled connector (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"connector_id\": \"orbit-saml\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitDex2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant through an unknown connector (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"connector_id\": \"okta\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitDex2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant from a client that may not use it (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-cli\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitDex2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant with a wrong password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "password grant for an identity that has no local password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"username\": \"helena.park@orbit-labs.com\", \"password\": \"OrbitHelena2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh a token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"refresh_token\": \"dex-rt-amelia-status-4c19f7e0b83d\"}"
+        }
+      }
+    },
+    {
+      "name": "reuse the pre-rotation refresh token (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"refresh_token\": \"dex-rt-amelia-status-4c19f7e0b83d\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with a token already rotated twice (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-cli\", \"refresh_token\": \"dex-rt-jonas-cli-0e47c95b3d18\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with another client's token (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-kubectl\", \"client_secret\": \"dex-secret-kubectl-1c84f065\", \"refresh_token\": \"dex-rt-helena-github-70b2e4f9c81d\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh narrowing the scope",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-kubectl\", \"client_secret\": \"dex-secret-kubectl-1c84f065\", \"refresh_token\": \"dex-rt-noor-ldap-d502a8f371c6\", \"scope\": \"openid email\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh widening the scope (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-grafana\", \"client_secret\": \"dex-secret-grafana-5b07d21f8c64\", \"refresh_token\": \"dex-rt-helena-github-70b2e4f9c81d\", \"scope\": \"openid email admin\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with an unknown token (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-cli\", \"refresh_token\": \"dex-rt-never-issued\"}"
+        }
+      }
+    },
+    {
+      "name": "request a device code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"scope\": \"openid profile email groups offline_access\"}"
+        }
+      }
+    },
+    {
+      "name": "request a device code from a client that may not (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-status-web\"}"
+        }
+      }
+    },
+    {
+      "name": "request a device code for an unknown client (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"not-a-client\"}"
+        }
+      }
+    },
+    {
+      "name": "look up a user code",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/device?user_code=BDWD-HQMK"
+      }
+    },
+    {
+      "name": "look up an unknown user code (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/device?user_code=ZZZZ-ZZZZ"
+      }
+    },
+    {
+      "name": "poll a pending device code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"device_code\": \"dex-device-pending-9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "poll it again (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"device_code\": \"dex-device-pending-9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "poll a third time (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"device_code\": \"dex-device-pending-9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "poll a fourth time and get slow_down (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"device_code\": \"dex-device-pending-9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "poll a denied device code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-kubectl\", \"device_code\": \"dex-device-denied-c8e05a1976b3\"}"
+        }
+      }
+    },
+    {
+      "name": "poll an expired device code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"device_code\": \"dex-device-expired-2d47b9e01f5c\"}"
+        }
+      }
+    },
+    {
+      "name": "poll an already-redeemed device code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-kubectl\", \"device_code\": \"dex-device-redeemed-7a63f04c9e21\"}"
+        }
+      }
+    },
+    {
+      "name": "poll a device code with the wrong client (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-kubectl\", \"device_code\": \"dex-device-pending-9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "approve a device request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/auth/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_code\": \"BDWD-HQMK\", \"connector_id\": \"local\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitDex2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "poll the approved device code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"device_code\": \"dex-device-pending-9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "approve it again (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/auth/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_code\": \"BDWD-HQMK\", \"connector_id\": \"local\", \"username\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitDex2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "redeem the seeded approved device code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-cli\", \"device_code\": \"dex-device-approved-5b07d21f8c64\"}"
+        }
+      }
+    },
+    {
+      "name": "approve a device request with a wrong password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/auth/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_code\": \"FGHT-LNQB\", \"connector_id\": \"local\", \"username\": \"jonas.pereira@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "approve an unknown user code (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/device/auth/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_code\": \"ZZZZ-ZZZZ\", \"username\": \"a\", \"password\": \"b\"}"
+        }
+      }
+    },
+    {
+      "name": "userinfo",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/userinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer dex-rt-helena-github-70b2e4f9c81d"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userinfo without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/userinfo"
+      }
+    },
+    {
+      "name": "userinfo with an unknown token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dex/userinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer dex-rt-never-issued"
+          }
+        ]
+      }
+    },
+    {
+      "name": "introspect a live token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token/introspect",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"dex-rt-helena-github-70b2e4f9c81d\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect an unknown token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token/introspect",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"dex-rt-never-issued\"}"
+        }
+      }
+    },
+    {
+      "name": "api version",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/version"
+      }
+    },
+    {
+      "name": "list clients",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/clients"
+      }
+    },
+    {
+      "name": "get a client",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/clients/orbit-cli"
+      }
+    },
+    {
+      "name": "get an unknown client (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/clients/not-a-client"
+      }
+    },
+    {
+      "name": "create a client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/clients",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client\": {\"id\": \"orbit-webhook\", \"name\": \"Orbit Webhook Relay\", \"redirectURIs\": [\"https://hooks.orbit-labs.com/callback\"]}}"
+        }
+      }
+    },
+    {
+      "name": "create a client that already exists (already_exists flag, not 409)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/clients",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client\": {\"id\": \"orbit-cli\", \"name\": \"Orbit CLI\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a public client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/clients",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client\": {\"id\": \"orbit-desktop\", \"name\": \"Orbit Desktop\", \"public\": true, \"redirectURIs\": [\"http://127.0.0.1/callback\"]}}"
+        }
+      }
+    },
+    {
+      "name": "update a client",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/clients/orbit-webhook",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Orbit Webhooks\", \"trustedPeers\": [\"orbit-cli\"], \"redirectURIs\": [\"https://hooks.orbit-labs.com/callback\", \"https://hooks.orbit-labs.com/v2/callback\"]}"
+        }
+      }
+    },
+    {
+      "name": "update an unknown client (not_found flag, not 404)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/clients/not-a-client",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Nope\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a client",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v2/clients/orbit-webhook"
+      }
+    },
+    {
+      "name": "delete it again (not_found flag, not 404)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v2/clients/orbit-webhook"
+      }
+    },
+    {
+      "name": "list passwords",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/passwords"
+      }
+    },
+    {
+      "name": "create a password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/passwords",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": {\"email\": \"iris.tanaka@orbit-labs.com\", \"username\": \"iris\", \"password\": \"StellarIris2026\", \"groups\": [\"orbit-labs:support\"]}}"
+        }
+      }
+    },
+    {
+      "name": "create a password that already exists (already_exists flag)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/passwords",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": {\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"StellarIris2026\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a password with no email (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/passwords",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": {\"password\": \"StellarIris2026\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a password with no password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/passwords",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": {\"email\": \"nopassword@orbit-labs.com\"}}"
+        }
+      }
+    },
+    {
+      "name": "verify a password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/passwords/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"iris.tanaka@orbit-labs.com\", \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "verify a wrong password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/passwords/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"iris.tanaka@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "verify a password for an unknown email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/passwords/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"nobody@orbit-labs.com\", \"password\": \"x\"}"
+        }
+      }
+    },
+    {
+      "name": "log in as the new password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"username\": \"iris.tanaka@orbit-labs.com\", \"password\": \"StellarIris2026\", \"scope\": \"openid email groups\"}"
+        }
+      }
+    },
+    {
+      "name": "update a password",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/passwords/iris.tanaka@orbit-labs.com",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"iris.t\", \"newPassword\": \"NebulaIris2026\", \"groups\": [\"orbit-labs:support\", \"orbit-labs:oncall\"]}"
+        }
+      }
+    },
+    {
+      "name": "log in with the old password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"username\": \"iris.tanaka@orbit-labs.com\", \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "log in with the new password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/dex/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-web\", \"client_secret\": \"dex-secret-status-web-9f14c73e0b2a\", \"username\": \"iris.tanaka@orbit-labs.com\", \"password\": \"NebulaIris2026\", \"scope\": \"openid email groups\"}"
+        }
+      }
+    },
+    {
+      "name": "update an unknown password (not_found flag)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/passwords/nobody@orbit-labs.com",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"x\"}"
+        }
+      }
+    },
+    {
+      "name": "list every identity dex remembers",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/offline-sessions"
+      }
+    },
+    {
+      "name": "list one identity's refresh tokens",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/refresh/08a8684b-db88-4b73-90a9-3cd1661f5466"
+      }
+    },
+    {
+      "name": "list an ldap identity's refresh tokens by DN",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/refresh/uid=noor,ou=people,dc=orbit-labs,dc=com"
+      }
+    },
+    {
+      "name": "list refresh tokens for an unknown identity",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/refresh/00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "revoke one client's refresh token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/refresh/revoke",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_id\": \"08a8684b-db88-4b73-90a9-3cd1661f5466\", \"client_id\": \"orbit-kubectl\"}"
+        }
+      }
+    },
+    {
+      "name": "revoke it again (not_found flag)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/refresh/revoke",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_id\": \"08a8684b-db88-4b73-90a9-3cd1661f5466\", \"client_id\": \"orbit-kubectl\"}"
+        }
+      }
+    },
+    {
+      "name": "revoke every refresh token for an identity",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/refresh/revoke",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_id\": \"5f2b0c94-7a13-4d68-8e05-c71a9f36b204\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a password",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v2/passwords/iris.tanaka@orbit-labs.com"
+      }
+    },
+    {
+      "name": "delete it again (not_found flag)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v2/passwords/iris.tanaka@orbit-labs.com"
+      }
+    }
+  ]
+}

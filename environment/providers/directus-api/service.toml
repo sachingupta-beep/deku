@@ -1,0 +1,5 @@
+[service]
+name = "directus-api"
+port = 8105
+env_var_name = "DIRECTUS_API_URL"
+healthcheck_path = "/health"

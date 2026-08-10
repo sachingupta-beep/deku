@@ -1,0 +1,7 @@
+[
+  {"token": "zt-pat-orbit-ci-9f14c73e0b2a", "kind": "pat", "userId": "280310551611114007", "orgId": "280310551611113987", "scopes": "openid;urn:zitadel:iam:org:project:id:zitadel:aud", "instanceRoles": "", "orgRoles": "ORG_USER_MANAGER;ORG_PROJECT_CREATOR", "revoked": "0", "expirationDate": "2027-05-26T08:30:00Z"},
+  {"token": "zt-pat-instance-admin-5b07d21f8c64", "kind": "pat", "userId": "280310551611114007", "orgId": "280310551611113987", "scopes": "openid;urn:zitadel:iam:org:project:id:zitadel:aud", "instanceRoles": "IAM_OWNER", "orgRoles": "ORG_OWNER", "revoked": "0", "expirationDate": "2027-05-26T08:30:00Z"},
+  {"token": "zt-pat-readonly-c8e05a1976b3", "kind": "pat", "userId": "280310551611114007", "orgId": "280310551611113987", "scopes": "openid", "instanceRoles": "", "orgRoles": "ORG_OWNER_VIEWER", "revoked": "0", "expirationDate": "2027-05-26T08:30:00Z"},
+  {"token": "zt-pat-partners-2d47b9e01f5c", "kind": "pat", "userId": "280310551611114008", "orgId": "280310551611113988", "scopes": "openid", "instanceRoles": "", "orgRoles": "ORG_OWNER", "revoked": "0", "expirationDate": "2027-05-20T11:30:00Z"},
+  {"token": "zt-pat-revoked-1e94c7a305df", "kind": "pat", "userId": "280310551611114007", "orgId": "280310551611113987", "scopes": "openid", "instanceRoles": "", "orgRoles": "ORG_OWNER", "revoked": "1", "expirationDate": "2027-05-26T08:30:00Z"}
+]

@@ -1,0 +1,52 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "cockroachdb"
+name     = "CockroachDB"
+category = "database"
+status   = "declared"
+version  = "v1"
+module   = "services.cockroachdb.service:CockroachdbService"
+upstream = "https://www.cockroachlabs.com/docs/stable/"
+summary  = """
+Distributed SQL: PostgreSQL-compatible surface plus the parts that are not -- serializable retries (40001), range and node introspection, background jobs."""
+tags = [
+  "sql",
+  "distributed",
+  "retry",
+  "ranges",
+  "jobs",
+]
+
+[data]
+dir = "cockroachdb"
+
+[auth]
+scheme      = "basic"
+roles       = [
+  "readonly",
+  "readwrite",
+  "admin",
+]
+description = """
+HTTP Basic maps onto a SQL user. PostgreSQL wire-compatible, so denials use PostgreSQL SQLSTATEs -- plus CockroachDB's own retryable 40001."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/query",
+  "/execute",
+  "/databases",
+  "/tables",
+  "/nodes",
+  "/ranges",
+  "/jobs",
+]

@@ -1,0 +1,858 @@
+{
+  "info": {
+    "name": "Nhost Mock API v2",
+    "description": "Test collection for the mock self-hosted Nhost service. Base URL defaults to http://localhost:8106. In docker-compose, the service is reachable at http://nhost-api:8106. The x-hasura-admin-secret header (nhost_admin_secret_5b71c9e0a482) grants the admin role and bypasses every permission; Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights authenticates as the session user (Priya Raman) with the user role; no header at all is the public role, which only holds a select permission on public dashboards.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8106"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "healthz",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/healthz"
+      }
+    },
+    {
+      "name": "version",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/version"
+      }
+    },
+    {
+      "name": "hasura metadata",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/metadata",
+        "header": [
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ]
+      }
+    },
+    {
+      "name": "hasura metadata without secret (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/metadata"
+      }
+    },
+    {
+      "name": "graphql list workspaces (admin)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces(order_by: {seats: desc}) { id slug name plan seats owner { display_name email } } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql workspaces as user (row permission)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces { id slug plan seats } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql workspaces as public (field not in schema - error expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces { id slug } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql public dashboards (public role)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ dashboards(order_by: {id: asc}) { id name slug visibility widget_count } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql dashboards as user (row permission)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ dashboards(order_by: {id: asc}) { id name visibility workspace { slug } } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql nested relations three deep",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces(where: {slug: {_eq: \\\"helix-robotics\\\"}}) { name dashboards(order_by: {widget_count: desc}, limit: 2) { name widget_count queries { name runtime_ms cached } } } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql by primary key",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ dashboards_by_pk(id: 103) { id name widget_count workspace { name plan } creator { display_name } } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql aggregate",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces_aggregate { aggregate { count sum { seats monthly_events } avg { seats } max { monthly_events } } } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql aggregate with nodes",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ dashboards_aggregate(where: {visibility: {_eq: \\\"workspace\\\"}}) { aggregate { count sum { widget_count } } nodes { id name } } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql boolean expression (_or + _and)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ dashboards(where: {_or: [{visibility: {_eq: \\\"public\\\"}}, {_and: [{starred: {_eq: true}}, {widget_count: {_gte: 9}}]}]}, order_by: {id: asc}) { id name visibility starred widget_count } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql _ilike filter",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ users(where: {email: {_ilike: \\\"%orbit-labs.com\\\"}}) { id display_name email roles } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql _in and _is_null",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces(where: {plan: {_in: [\\\"starter\\\", \\\"pro\\\"]}, region: {_is_null: false}}, order_by: {slug: asc}) { slug plan region } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql relationship filter",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces(where: {dashboards: {visibility: {_eq: \\\"public\\\"}}}, order_by: {id: asc}) { id slug } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql with variables",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"query ByPlan($plan: String!, $minSeats: Int!) { workspaces(where: {plan: {_eq: $plan}, seats: {_gte: $minSeats}}) { slug seats } }\", \"variables\": {\"plan\": \"enterprise\", \"minSeats\": 10}}"
+        }
+      }
+    },
+    {
+      "name": "graphql alias and __typename",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ large: workspaces(where: {seats: {_gte: 12}}, order_by: {seats: desc}) { __typename slug seats } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql offset and limit",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ dashboards(order_by: {id: asc}, limit: 2, offset: 2) { id name } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql distinct_on",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ dashboards(distinct_on: workspace_id, order_by: {workspace_id: asc}) { workspace_id name } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql column permission denied (error expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ users { id display_name email } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql unknown table (error expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ invoices { id } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql syntax error (error expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"{ workspaces { id \"}"
+        }
+      }
+    },
+    {
+      "name": "graphql mutation insert as user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"mutation { insert_dashboards_one(object: {workspace_id: 1, name: \\\"Churn Watch\\\", slug: \\\"churn-watch\\\", visibility: \\\"workspace\\\", widget_count: 4}) { id name workspace { slug } } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql mutation insert outside workspace (error expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"mutation { insert_dashboards_one(object: {workspace_id: 2, name: \\\"Not mine\\\", slug: \\\"not-mine\\\"}) { id } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql mutation insert bad foreign key (error expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"mutation { insert_dashboards_one(object: {workspace_id: 99, name: \\\"Orphan\\\", slug: \\\"orphan\\\"}) { id } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql mutation update",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"mutation { update_dashboards_by_pk(pk_columns: {id: 101}, _set: {widget_count: 11, starred: false}) { id name widget_count starred updated_at } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql mutation delete as user (error expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"mutation { delete_dashboards_by_pk(id: 107) { id } }\"}"
+        }
+      }
+    },
+    {
+      "name": "graphql mutation delete as admin",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/graphql",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"mutation { delete_dashboards_by_pk(id: 107) { id name slug } }\"}"
+        }
+      }
+    },
+    {
+      "name": "auth signin",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/auth/signin/email-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"priya.raman@aurorabistro.com\", \"password\": \"OrbitInsights2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth signin wrong password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/auth/signin/email-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"priya.raman@aurorabistro.com\", \"password\": \"nope\"}"
+        }
+      }
+    },
+    {
+      "name": "auth refresh token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/auth/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refreshToken\": \"1c6e0a94-73b5-4f28-8d10-9a2c74e5b063\"}"
+        }
+      }
+    },
+    {
+      "name": "auth user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/auth/user",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ]
+      }
+    },
+    {
+      "name": "auth user unauthenticated (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/auth/user"
+      }
+    },
+    {
+      "name": "auth signout",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/auth/signout",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"all\": true}"
+        }
+      }
+    },
+    {
+      "name": "storage list buckets",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/storage/buckets",
+        "header": [
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ]
+      }
+    },
+    {
+      "name": "storage list buckets as public (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/storage/buckets"
+      }
+    },
+    {
+      "name": "storage list files in bucket",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/storage/files?bucketId=exports",
+        "header": [
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ]
+      }
+    },
+    {
+      "name": "storage list files as user (own uploads)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/storage/files",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ]
+      }
+    },
+    {
+      "name": "storage get file",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/storage/files/7f31b0c5-4a92-4e18-b306-5d9c0e27f4a1",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ]
+      }
+    },
+    {
+      "name": "storage get file not owned (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/storage/files/c0e94a76-2b58-4d31-9f07-38b1c6e5a204",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ]
+      }
+    },
+    {
+      "name": "storage delete file",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/v1/storage/files/3d02c8b1-6f47-40ae-9235-c81b7e05d6a9",
+        "header": [
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list functions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v1/functions"
+      }
+    },
+    {
+      "name": "invoke function refresh-usage",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/functions/refresh-usage",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "invoke function export-dashboard",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/functions/export-dashboard",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiJ9.user.orbitinsights"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"dashboard_id\": 103}"
+        }
+      }
+    },
+    {
+      "name": "invoke disabled function (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/functions/rotate-api-keys",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-hasura-admin-secret",
+            "value": "nhost_admin_secret_5b71c9e0a482"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "invoke function unauthenticated (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v1/functions/refresh-usage",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    }
+  ]
+}

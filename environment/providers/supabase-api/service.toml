@@ -1,0 +1,5 @@
+[service]
+name = "supabase-api"
+port = 8102
+env_var_name = "SUPABASE_API_URL"
+healthcheck_path = "/health"

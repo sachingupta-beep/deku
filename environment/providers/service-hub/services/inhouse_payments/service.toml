@@ -1,0 +1,52 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "inhouse-payments"
+name     = "In-house Payments"
+category = "payments"
+status   = "declared"
+version  = "v1"
+module   = "services.inhouse_payments.service:InhousePaymentsService"
+upstream = "https://stripe.com/docs/api"
+summary  = """
+Stripe-shaped payments over a double-entry ledger: every authorize, capture, refund and dispute posts balanced legs, and the trial balance is an asserted invariant."""
+tags = [
+  "double-entry",
+  "idempotency",
+  "3ds",
+  "disputes",
+  "ledger",
+]
+
+[data]
+dir = "inhouse-payments"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "restricted",
+  "secret",
+]
+description = """
+`Authorization: Bearer <secret_key>`. Mutating calls require an `Idempotency-Key`; replaying one returns the original response rather than charging twice."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/v1/customers",
+  "/v1/payment_methods",
+  "/v1/payment_intents",
+  "/v1/charges",
+  "/v1/refunds",
+  "/v1/disputes",
+  "/v1/ledger",
+  "/v1/balance",
+]

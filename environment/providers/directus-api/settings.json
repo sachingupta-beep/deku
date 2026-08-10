@@ -1,0 +1,28 @@
+{
+  "id": 1,
+  "project_name": "Orbit Labs Marketing",
+  "project_url": "https://orbit-labs.com",
+  "project_color": "#2E7DFF",
+  "project_descriptor": "Content platform",
+  "default_language": "en-US",
+  "public_note": "Internal content platform for the Orbit Labs marketing site.",
+  "storage_asset_transform": "all",
+  "storage_default_folder": "8c14e07b-3d59-42fa-9016-b7e2c583d40a",
+  "auth_login_attempts": 25,
+  "auth_password_policy": "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{12,}$/",
+  "mapbox_key": null,
+  "custom_css": null,
+  "version": "11.1.1",
+  "database": {"client": "postgres", "version": "15.6", "search_path": "public"},
+  "tokens": {
+    "admin": "dr_static_admin_4f81c6a930b7e254",
+    "editor": "dr_static_editor_2b90d7fc1e6a4830",
+    "adminUserId": "1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+    "editorUserId": "5c07e83b-1f42-4d69-b3a8-07e5d91c264f",
+    "publicRoleId": "0a5e93f7-6c18-4d2b-b840-3f7e1c96a204",
+    "credentials": {
+      "email": "noor.aziz@orbit-labs.com",
+      "password": "OrbitContent2026!"
+    }
+  }
+}

@@ -1,0 +1,517 @@
+{
+  "info": {
+    "name": "smtp4dev Mock API v3.8.6",
+    "description": "Test collection for the mock smtp4dev service. Base URL defaults to http://localhost:8124. In docker-compose, the service is reachable at http://smtp4dev-api:8124.\n\nsmtp4dev is a .NET application and every contract shows it. **Pages, not offsets**: each list is a `PagedResult` with `results`, `firstRowOnPage`, `lastRowOnPage`, `currentPage`, `pageCount`, `pageSize` and `rowCount`, driven by `page` (1-based), `pageSize`, `sortColumn` and `sortIsDescending`. **Sessions are first-class and separate from messages**: a session is the SMTP conversation kept with its full transcript, including the ones that produced no message because the client failed to authenticate or hung up after a rejected recipient. **Mailboxes are recipient-matching rules**, with `Default` as the catch-all -- smtp4dev *routes* to a mailbox where Inbucket *derives* one. **MIME parts are a tree** addressed by section number (`1`, `1.1`, `1.1.2`), and a container part has children rather than content. **The server settings are writable**: `POST /api/Server` is the Settings dialog, and lowering `numberOfMessagesToKeep` trims the store on the spot.\n\nThe delete-everything routes really are spelled with a literal `*`.\n\nOne endpoint is marked in its own response as a mock addition: `POST /api/Messages` stands in for the SMTP delivery a mock cannot accept. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8124"},
+    {"key": "orderId", "value": "a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54"},
+    {"key": "invoiceId", "value": "b2e4d8ea-5c3f-4d7b-8e96-4a8f2c1d3e65"},
+    {"key": "incidentId", "value": "c3f5e9fb-6d40-4e8c-9fa7-5b903d2e4f76"},
+    {"key": "resetId", "value": "d4a6fa0c-7e51-4f9d-80b8-6ca14e3f5087"},
+    {"key": "welcomeId", "value": "e5b70b1d-8f62-40ae-91c9-7db25f406198"},
+    {"key": "alertId", "value": "f6c81c2e-9073-41bf-a2da-8ec360517209"},
+    {"key": "archiveId", "value": "07d92d3f-a184-42c0-b3eb-9f047162831a"},
+    {"key": "payoutId", "value": "18ea3e40-b295-43d1-84fc-a0158273942b"},
+    {"key": "authSessionId", "value": "3a9c4e17-2b81-4f60-9d3e-7c05a1b2c3d4"},
+    {"key": "failedAuthSessionId", "value": "7e30825b-6fc5-43a4-b172-b049e5f60718"},
+    {"key": "rejectedSessionId", "value": "8f41936c-70d6-44b5-8283-c15af6071829"}
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "version",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Version"}
+    },
+    {
+      "name": "mailboxes and their recipient rules",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Mailboxes"}
+    },
+    {
+      "name": "messages, page 1 of a PagedResult",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?page=1&pageSize=3"}
+    },
+    {
+      "name": "messages, page 2",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?page=2&pageSize=3"}
+    },
+    {
+      "name": "messages, the last page is short",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?page=3&pageSize=3"}
+    },
+    {
+      "name": "a page past the end is empty, not an error",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?page=9&pageSize=3"}
+    },
+    {
+      "name": "filter by mailbox: Billing",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?mailboxName=Billing"}
+    },
+    {
+      "name": "filter by mailbox: Alerts",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?mailboxName=Alerts"}
+    },
+    {
+      "name": "filter by mailbox: Default (the catch-all)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?mailboxName=Default"}
+    },
+    {
+      "name": "filter by a mailbox that does not exist (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?mailboxName=Nope"}
+    },
+    {
+      "name": "sort by subject, ascending",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?sortColumn=subject&sortIsDescending=false&pageSize=4"}
+    },
+    {
+      "name": "sort by attachmentCount, descending",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?sortColumn=attachmentCount&sortIsDescending=true&pageSize=4"}
+    },
+    {
+      "name": "sort by sender",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?sortColumn=from&sortIsDescending=false&pageSize=4"}
+    },
+    {
+      "name": "sort by unread state",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?sortColumn=isUnread&pageSize=4"}
+    },
+    {
+      "name": "an unsortable column names the valid ones (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?sortColumn=banana"}
+    },
+    {
+      "name": "search the sender, subject and bodies",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?searchTerms=770412"}
+    },
+    {
+      "name": "search matches a Cc as well",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?searchTerms=helena.park"}
+    },
+    {
+      "name": "search combined with a mailbox filter",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?mailboxName=Billing&searchTerms=INV-2026-0417"}
+    },
+    {
+      "name": "search that matches nothing",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?searchTerms=nothing-matches-this"}
+    },
+    {
+      "name": "read the order confirmation (a three-level part tree)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}"}
+    },
+    {
+      "name": "read the message with a MIME parse error",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{archiveId}}"}
+    },
+    {
+      "name": "read the message whose relay failed",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{alertId}}"}
+    },
+    {
+      "name": "read the message that was relayed successfully",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{welcomeId}}"}
+    },
+    {
+      "name": "read an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/00000000-0000-0000-0000-000000000000"}
+    },
+    {
+      "name": "raw source, with the boundaries rebuilt",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/source"}
+    },
+    {
+      "name": "raw source of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/00000000-0000-0000-0000-000000000000/source"}
+    },
+    {
+      "name": "the html body on its own",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/html"}
+    },
+    {
+      "name": "the plain-text body on its own",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/plaintext"}
+    },
+    {
+      "name": "html of a text-only message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{resetId}}/html"}
+    },
+    {
+      "name": "plaintext of an html-only message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{welcomeId}}/plaintext"}
+    },
+    {
+      "name": "part 1.1.1: the text leaf",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/part/1.1.1/content"}
+    },
+    {
+      "name": "part 1.1.2: the html leaf",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/part/1.1.2/content"}
+    },
+    {
+      "name": "part 1.2: the PDF attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/part/1.2/content"}
+    },
+    {
+      "name": "part 1.2 of the invoice: the CSV attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{invoiceId}}/part/1.2/content"}
+    },
+    {
+      "name": "part source shows the subtree with its boundary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/part/1.1/source"}
+    },
+    {
+      "name": "a container part has no content of its own (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/part/1/content"}
+    },
+    {
+      "name": "an unknown part lists the real section numbers (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{orderId}}/part/9.9/content"}
+    },
+    {
+      "name": "part of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/00000000-0000-0000-0000-000000000000/part/1/content"}
+    },
+    {
+      "name": "the truncated attachment carries its warnings",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{archiveId}}/part/1.2/content"}
+    },
+    {
+      "name": "sessions: the SMTP conversations",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?page=1&pageSize=4"}
+    },
+    {
+      "name": "sessions, page 2",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?page=2&pageSize=4"}
+    },
+    {
+      "name": "sessions sorted by how many messages they produced",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?sortColumn=numberOfMessages&sortIsDescending=false"}
+    },
+    {
+      "name": "sessions sorted by client address",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?sortColumn=clientAddress&sortIsDescending=false"}
+    },
+    {
+      "name": "sessions sorted by whether they failed",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?sortColumn=terminatedWithError&sortIsDescending=true"}
+    },
+    {
+      "name": "an unsortable session column (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?sortColumn=nope"}
+    },
+    {
+      "name": "a session that carried two messages",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions/{{authSessionId}}"}
+    },
+    {
+      "name": "a session that produced nothing: authentication failed",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions/{{failedAuthSessionId}}"}
+    },
+    {
+      "name": "a session that produced nothing: recipients rejected",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions/{{rejectedSessionId}}"}
+    },
+    {
+      "name": "the transcript on its own",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions/{{rejectedSessionId}}/log"}
+    },
+    {
+      "name": "an unknown session (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions/00000000-0000-0000-0000-000000000000"}
+    },
+    {
+      "name": "the log of an unknown session (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions/00000000-0000-0000-0000-000000000000/log"}
+    },
+    {
+      "name": "mark one message read",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/Messages/{{orderId}}/markRead"}
+    },
+    {
+      "name": "mark an unknown message read (404 expected)",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/Messages/00000000-0000-0000-0000-000000000000/markRead"}
+    },
+    {
+      "name": "mark a whole mailbox read",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/Messages/markAllRead?mailboxName=Alerts"}
+    },
+    {
+      "name": "the Alerts mailbox has no unread left",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?mailboxName=Alerts"}
+    },
+    {
+      "name": "mark all read in a mailbox that does not exist (404 expected)",
+      "request": {"method": "POST", "url": "{{baseUrl}}/api/Messages/markAllRead?mailboxName=Nope"}
+    },
+    {
+      "name": "the server settings",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Server"}
+    },
+    {
+      "name": "relay a message to its own recipients",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/api/Messages/{{invoiceId}}/relay"
+      }
+    },
+    {
+      "name": "relay with overridden recipients",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"overrideRecipientAddresses\": [\"qa@orbit-labs.com\", \"rohit.bansal@orbit-labs.com\"]}"},
+        "url": "{{baseUrl}}/api/Messages/{{resetId}}/relay"
+      }
+    },
+    {
+      "name": "the relayed message now says so",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages/{{resetId}}"}
+    },
+    {
+      "name": "relay to a malformed address (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"overrideRecipientAddresses\": [\"not-an-address\"]}"},
+        "url": "{{baseUrl}}/api/Messages/{{payoutId}}/relay"
+      }
+    },
+    {
+      "name": "relay with a non-array override (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"overrideRecipientAddresses\": \"qa@orbit-labs.com\"}"},
+        "url": "{{baseUrl}}/api/Messages/{{payoutId}}/relay"
+      }
+    },
+    {
+      "name": "relay an unknown message (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/api/Messages/00000000-0000-0000-0000-000000000000/relay"
+      }
+    },
+    {
+      "name": "turn relay off through the settings",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"relayOptions\": {\"isEnabled\": false}}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "relaying now refuses (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/api/Messages/{{payoutId}}/relay"
+      }
+    },
+    {
+      "name": "turn relay back on, on a different port",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"relayOptions\": {\"isEnabled\": true, \"smtpPort\": 2587, \"tlsMode\": \"ImplicitTls\"}}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "change the host name and the SMTP port",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"hostName\": \"smtp4dev.qa.local\", \"portNumber\": 2526, \"allowRemoteConnections\": false}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "an unknown setting is named back (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"banana\": 1}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "a port out of range (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"portNumber\": 99999}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "a non-boolean where a boolean belongs (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"allowRemoteConnections\": \"yes\"}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "an invalid TLS mode lists the valid ones (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"relayOptions\": {\"tlsMode\": \"Loud\"}}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "an unknown relay setting (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"relayOptions\": {\"smtpUser\": \"nope\"}}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "deliver a message that routes to Alerts",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"monitoring@orbit-labs.com\", \"to\": [\"sre@orbit-labs.com\"], \"subject\": \"Disk pressure on node-7\", \"text\": \"node-7 root filesystem at 91%.\"}"},
+        "url": "{{baseUrl}}/api/Messages"
+      }
+    },
+    {
+      "name": "deliver a message that routes to Billing",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"noreply@stripe.example\", \"to\": [\"finance@orbit-labs.com\"], \"subject\": \"Statement 2026-05\", \"text\": \"Statement attached.\", \"html\": \"<p>Statement attached.</p>\"}"},
+        "url": "{{baseUrl}}/api/Messages"
+      }
+    },
+    {
+      "name": "deliver a message that falls through to Default",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"noor.aziz@orbit-labs.com\", \"to\": [\"priya.raman@acme-partner.example\"], \"subject\": \"Sandbox renewal\", \"text\": \"Your sandbox expires on 2026-06-30.\"}"},
+        "url": "{{baseUrl}}/api/Messages"
+      }
+    },
+    {
+      "name": "the delivery opened a session too",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?sortColumn=startDate&sortIsDescending=true&pageSize=3"}
+    },
+    {
+      "name": "deliver with no sender (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"to\": [\"amelia.ortega@orbit-labs.com\"], \"subject\": \"orphan\"}"},
+        "url": "{{baseUrl}}/api/Messages"
+      }
+    },
+    {
+      "name": "deliver with no recipient (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"noor.aziz@orbit-labs.com\", \"subject\": \"nowhere to go\"}"},
+        "url": "{{baseUrl}}/api/Messages"
+      }
+    },
+    {
+      "name": "deliver to a malformed address (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"noor.aziz@orbit-labs.com\", \"to\": [\"not-an-address\"], \"subject\": \"bad recipient\"}"},
+        "url": "{{baseUrl}}/api/Messages"
+      }
+    },
+    {
+      "name": "the store before the retention change",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?pageSize=20"}
+    },
+    {
+      "name": "lower numberOfMessagesToKeep and watch it trim",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"numberOfMessagesToKeep\": 4}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "only the four newest survived",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages?pageSize=20"}
+    },
+    {
+      "name": "lower numberOfSessionsToKeep as well",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"numberOfSessionsToKeep\": 3}"},
+        "url": "{{baseUrl}}/api/Server"
+      }
+    },
+    {
+      "name": "three sessions left",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions?pageSize=20"}
+    },
+    {
+      "name": "delete one message",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/Messages/{{orderId}}"}
+    },
+    {
+      "name": "delete it again (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/Messages/{{orderId}}"}
+    },
+    {
+      "name": "delete every message in one mailbox",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/Messages/*?mailboxName=Billing"}
+    },
+    {
+      "name": "delete-all for a mailbox that does not exist (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/Messages/*?mailboxName=Nope"}
+    },
+    {
+      "name": "delete every message everywhere",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/Messages/*"}
+    },
+    {
+      "name": "the message list is empty",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Messages"}
+    },
+    {
+      "name": "the sessions outlive the messages",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions"}
+    },
+    {
+      "name": "delete every session",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/Sessions/*"}
+    },
+    {
+      "name": "nothing left at all",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/Sessions"}
+    },
+    {
+      "name": "audit trail of this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/requests?limit=5"}
+    },
+    {
+      "name": "audit summary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/summary"}
+    }
+  ]
+}

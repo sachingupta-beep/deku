@@ -1,0 +1,11 @@
+{
+  "smtpConnectsTotal": 41,
+  "smtpConnectsCurrent": 0,
+  "smtpReceivedTotal": 10,
+  "smtpErrorsTotal": 2,
+  "smtpWarnsTotal": 5,
+  "retentionDeletesTotal": 0,
+  "retentionPeriodMinutes": 4320,
+  "retainedHits": 128,
+  "uptimeSeconds": 84213
+}

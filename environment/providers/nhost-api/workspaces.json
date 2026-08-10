@@ -1,0 +1,50 @@
+[
+  {
+    "id": "1",
+    "slug": "aurora-bistro",
+    "name": "Aurora Bistro",
+    "plan": "starter",
+    "seats": "5",
+    "region": "eu-central-1",
+    "owner_id": "2b7f1c94-3d05-4e68-a91f-6c48e07b2d53",
+    "monthly_events": "184200",
+    "created_at": "2025-03-04T10:25:00+00:00",
+    "updated_at": "2026-05-12T11:00:00+00:00"
+  },
+  {
+    "id": "2",
+    "slug": "helix-robotics",
+    "name": "Helix Robotics",
+    "plan": "enterprise",
+    "seats": "50",
+    "region": "eu-central-1",
+    "owner_id": "8e40a5d1-72b6-4c39-95f0-1d83c7e6b0a4",
+    "monthly_events": "9420115",
+    "created_at": "2024-09-12T08:10:00+00:00",
+    "updated_at": "2026-04-28T09:30:00+00:00"
+  },
+  {
+    "id": "3",
+    "slug": "lumen-design",
+    "name": "Lumen Design Studio",
+    "plan": "pro",
+    "seats": "12",
+    "region": "us-east-1",
+    "owner_id": "f1c60b37-9a24-4d85-b7e2-05a9d3f81c6e",
+    "monthly_events": "742880",
+    "created_at": "2025-06-18T14:35:00+00:00",
+    "updated_at": "2025-12-01T16:20:00+00:00"
+  },
+  {
+    "id": "4",
+    "slug": "pelagic-freight",
+    "name": "Pelagic Freight Co",
+    "plan": "starter",
+    "seats": "3",
+    "region": "us-east-1",
+    "owner_id": "c30d7b48-6e91-4a02-85f7-14b6c9e0d375",
+    "monthly_events": "0",
+    "created_at": "2025-01-09T12:05:00+00:00",
+    "updated_at": "2026-03-30T10:02:00+00:00"
+  }
+]

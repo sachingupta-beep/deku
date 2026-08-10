@@ -1,0 +1,5 @@
+[service]
+name = "postgresql-api"
+port = 8109
+env_var_name = "POSTGRESQL_API_URL"
+healthcheck_path = "/health"

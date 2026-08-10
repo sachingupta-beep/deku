@@ -1,0 +1,68 @@
+[
+  {
+    "id": "9001",
+    "action": "update",
+    "user": "5c07e83b-1f42-4d69-b3a8-07e5d91c264f",
+    "timestamp": "2026-05-25T15:20:00.000Z",
+    "ip": "203.0.113.19",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Directus/11.1.1",
+    "collection": "posts",
+    "item": "14",
+    "comment": ""
+  },
+  {
+    "id": "9002",
+    "action": "create",
+    "user": "9e63b1d5-4a70-42fc-8b19-c05f7e2a3846",
+    "timestamp": "2026-05-23T13:45:00.000Z",
+    "ip": "198.51.100.12",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) Directus/11.1.1",
+    "collection": "posts",
+    "item": "15",
+    "comment": ""
+  },
+  {
+    "id": "9003",
+    "action": "update",
+    "user": "1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+    "timestamp": "2026-05-18T09:00:00.000Z",
+    "ip": "203.0.113.41",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Directus/11.1.1",
+    "collection": "posts",
+    "item": "16",
+    "comment": "Published alongside the careers page update."
+  },
+  {
+    "id": "9004",
+    "action": "create",
+    "user": "1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+    "timestamp": "2026-05-18T08:55:00.000Z",
+    "ip": "203.0.113.41",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Directus/11.1.1",
+    "collection": "job_openings",
+    "item": "101",
+    "comment": ""
+  },
+  {
+    "id": "9005",
+    "action": "login",
+    "user": "5c07e83b-1f42-4d69-b3a8-07e5d91c264f",
+    "timestamp": "2026-05-25T16:40:00.000Z",
+    "ip": "203.0.113.19",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Directus/11.1.1",
+    "collection": "directus_users",
+    "item": "5c07e83b-1f42-4d69-b3a8-07e5d91c264f",
+    "comment": ""
+  },
+  {
+    "id": "9006",
+    "action": "update",
+    "user": "1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+    "timestamp": "2026-05-02T12:40:00.000Z",
+    "ip": "203.0.113.41",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Directus/11.1.1",
+    "collection": "posts",
+    "item": "13",
+    "comment": "Added the service_role bypass warning."
+  }
+]

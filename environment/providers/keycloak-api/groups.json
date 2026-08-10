@@ -1,0 +1,6 @@
+[
+  {"id": "g1-platform00000001", "realm": "orbit-labs", "name": "platform", "path": "/platform", "parentId": "", "realmRoles": "platform-operator", "clientRoles": "", "attributes": "costCenter=CC-100;region=us-west"},
+  {"id": "g2-platform-oncall01", "realm": "orbit-labs", "name": "on-call", "path": "/platform/on-call", "parentId": "g1-platform00000001", "realmRoles": "incident-responder", "clientRoles": "realm-management:view-users", "attributes": "rotation=weekly"},
+  {"id": "g3-support000000001", "realm": "orbit-labs", "name": "support", "path": "/support", "parentId": "", "realmRoles": "status-viewer", "clientRoles": "", "attributes": "costCenter=CC-220"},
+  {"id": "g4-partners00000001", "realm": "orbit-partners", "name": "partners", "path": "/partners", "parentId": "", "realmRoles": "partner-viewer", "clientRoles": "", "attributes": "tier=silver"}
+]

@@ -1,0 +1,8 @@
+[
+  {"id": "1", "firmware_version": "4.8.1", "crdb_region": "eu-central-1", "percent": "100", "status": "completed", "started_at": "2026-05-22T09:00:00Z", "completed_at": "2026-05-22T15:40:00Z"},
+  {"id": "2", "firmware_version": "4.8.1", "crdb_region": "eu-west-1", "percent": "50", "status": "in_progress", "started_at": "2026-05-24T09:00:00Z", "completed_at": ""},
+  {"id": "3", "firmware_version": "4.8.1", "crdb_region": "us-east-1", "percent": "100", "status": "completed", "started_at": "2026-05-23T09:00:00Z", "completed_at": "2026-05-23T18:12:00Z"},
+  {"id": "4", "firmware_version": "4.8.1", "crdb_region": "us-west-2", "percent": "0", "status": "paused", "started_at": "2026-05-25T09:00:00Z", "completed_at": ""},
+  {"id": "5", "firmware_version": "4.9.0-beta.2", "crdb_region": "ap-southeast-1", "percent": "5", "status": "in_progress", "started_at": "2026-05-25T12:10:00Z", "completed_at": ""},
+  {"id": "6", "firmware_version": "4.8.0-hotfix.1", "crdb_region": "eu-central-1", "percent": "0", "status": "rolled_back", "started_at": "2026-05-09T16:10:00Z", "completed_at": "2026-05-09T18:00:00Z"}
+]

@@ -1,0 +1,7 @@
+[
+  {"id": "cr1-realm-admin00000", "realm": "orbit-labs", "clientUuid": "f6b23c91-08de-4a75-b3c0-97e15d24a608", "clientId": "realm-management", "name": "realm-admin", "description": "Full administrative access to the realm", "composite": "1", "compositeClientRoles": "realm-management:manage-users;realm-management:view-users;realm-management:manage-realm"},
+  {"id": "cr2-manage-users0000", "realm": "orbit-labs", "clientUuid": "f6b23c91-08de-4a75-b3c0-97e15d24a608", "clientId": "realm-management", "name": "manage-users", "description": "Create, update and delete users", "composite": "0", "compositeClientRoles": ""},
+  {"id": "cr3-view-users000000", "realm": "orbit-labs", "clientUuid": "f6b23c91-08de-4a75-b3c0-97e15d24a608", "clientId": "realm-management", "name": "view-users", "description": "Read users", "composite": "0", "compositeClientRoles": ""},
+  {"id": "cr4-manage-realm0000", "realm": "orbit-labs", "clientUuid": "f6b23c91-08de-4a75-b3c0-97e15d24a608", "clientId": "realm-management", "name": "manage-realm", "description": "Modify realm configuration", "composite": "0", "compositeClientRoles": ""},
+  {"id": "cr5-backup-runner000", "realm": "orbit-labs", "clientUuid": "2a97e0b8-4d16-43cf-8572-b1e0c9d64f35", "clientId": "orbit-backup-service", "name": "backup-runner", "description": "May trigger a database snapshot", "composite": "0", "compositeClientRoles": ""}
+]

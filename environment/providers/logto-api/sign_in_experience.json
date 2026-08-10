@@ -1,0 +1,24 @@
+{
+  "id": "default",
+  "tenantId": "orbit-labs",
+  "color": {"primaryColor": "#2563eb", "isDarkModeEnabled": true, "darkPrimaryColor": "#60a5fa"},
+  "branding": {"logoUrl": "https://cdn.orbit-labs.com/logo.svg", "darkLogoUrl": "https://cdn.orbit-labs.com/logo-dark.svg", "favicon": "https://cdn.orbit-labs.com/favicon.ico"},
+  "languageInfo": {"autoDetect": true, "fallbackLanguage": "en"},
+  "termsOfUseUrl": "https://orbit-labs.com/terms",
+  "privacyPolicyUrl": "https://orbit-labs.com/privacy",
+  "signUp": {"identifiers": ["email"], "password": true, "verify": true},
+  "signIn": {"methods": [
+    {"identifier": "email", "password": true, "verificationCode": true, "isPasswordPrimary": true},
+    {"identifier": "username", "password": true, "verificationCode": false, "isPasswordPrimary": true}
+  ]},
+  "socialSignInConnectorTargets": ["github", "google"],
+  "mfa": {"factors": ["Totp", "BackupCode"], "policy": "UserControlled"},
+  "passwordPolicy": {
+    "length": {"min": 10, "max": 256},
+    "characterTypes": {"min": 2},
+    "rejects": {"pwned": true, "repetitionAndSequence": true, "userInfo": true, "words": ["orbit", "logto"]}
+  },
+  "customCss": "",
+  "supportEmail": "support@orbit-labs.com",
+  "supportWebsiteUrl": "https://orbit-labs.com/support"
+}

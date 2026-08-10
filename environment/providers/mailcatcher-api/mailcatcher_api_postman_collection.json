@@ -1,0 +1,305 @@
+{
+  "info": {
+    "name": "MailCatcher Mock API v0.10.0",
+    "description": "Test collection for the mock MailCatcher service. Base URL defaults to http://localhost:8125. In docker-compose, the service is reachable at http://mailcatcher-api:8125.\n\nMailCatcher is a Ruby/Sinatra app and the smallest surface of the five mail services here. The minimalism is the identity: no search, no tags, no read state, no mailboxes, no sessions, no settings. Everything hangs off `/messages`.\n\nWhat it does have is distinctive. **The format is a file extension, not a path segment**: `/messages/1.json`, `.html`, `.plain`, `.source`, `.eml` -- and which of those a given message offers is advertised in its `formats` array, so a client checks rather than guesses. **Ids are plain integers** in arrival order. **Addresses come back angle-bracketed** as the envelope wrote them, and a null return path is the literal `<>`. **Attachments are addressed by Content-ID**, not by index, filename or MIME section number. And **`.html` rewrites `cid:` references** to `/messages/{id}/parts/{cid}`, so what comes back is directly renderable.\n\nKeys are snake_case and `size` is a **string**, because Ruby serialised them that way.\n\nOne endpoint is marked in its own response as a mock addition: `POST /messages` stands in for the SMTP delivery a mock cannot accept. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8125"}
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "capture info",
+      "request": {"method": "GET", "url": "{{baseUrl}}/info"}
+    },
+    {
+      "name": "list every message (integer ids, arrival order)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages"}
+    },
+    {
+      "name": "read message 1 as json",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1.json"}
+    },
+    {
+      "name": "read message 2: text plus a CSV attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/2.json"}
+    },
+    {
+      "name": "read message 3: alternative, with a Cc",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/3.json"}
+    },
+    {
+      "name": "read message 5: html only, formats says so",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/5.json"}
+    },
+    {
+      "name": "read message 6: two parts, one inline and one attached",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/6.json"}
+    },
+    {
+      "name": "read message 8: the null return path is a literal <>",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/8.json"}
+    },
+    {
+      "name": "read an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/99.json"}
+    },
+    {
+      "name": "the plain body of message 1",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1.plain"}
+    },
+    {
+      "name": "the plain body of the password reset",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/4.plain"}
+    },
+    {
+      "name": "the html body of message 1",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1.html"}
+    },
+    {
+      "name": "html with a cid: reference rewritten to a fetchable path",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/5.html"}
+    },
+    {
+      "name": "the newsletter's inline logo is rewritten too",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/6.html"}
+    },
+    {
+      "name": "html of a text-only message names the formats (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/4.html"}
+    },
+    {
+      "name": "plain of an html-only message names the formats (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/5.plain"}
+    },
+    {
+      "name": "html of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/99.html"}
+    },
+    {
+      "name": "plain of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/99.plain"}
+    },
+    {
+      "name": "the raw source of a single-part message",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/4.source"}
+    },
+    {
+      "name": "the raw source of a multipart message",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1.source"}
+    },
+    {
+      "name": "source works even where html and plain do not",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/5.source"}
+    },
+    {
+      "name": "the same bytes as .eml",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1.eml"}
+    },
+    {
+      "name": "source of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/99.source"}
+    },
+    {
+      "name": "eml of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/99.eml"}
+    },
+    {
+      "name": "an unrecognised extension names the real formats (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1.txt"}
+    },
+    {
+      "name": "an unrecognised extension on an html-only message (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/5.pdf"}
+    },
+    {
+      "name": "an unrecognised extension on an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/99.txt"}
+    },
+    {
+      "name": "fetch the PDF by its Content-ID",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1/parts/receipt-4417@orbit-labs.com"}
+    },
+    {
+      "name": "fetch the CSV by its Content-ID",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/2/parts/invoice-0417@orbit-labs.com"}
+    },
+    {
+      "name": "fetch the inline hero image the rewritten html points at",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/5/parts/partner-hero@orbit-labs.com"}
+    },
+    {
+      "name": "fetch the newsletter's inline logo",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/6/parts/orbit-logo@orbit-labs.com"}
+    },
+    {
+      "name": "fetch the newsletter's CSV attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/6/parts/uptime-w21@orbit-labs.com"}
+    },
+    {
+      "name": "an unknown cid lists the real ones (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/6/parts/nope@orbit-labs.com"}
+    },
+    {
+      "name": "a cid from another message is still unknown here (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/6/parts/receipt-4417@orbit-labs.com"}
+    },
+    {
+      "name": "a message with no parts at all (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/4/parts/anything@orbit-labs.com"}
+    },
+    {
+      "name": "a part of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/99/parts/anything@orbit-labs.com"}
+    },
+    {
+      "name": "deliver a plain-text message",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"monitoring@orbit-labs.com\", \"recipients\": [\"oncall@orbit-labs.com\"], \"subject\": \"Disk pressure on node-7\", \"plain\": \"node-7 root filesystem at 91%.\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "deliver with both bodies: formats gains html",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"news@orbit-labs.com\", \"recipients\": [\"subscribers@orbit-labs.com\"], \"cc\": [\"noor.aziz@orbit-labs.com\"], \"subject\": \"June digest\", \"plain\": \"What shipped in June.\", \"html\": \"<h2>What shipped in June</h2>\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "angle brackets on the way in are accepted too",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"<sync-bot@orbit-labs.com>\", \"recipients\": [\"<deploys@orbit-labs.com>\"], \"subject\": \"Deploy 2026.05.29-1\", \"plain\": \"production: SUCCEEDED\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "the new messages took the next integer ids",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages"}
+    },
+    {
+      "name": "read one of them back as json",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/9.json"}
+    },
+    {
+      "name": "and as plain text",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/9.plain"}
+    },
+    {
+      "name": "deliver with no sender (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"recipients\": [\"oncall@orbit-labs.com\"], \"subject\": \"orphan\", \"plain\": \"x\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "deliver with no recipients (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"noor.aziz@orbit-labs.com\", \"subject\": \"nowhere to go\", \"plain\": \"x\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "deliver with a malformed sender (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"not-an-address\", \"recipients\": [\"oncall@orbit-labs.com\"], \"plain\": \"x\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "deliver with a malformed recipient (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"noor.aziz@orbit-labs.com\", \"recipients\": [\"nope\"], \"plain\": \"x\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "deliver with no body at all (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"noor.aziz@orbit-labs.com\", \"recipients\": [\"oncall@orbit-labs.com\"], \"subject\": \"empty\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "delete one message (204, no body)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/messages/7"}
+    },
+    {
+      "name": "delete it again (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/messages/7"}
+    },
+    {
+      "name": "its parts went with it (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/7.json"}
+    },
+    {
+      "name": "delete a message that carried attachments",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/messages/6"}
+    },
+    {
+      "name": "the attachment is unreachable now (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/6/parts/orbit-logo@orbit-labs.com"}
+    },
+    {
+      "name": "delete an unknown message (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/messages/99"}
+    },
+    {
+      "name": "what is left",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages"}
+    },
+    {
+      "name": "clear the whole catcher",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/messages"}
+    },
+    {
+      "name": "the list is empty",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages"}
+    },
+    {
+      "name": "clearing an empty catcher is fine",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/messages"}
+    },
+    {
+      "name": "after a clear the ids start again at 1",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"sender\": \"auth@orbit-labs.com\", \"recipients\": [\"rohit.bansal@orbit-labs.com\"], \"subject\": \"Verify your email address\", \"plain\": \"Your code is 482913.\"}"},
+        "url": "{{baseUrl}}/messages"
+      }
+    },
+    {
+      "name": "and it reads back at id 1",
+      "request": {"method": "GET", "url": "{{baseUrl}}/messages/1.json"}
+    },
+    {
+      "name": "audit trail of this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/requests?limit=5"}
+    },
+    {
+      "name": "audit summary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/summary"}
+    }
+  ]
+}

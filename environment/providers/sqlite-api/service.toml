@@ -1,0 +1,5 @@
+[service]
+name = "sqlite-api"
+port = 8108
+env_var_name = "SQLITE_API_URL"
+healthcheck_path = "/health"

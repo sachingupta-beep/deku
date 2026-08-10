@@ -1,0 +1,51 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "dex"
+name     = "Dex"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.dex.service:DexService"
+upstream = "https://dexidp.io/docs/"
+summary  = """
+OIDC federation: authorization-code and device flows, JWKS, connector-backed upstream identity providers and static client registration."""
+tags = [
+  "oidc",
+  "federation",
+  "authorization-code",
+  "device-flow",
+  "jwks",
+]
+
+[data]
+dir = "dex"
+
+[auth]
+scheme      = "none"
+roles       = [
+  "client",
+  "admin",
+]
+description = """
+OAuth2 client credentials and authorization codes rather than a static key: clients authenticate at /token with their id and secret. Dex federates, so it holds no passwords of its own."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/dex/.well-known/openid-configuration",
+  "/dex/auth",
+  "/dex/token",
+  "/dex/keys",
+  "/dex/userinfo",
+  "/dex/device",
+  "/dex/approval",
+]

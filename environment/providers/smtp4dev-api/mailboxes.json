@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Default",
+    "recipients": "*",
+    "description": "Catch-all: anything no other mailbox claims"
+  },
+  {
+    "name": "Billing",
+    "recipients": "billing@orbit-labs.com;invoices@orbit-labs.com;finance@*",
+    "description": "Invoices, payouts and statements"
+  },
+  {
+    "name": "Alerts",
+    "recipients": "oncall@orbit-labs.com;alerts@*;sre@*",
+    "description": "Monitoring and incident traffic"
+  }
+]

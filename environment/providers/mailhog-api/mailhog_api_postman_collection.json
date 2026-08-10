@@ -1,0 +1,677 @@
+{
+  "info": {
+    "name": "MailHog Mock API v1.0.1",
+    "description": "Test collection for the mock MailHog service. Base URL defaults to http://localhost:8121. In docker-compose, the service is reachable at http://mailhog-api:8121.\n\nMailHog **captures** mail instead of delivering it, and the API shape follows from that. Addresses are structured `Path` objects -- `{Relays, Mailbox, Domain, Params}` -- because what was captured is the SMTP envelope, not a rendered header. The same messages are served two ways: `/api/v1/messages` is a bare array, `/api/v2/messages` is a paginated envelope with `total`, `count` and `start`.\n\nMIME parts are addressable individually, so a single attachment can be pulled out of a captured multipart message with `/mime/part/{n}/download`.\n\n**Jim** is MailHog's chaos monkey. He is off in the seed, and `GET /api/v2/jim` returns 404 until he is switched on -- that is how a client discovers chaos is disabled. Once enabled, his failure chances are applied to the release endpoint, seeded from the recipient so the outcome is deterministic per address: `oncall@orbit-labs.com` is rejected at `RejectRecipientChance: 0.4` while `rohit.bansal@orbit-labs.com` is let through.\n\nEight messages are captured, spanning plain text, HTML, multipart/alternative, multipart/mixed with a CSV and a PDF attachment, and a multipart/report bounce. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8121"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "capture info",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/info"
+      }
+    },
+    {
+      "name": "recent events",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/events?limit=5"
+      }
+    },
+    {
+      "name": "list messages (v1: a bare array)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "list messages (v2: a paginated envelope)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/messages?start=0&limit=3"
+      }
+    },
+    {
+      "name": "page through the v2 envelope",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/messages?start=3&limit=3"
+      }
+    },
+    {
+      "name": "read one message",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/3PLnAiuwhrDzFsyOBpp7Nw@mailhog.example"
+      }
+    },
+    {
+      "name": "read a multipart message",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Kf7bVpQnRtLmYcXwEjH0Zg@mailhog.example"
+      }
+    },
+    {
+      "name": "read a message with an attachment",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Bn5XcTgYuIoPlKjHgFdSa1@mailhog.example"
+      }
+    },
+    {
+      "name": "read a bounce report",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Hg2FdSaPoIuYtReWq9MnBv@mailhog.example"
+      }
+    },
+    {
+      "name": "read an unknown message (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/nosuchmessage@mailhog.example"
+      }
+    },
+    {
+      "name": "download the raw rfc822 source",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/3PLnAiuwhrDzFsyOBpp7Nw@mailhog.example/download"
+      }
+    },
+    {
+      "name": "download the text part of a multipart message",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Kf7bVpQnRtLmYcXwEjH0Zg@mailhog.example/mime/part/0/download"
+      }
+    },
+    {
+      "name": "download the html part of the same message",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Kf7bVpQnRtLmYcXwEjH0Zg@mailhog.example/mime/part/1/download"
+      }
+    },
+    {
+      "name": "download a csv attachment",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/mime/part/1/download"
+      }
+    },
+    {
+      "name": "download a pdf attachment",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Bn5XcTgYuIoPlKjHgFdSa1@mailhog.example/mime/part/1/download"
+      }
+    },
+    {
+      "name": "download the delivery-status part of a bounce",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Hg2FdSaPoIuYtReWq9MnBv@mailhog.example/mime/part/1/download"
+      }
+    },
+    {
+      "name": "download a part index out of range (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/mime/part/9/download"
+      }
+    },
+    {
+      "name": "download a part of a non-multipart message (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/3PLnAiuwhrDzFsyOBpp7Nw@mailhog.example/mime/part/0/download"
+      }
+    },
+    {
+      "name": "download a part with a non-numeric index (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/mime/part/first/download"
+      }
+    },
+    {
+      "name": "download an unknown message (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages/nosuchmessage@mailhog.example/download"
+      }
+    },
+    {
+      "name": "search by sender",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=from&query=auth@orbit-labs.com"
+      }
+    },
+    {
+      "name": "search by recipient",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=to&query=subscribers"
+      }
+    },
+    {
+      "name": "search by recipient, matching a cc",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=to&query=finance"
+      }
+    },
+    {
+      "name": "search by recipient, matching a bcc",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=to&query=soc@orbit-labs.com"
+      }
+    },
+    {
+      "name": "search the body for a verification code",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=containing&query=482913"
+      }
+    },
+    {
+      "name": "search the body across a multipart message",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=containing&query=INC-4417"
+      }
+    },
+    {
+      "name": "search the subject line",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=containing&query=uptime%20digest"
+      }
+    },
+    {
+      "name": "search with paging",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=from&query=orbit-labs.com&start=1&limit=2"
+      }
+    },
+    {
+      "name": "search that matches nothing",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=from&query=nobody@example.org"
+      }
+    },
+    {
+      "name": "search with an unsupported kind (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=subject&query=digest"
+      }
+    },
+    {
+      "name": "search without a query (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=from"
+      }
+    },
+    {
+      "name": "list outgoing smtp servers",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/outgoing-smtp"
+      }
+    },
+    {
+      "name": "read jim while he is off (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/jim"
+      }
+    },
+    {
+      "name": "update jim while he is off (404 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/jim",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"AcceptChance\": 0.5}"
+        }
+      }
+    },
+    {
+      "name": "disable jim while he is off (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v2/jim"
+      }
+    },
+    {
+      "name": "enable jim",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/jim",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"AcceptChance\": 0.99, \"RejectRecipientChance\": 0.4, \"DisconnectChance\": 0.0}"
+        }
+      }
+    },
+    {
+      "name": "enable jim again (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v2/jim",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "read jim's settings",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/jim"
+      }
+    },
+    {
+      "name": "release to a recipient jim rejects (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Kf7bVpQnRtLmYcXwEjH0Zg@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"oncall@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "release to a recipient jim lets through",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/3PLnAiuwhrDzFsyOBpp7Nw@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"rohit.bansal@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "turn jim's disconnect chance up",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/jim",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"DisconnectChance\": 0.2}"
+        }
+      }
+    },
+    {
+      "name": "release to the same recipient again (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Kf7bVpQnRtLmYcXwEjH0Zg@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"oncall@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "set a chance outside 0..1 (400 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/jim",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"AcceptChance\": 5}"
+        }
+      }
+    },
+    {
+      "name": "set a non-numeric chance (400 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/jim",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"RejectSenderChance\": \"often\"}"
+        }
+      }
+    },
+    {
+      "name": "set link speeds the wrong way round (400 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v2/jim",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"LinkSpeedMin\": 99999, \"LinkSpeedMax\": 1024}"
+        }
+      }
+    },
+    {
+      "name": "disable jim",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v2/jim"
+      }
+    },
+    {
+      "name": "release now that jim is off",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Kf7bVpQnRtLmYcXwEjH0Zg@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"oncall@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "release with inline credentials",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/9tQrKcVmXwLpZbN2eHjD4A@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"jonas.pereira@orbit-labs.com\", \"Username\": \"status@orbit-labs.com\", \"Password\": \"orbit-relay-app-password\", \"Mechanism\": \"PLAIN\"}"
+        }
+      }
+    },
+    {
+      "name": "release via a named outgoing server",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Name\": \"orbit-relay\", \"Email\": \"subscribers@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "release via the partner relay",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Zx4CvBnMqWeRtYuIoPaSd6@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Name\": \"acme-partner\", \"Email\": \"priya.raman@acme-partner.com\"}"
+        }
+      }
+    },
+    {
+      "name": "release via an unknown named server (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Name\": \"not-a-relay\", \"Email\": \"subscribers@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "release without a host (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Email\": \"subscribers@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "release without a recipient (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\"}"
+        }
+      }
+    },
+    {
+      "name": "release with an unsupported auth mechanism (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"subscribers@orbit-labs.com\", \"Mechanism\": \"OAUTHBEARER\"}"
+        }
+      }
+    },
+    {
+      "name": "release with a mechanism but no username (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/Wq3ZmNbXcVpLkJhGfDsA2Q@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"subscribers@orbit-labs.com\", \"Mechanism\": \"CRAM-MD5\"}"
+        }
+      }
+    },
+    {
+      "name": "release an unknown message (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/messages/nosuchmessage@mailhog.example/release",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"Host\": \"smtp.orbit-labs.com\", \"Port\": \"587\", \"Email\": \"subscribers@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "list what has been released",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/releases"
+      }
+    },
+    {
+      "name": "delete one message",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/messages/Mj8LkQwErTyUiOpAsDfGh3@mailhog.example"
+      }
+    },
+    {
+      "name": "delete it again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/messages/Mj8LkQwErTyUiOpAsDfGh3@mailhog.example"
+      }
+    },
+    {
+      "name": "check the count dropped",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/messages?limit=1"
+      }
+    },
+    {
+      "name": "search for the deleted message",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/search?kind=from&query=security@orbit-labs.com"
+      }
+    },
+    {
+      "name": "delete every message",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "the inbox is empty (v1)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "the inbox is empty (v2)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v2/messages"
+      }
+    },
+    {
+      "name": "capture info after emptying",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/info"
+      }
+    }
+  ]
+}

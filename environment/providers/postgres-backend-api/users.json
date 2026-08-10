@@ -1,0 +1,54 @@
+[
+  {
+    "id": "1",
+    "employee_id": "1",
+    "email": "amelia.ortega@orbit-labs.com",
+    "role": "admin",
+    "status": "active",
+    "salt": "9f3c1a7e5b2d4086",
+    "password_hash": "c628b10ad60d9566a47f1eadc8d3a718eee211602f2c689ce369d89cbed78eb1",
+    "password_changed_at": "2026-02-11T09:14:00Z",
+    "last_login_at": "2026-05-26T08:12:00Z",
+    "failed_logins": "0",
+    "created_at": "2024-01-10T10:00:00Z"
+  },
+  {
+    "id": "2",
+    "employee_id": "2",
+    "email": "jonas.pereira@orbit-labs.com",
+    "role": "manager",
+    "status": "active",
+    "salt": "2b90d7fc1e6a4830",
+    "password_hash": "50b042f9e3a643e62d878422105d3f104b85f7f13935c85faa2e534ada084ac1",
+    "password_changed_at": "2025-11-30T16:40:00Z",
+    "last_login_at": "2026-05-25T17:40:00Z",
+    "failed_logins": "0",
+    "created_at": "2024-02-04T11:30:00Z"
+  },
+  {
+    "id": "3",
+    "employee_id": "4",
+    "email": "rohit.bansal@orbit-labs.com",
+    "role": "viewer",
+    "status": "active",
+    "salt": "c81b7e05d6a94f13",
+    "password_hash": "95f204554e446262118e5b9c443050d85f1b1a191d334de412f5cd57a0f0f87d",
+    "password_changed_at": "2026-01-15T08:30:00Z",
+    "last_login_at": "2026-05-21T09:10:00Z",
+    "failed_logins": "2",
+    "created_at": "2024-10-02T09:10:00Z"
+  },
+  {
+    "id": "4",
+    "employee_id": "5",
+    "email": "noor.aziz@orbit-labs.com",
+    "role": "viewer",
+    "status": "locked",
+    "salt": "5e1a0c73d9b62f48",
+    "password_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "password_changed_at": "2025-08-21T07:15:00Z",
+    "last_login_at": "2026-03-11T16:45:00Z",
+    "failed_logins": "5",
+    "created_at": "2024-10-18T16:45:00Z"
+  }
+]

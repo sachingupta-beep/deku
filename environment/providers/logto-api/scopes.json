@@ -1,0 +1,9 @@
+[
+  {"id": "scp0all000001", "resourceId": "management-api", "name": "all", "description": "Full access to the Management API"},
+  {"id": "scp1readuser1", "resourceId": "management-api", "name": "read:user", "description": "Read users"},
+  {"id": "scp2writeusr1", "resourceId": "management-api", "name": "write:user", "description": "Create and update users"},
+  {"id": "scp3readinc01", "resourceId": "res5statusapi", "name": "read:incidents", "description": "Read incidents"},
+  {"id": "scp4writeinc1", "resourceId": "res5statusapi", "name": "write:incidents", "description": "Create and update incidents"},
+  {"id": "scp5readsvc01", "resourceId": "res5statusapi", "name": "read:services", "description": "Read monitored services"},
+  {"id": "scp6readbill1", "resourceId": "res2billingap", "name": "read:invoices", "description": "Read invoices"}
+]

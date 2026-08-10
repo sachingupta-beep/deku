@@ -1,0 +1,8 @@
+[
+  {"version": "4.6.2", "channel": "stable", "sha256": "9d3f01a6c47b5e28f183ab407c02de84f193ab40b58e1f70c3aa2d612f9c47a0", "size_bytes": "18874368", "published_at": "2026-01-14T09:00:00Z", "yanked": "0", "min_hardware": "gw100"},
+  {"version": "4.7.3", "channel": "stable", "sha256": "41ba7c9e0d52f1837c02de84f193ab40b58e1f70c3aa2d612f9c47a0be15c803", "size_bytes": "19398656", "published_at": "2026-04-14T09:00:00Z", "yanked": "0", "min_hardware": "gw100"},
+  {"version": "4.8.0", "channel": "stable", "sha256": "7c02de84f193ab40b58e1f70c3aa2d612f9c47a0be15c803a013fe6b7c88d924", "size_bytes": "20447232", "published_at": "2026-05-06T09:00:00Z", "yanked": "0", "min_hardware": "gw100"},
+  {"version": "4.8.1", "channel": "stable", "sha256": "b58e1f70c3aa2d612f9c47a0be15c803a013fe6b7c88d924c74b90e2af31056d", "size_bytes": "20512768", "published_at": "2026-05-22T09:00:00Z", "yanked": "0", "min_hardware": "gw100"},
+  {"version": "4.9.0-beta.2", "channel": "beta", "sha256": "2f9c47a0be15c803a013fe6b7c88d924c74b90e2af31056d1e6a83bd50cf9012", "size_bytes": "21495808", "published_at": "2026-05-25T12:10:00Z", "yanked": "0", "min_hardware": "gw400"},
+  {"version": "4.8.0-hotfix.1", "channel": "stable", "sha256": "a013fe6b7c88d924c74b90e2af31056d1e6a83bd50cf90125b21c7ea90349d3f", "size_bytes": "20451328", "published_at": "2026-05-09T16:00:00Z", "yanked": "1", "min_hardware": "gw100"}
+]

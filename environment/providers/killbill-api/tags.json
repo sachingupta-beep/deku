@@ -1,0 +1,18 @@
+[
+  {
+    "tagId": "tg11f3c7-d94b-4e6a-8d85-3f7e1b0c2d54",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "objectId": "b2e4d8ea-5c3f-4d7b-8e96-4a8f2c1d3e65",
+    "objectType": "ACCOUNT",
+    "tagDefinitionName": "AUTO_PAY_OFF",
+    "created": "2026-06-05T09:00:00Z"
+  },
+  {
+    "tagId": "tg22e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "objectId": "c3f5e9fb-6d40-4e8c-9fa7-5b903d2e4f76",
+    "objectType": "ACCOUNT",
+    "tagDefinitionName": "OVERDUE_ENFORCEMENT_OFF",
+    "created": "2026-03-01T09:00:00Z"
+  }
+]

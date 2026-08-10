@@ -1,0 +1,1180 @@
+{
+  "info": {
+    "name": "Supabase Auth (GoTrue) Mock API v1",
+    "description": "Test collection for the mock Supabase Auth service. Base URL defaults to http://localhost:8113. In docker-compose, the service is reachable at http://supabase-auth-api:8113. This is the GoTrue half of the same self-hosted project supabase-api serves, so the anon key (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost) and the service key (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost) are identical there and the user ids match public.profiles. Seeded sessions carry fixed access tokens so requests can quote a bearer literally: amelia.ortega (aal1, verified TOTP factor), jonas.pereira (aal1, unverified factor) and sync-bot. Seed passwords are listed in settings.json under seed_credentials. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8113"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "gotrue health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/health"
+      }
+    },
+    {
+      "name": "auth settings",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/settings"
+      }
+    },
+    {
+      "name": "sign in with password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitSupabase2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in wrong password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in unknown email (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"nobody@orbit-labs.com\", \"password\": \"OrbitSupabase2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in banned user (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"noor.aziz@orbit-labs.com\", \"password\": \"OrbitNoor2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in unconfirmed email (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"rohit.bansal@orbit-labs.com\", \"password\": \"OrbitRohit2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in oauth-only account (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"helena.park@orbit-labs.com\", \"password\": \"OrbitHelena2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=refresh_token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refresh_token\": \"71b09e4c6a2d48f5c803\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with revoked token (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=refresh_token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refresh_token\": \"3a6d80e5b1c74927f0ae\"}"
+        }
+      }
+    },
+    {
+      "name": "unsupported grant type (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/token?grant_type=client_credentials",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"client_id\": \"orbit-labs\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up with email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"iris.tanaka@orbit-labs.com\", \"password\": \"OrbitIris2026!\", \"data\": {\"full_name\": \"Iris Tanaka\", \"role\": \"analyst\"}}"
+        }
+      }
+    },
+    {
+      "name": "sign up existing email (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitIris2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up weak password (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"too.short@orbit-labs.com\", \"password\": \"abc12\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up without identifier (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"OrbitIris2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in anonymously",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/signup/anonymous",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get current user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/user",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.amelia-session.orbit-labs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get current user without token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/user",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "update user metadata",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/auth/v1/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.jonas-session.orbit-labs"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"data\": {\"full_name\": \"Jonas Pereira\", \"role\": \"engineer\"}}"
+        }
+      }
+    },
+    {
+      "name": "update user with weak password (422 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/auth/v1/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.jonas-session.orbit-labs"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"12345\"}"
+        }
+      }
+    },
+    {
+      "name": "request password recovery",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/recover",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "request recovery for unknown email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/recover",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"nobody@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "send magic link",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/magiclink",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "send email otp",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"helena.park@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "verify signup confirmation token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"confirmation\", \"token\": \"1f6b0d9c47a3428eb5710c82d64fa395\"}"
+        }
+      }
+    },
+    {
+      "name": "verify already-used token (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"magiclink\", \"token\": \"47d9e01b6c3f4a82b95c0d716ef23a48\"}"
+        }
+      }
+    },
+    {
+      "name": "verify with unknown type (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"passkey\", \"token\": \"8c30a7f52d194be6a0c17b3d95e408f2\"}"
+        }
+      }
+    },
+    {
+      "name": "resend signup confirmation",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/resend",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"signup\", \"email\": \"iris.tanaka@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "resend to confirmed address (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/resend",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"signup\", \"email\": \"amelia.ortega@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "authorize with github",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/authorize?provider=github&redirect_to=https://app.orbit-labs.com/callback",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "authorize with disabled provider (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/authorize?provider=apple",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "authorize without provider (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/authorize",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "enroll totp factor",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/factors",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.jonas-session.orbit-labs"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"factor_type\": \"totp\", \"friendly_name\": \"Laptop authenticator\"}"
+        }
+      }
+    },
+    {
+      "name": "enroll duplicate friendly name (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/factors",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.jonas-session.orbit-labs"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"factor_type\": \"totp\", \"friendly_name\": \"Laptop authenticator\"}"
+        }
+      }
+    },
+    {
+      "name": "enroll factor without token (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/factors",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"factor_type\": \"totp\", \"friendly_name\": \"Orphan\"}"
+        }
+      }
+    },
+    {
+      "name": "challenge totp factor",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/factors/e97d2b40-5c81-4f36-a729-1b6e0d94c8f5/challenge",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.amelia-session.orbit-labs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "challenge unknown factor (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/factors/00000000-0000-0000-0000-000000000000/challenge",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.amelia-session.orbit-labs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verify totp factor",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/factors/e97d2b40-5c81-4f36-a729-1b6e0d94c8f5/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.amelia-session.orbit-labs"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challenge_id\": \"b7d1e6c4-08a3-4f52-9e7b-2c60d81f4a93\", \"code\": \"482913\"}"
+        }
+      }
+    },
+    {
+      "name": "verify totp with wrong code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/factors/e97d2b40-5c81-4f36-a729-1b6e0d94c8f5/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.amelia-session.orbit-labs"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"challenge_id\": \"b7d1e6c4-08a3-4f52-9e7b-2c60d81f4a93\", \"code\": \"000000\"}"
+        }
+      }
+    },
+    {
+      "name": "unenroll factor",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/auth/v1/factors/af5810c6-72b3-4e09-95d1-c0e3b74f2681",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.jonas-session.orbit-labs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unenroll factor again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/auth/v1/factors/af5810c6-72b3-4e09-95d1-c0e3b74f2681",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.jonas-session.orbit-labs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin list users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/users?page=1&per_page=5",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin list users with anon key (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/users",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin get user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/users/d05b3f61-9c27-4e8a-b134-6a8d0e52f7c3",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin get unknown user (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/users/00000000-0000-0000-0000-000000000000",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin create user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/admin/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"ops-bot@orbit-labs.com\", \"password\": \"OrbitOps2026!\", \"email_confirm\": true, \"user_metadata\": {\"full_name\": \"Ops Bot\", \"role\": \"service\"}}"
+        }
+      }
+    },
+    {
+      "name": "admin create duplicate user (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/admin/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitOps2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "admin unban user",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/auth/v1/admin/users/d05b3f61-9c27-4e8a-b134-6a8d0e52f7c3",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ban_duration\": \"none\"}"
+        }
+      }
+    },
+    {
+      "name": "admin ban user",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/auth/v1/admin/users/c72e5a94-1d38-4b6f-ae90-2f4b8c07d532",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ban_duration\": \"24h\"}"
+        }
+      }
+    },
+    {
+      "name": "admin ban with bad duration (422 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/auth/v1/admin/users/c72e5a94-1d38-4b6f-ae90-2f4b8c07d532",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ban_duration\": \"forever\"}"
+        }
+      }
+    },
+    {
+      "name": "admin generate recovery link",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/admin/generate_link",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"recovery\", \"email\": \"jonas.pereira@orbit-labs.com\", \"options\": {\"redirect_to\": \"https://app.orbit-labs.com/reset\"}}"
+        }
+      }
+    },
+    {
+      "name": "admin generate link with bad type (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/admin/generate_link",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"passkey\", \"email\": \"jonas.pereira@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "admin generate link for unknown user (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/admin/generate_link",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"magiclink\", \"email\": \"nobody@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "admin audit log",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/audit?page=1&per_page=5",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin audit log filtered by action",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/audit?action=login",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin list sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/sessions",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin list sessions for one user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/admin/sessions?user_id=3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin soft delete user",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/auth/v1/admin/users/0f9a2c7d-4e61-4b03-8d75-3c1e9f60a284",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"should_soft_delete\": true}"
+        }
+      }
+    },
+    {
+      "name": "admin delete unknown user (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/auth/v1/admin/users/00000000-0000-0000-0000-000000000000",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "sign out globally",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/logout?scope=global",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.amelia-session.orbit-labs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get current user after sign out (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/v1/user",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.amelia-session.orbit-labs"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sign out without token (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/v1/logout",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost"
+          }
+        ]
+      }
+    }
+  ]
+}

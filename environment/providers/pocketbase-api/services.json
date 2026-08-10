@@ -1,0 +1,67 @@
+[
+  {
+    "id": "svcauthapi00001",
+    "key": "auth-api",
+    "name": "Authentication API",
+    "description": "Sign-in, sessions and refresh-token rotation.",
+    "status": "degraded",
+    "url": "https://status.orbit-labs.com/auth-api",
+    "uptime_30d": "99.61",
+    "sort_order": "1",
+    "monitored": "true",
+    "created": "2024-04-12 10:00:00.000Z",
+    "updated": "2026-05-26 06:40:00.000Z"
+  },
+  {
+    "id": "svcbillingapi02",
+    "key": "billing-api",
+    "name": "Billing API",
+    "description": "Invoicing, dunning and revenue reporting.",
+    "status": "operational",
+    "url": "https://status.orbit-labs.com/billing-api",
+    "uptime_30d": "99.98",
+    "sort_order": "2",
+    "monitored": "true",
+    "created": "2024-06-01 10:00:00.000Z",
+    "updated": "2026-05-19 15:00:00.000Z"
+  },
+  {
+    "id": "svcwebapp000003",
+    "key": "web-app",
+    "name": "Customer Web App",
+    "description": "Customer-facing dashboard and marketing site.",
+    "status": "operational",
+    "url": "https://status.orbit-labs.com/web-app",
+    "uptime_30d": "99.99",
+    "sort_order": "3",
+    "monitored": "true",
+    "created": "2024-03-20 10:00:00.000Z",
+    "updated": "2026-05-26 08:00:00.000Z"
+  },
+  {
+    "id": "svcinfra0000004",
+    "key": "infra",
+    "name": "Core Infrastructure",
+    "description": "Kubernetes clusters, ingress and managed Postgres.",
+    "status": "maintenance",
+    "url": "https://status.orbit-labs.com/infra",
+    "uptime_30d": "99.87",
+    "sort_order": "4",
+    "monitored": "true",
+    "created": "2024-02-10 10:00:00.000Z",
+    "updated": "2026-05-24 22:00:00.000Z"
+  },
+  {
+    "id": "svcdocs00000005",
+    "key": "docs",
+    "name": "Documentation Site",
+    "description": "Public engineering handbook.",
+    "status": "operational",
+    "url": "https://status.orbit-labs.com/docs",
+    "uptime_30d": "100.00",
+    "sort_order": "5",
+    "monitored": "false",
+    "created": "2024-09-15 10:00:00.000Z",
+    "updated": "2026-05-10 14:00:00.000Z"
+  }
+]

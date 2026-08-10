@@ -1,0 +1,54 @@
+[
+  {
+    "paymentMethodId": "pm11f3c7-d94b-4e6a-8d85-3f7e1b0c2d54",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54",
+    "externalKey": "amelia-visa-4242",
+    "isDefault": "1",
+    "pluginName": "killbill-orbit-payments",
+    "pluginType": "card",
+    "pluginBrand": "visa",
+    "pluginLast4": "4242",
+    "pluginExpiry": "12/2029",
+    "behaviour": "ok"
+  },
+  {
+    "paymentMethodId": "pm22e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "b2e4d8ea-5c3f-4d7b-8e96-4a8f2c1d3e65",
+    "externalKey": "acme-amex-0005",
+    "isDefault": "1",
+    "pluginName": "killbill-orbit-payments",
+    "pluginType": "card",
+    "pluginBrand": "amex",
+    "pluginLast4": "0005",
+    "pluginExpiry": "01/2029",
+    "behaviour": "declines"
+  },
+  {
+    "paymentMethodId": "pm33f5e9-fb6d-4e8c-9fa7-5b903d2e4f76",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "c3f5e9fb-6d40-4e8c-9fa7-5b903d2e4f76",
+    "externalKey": "northwind-ach",
+    "isDefault": "1",
+    "pluginName": "__EXTERNAL_PAYMENT__",
+    "pluginType": "bank_transfer",
+    "pluginBrand": "",
+    "pluginLast4": "8842",
+    "pluginExpiry": "",
+    "behaviour": "pending"
+  },
+  {
+    "paymentMethodId": "pm44a6fa-0c7e-4f9d-80b8-6ca14e3f5087",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54",
+    "externalKey": "amelia-sepa-backup",
+    "isDefault": "0",
+    "pluginName": "killbill-orbit-payments",
+    "pluginType": "sepa_debit",
+    "pluginBrand": "",
+    "pluginLast4": "1332",
+    "pluginExpiry": "",
+    "behaviour": "plugin_error"
+  }
+]

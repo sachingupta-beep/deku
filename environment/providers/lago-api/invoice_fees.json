@@ -1,0 +1,90 @@
+[
+  {
+    "_pk": "inv_3f7e1b0c2d54f001#subscription",
+    "lago_id": "fee_3f7e1b0c2d5401",
+    "invoice_id": "inv_3f7e1b0c2d54f001",
+    "fee_type": "subscription",
+    "billable_metric_code": "",
+    "charge_model": "",
+    "units": "1",
+    "amount_cents": "9900",
+    "description": "Orbit Growth, 2026-04-01 to 2026-05-01"
+  },
+  {
+    "_pk": "inv_3f7e1b0c2d54f001#api_calls",
+    "lago_id": "fee_3f7e1b0c2d5402",
+    "invoice_id": "inv_3f7e1b0c2d54f001",
+    "fee_type": "charge",
+    "billable_metric_code": "api_calls",
+    "charge_model": "graduated",
+    "units": "287400",
+    "amount_cents": "40488",
+    "description": "API calls, graduated"
+  },
+  {
+    "_pk": "inv_3f7e1b0c2d54f001#data_egress_gb",
+    "lago_id": "fee_3f7e1b0c2d5403",
+    "invoice_id": "inv_3f7e1b0c2d54f001",
+    "fee_type": "charge",
+    "billable_metric_code": "data_egress_gb",
+    "charge_model": "volume",
+    "units": "382",
+    "amount_cents": "4702",
+    "description": "Data egress, volume"
+  },
+  {
+    "_pk": "inv_3f7e1b0c2d54f001#active_seats",
+    "lago_id": "fee_3f7e1b0c2d5404",
+    "invoice_id": "inv_3f7e1b0c2d54f001",
+    "fee_type": "charge",
+    "billable_metric_code": "active_seats",
+    "charge_model": "standard",
+    "units": "22",
+    "amount_cents": "26400",
+    "description": "Active seats, standard"
+  },
+  {
+    "_pk": "inv_5b07d21f8c64f002#subscription",
+    "lago_id": "fee_5b07d21f8c6401",
+    "invoice_id": "inv_5b07d21f8c64f002",
+    "fee_type": "subscription",
+    "billable_metric_code": "",
+    "charge_model": "",
+    "units": "1",
+    "amount_cents": "2900",
+    "description": "Orbit Starter, 2026-04-19 to 2026-05-19"
+  },
+  {
+    "_pk": "inv_5b07d21f8c64f002#api_calls",
+    "lago_id": "fee_5b07d21f8c6402",
+    "invoice_id": "inv_5b07d21f8c64f002",
+    "fee_type": "charge",
+    "billable_metric_code": "api_calls",
+    "charge_model": "package",
+    "units": "28100",
+    "amount_cents": "1000",
+    "description": "API calls, package"
+  },
+  {
+    "_pk": "inv_9f14c73e0b2af003#subscription",
+    "lago_id": "fee_9f14c73e0b2a01",
+    "invoice_id": "inv_9f14c73e0b2af003",
+    "fee_type": "subscription",
+    "billable_metric_code": "",
+    "charge_model": "",
+    "units": "1",
+    "amount_cents": "8250",
+    "description": "Orbit Scale, monthly instalment"
+  },
+  {
+    "_pk": "inv_9f14c73e0b2af003#payment_volume_cents",
+    "lago_id": "fee_9f14c73e0b2a02",
+    "invoice_id": "inv_9f14c73e0b2af003",
+    "fee_type": "charge",
+    "billable_metric_code": "payment_volume_cents",
+    "charge_model": "percentage",
+    "units": "980000",
+    "amount_cents": "14850",
+    "description": "Payment volume, percentage"
+  }
+]

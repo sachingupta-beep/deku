@@ -1,0 +1,9 @@
+[
+  {"id": "1", "method": "GET", "path": "/v1/devices", "version": "v1", "deprecated": "0", "rate_limit_per_min": "600"},
+  {"id": "2", "method": "POST", "path": "/v1/devices", "version": "v1", "deprecated": "0", "rate_limit_per_min": "120"},
+  {"id": "3", "method": "GET", "path": "/v1/telemetry", "version": "v1", "deprecated": "0", "rate_limit_per_min": "1200"},
+  {"id": "4", "method": "POST", "path": "/v1/telemetry/batch", "version": "v1", "deprecated": "0", "rate_limit_per_min": "300"},
+  {"id": "5", "method": "GET", "path": "/v1/reports", "version": "v1", "deprecated": "0", "rate_limit_per_min": "60"},
+  {"id": "6", "method": "GET", "path": "/v0/metrics", "version": "v0", "deprecated": "1", "rate_limit_per_min": "60"},
+  {"id": "7", "method": "POST", "path": "/v1/webhooks/test", "version": "v1", "deprecated": "0", "rate_limit_per_min": "30"}
+]

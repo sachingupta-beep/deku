@@ -1,0 +1,62 @@
+[
+  {
+    "external_id": "cust_orbit_labs",
+    "lago_id": "cus_3f7e1b0c2d54b917",
+    "name": "Orbit Labs SL",
+    "email": "billing@orbit-labs.com",
+    "currency": "EUR",
+    "country": "ES",
+    "tax_identification_number": "ESB12345678",
+    "address_line1": "Carrer de Balmes 191",
+    "city": "Barcelona",
+    "zipcode": "08006",
+    "timezone": "Europe/Madrid",
+    "payment_provider": "orbit_payments",
+    "created_at": "2025-10-03T08:15:00Z"
+  },
+  {
+    "external_id": "cust_acme",
+    "lago_id": "cus_5b07d21f8c64c208",
+    "name": "Acme Partner Ltd",
+    "email": "accounts@acme-partner.example",
+    "currency": "EUR",
+    "country": "IE",
+    "tax_identification_number": "IE9876543X",
+    "address_line1": "12 Grand Canal Quay",
+    "city": "Dublin",
+    "zipcode": "D02 XY45",
+    "timezone": "Europe/Dublin",
+    "payment_provider": "orbit_payments",
+    "created_at": "2026-01-19T14:20:41Z"
+  },
+  {
+    "external_id": "cust_northwind",
+    "lago_id": "cus_9f14c73e0b2ad319",
+    "name": "Northwind Analytics Inc",
+    "email": "ap@northwind.example",
+    "currency": "USD",
+    "country": "US",
+    "tax_identification_number": "",
+    "address_line1": "440 Terry Ave N",
+    "city": "Seattle",
+    "zipcode": "98109",
+    "timezone": "America/Los_Angeles",
+    "payment_provider": "orbit_payments",
+    "created_at": "2026-01-22T17:02:09Z"
+  },
+  {
+    "external_id": "cust_helios",
+    "lago_id": "cus_2d47b9e01f5ce42a",
+    "name": "Helios Robotics GmbH",
+    "email": "finance@helios-robotics.example",
+    "currency": "EUR",
+    "country": "DE",
+    "tax_identification_number": "DE811234567",
+    "address_line1": "Rosenthaler Str. 40",
+    "city": "Berlin",
+    "zipcode": "10178",
+    "timezone": "Europe/Berlin",
+    "payment_provider": "",
+    "created_at": "2026-04-14T09:48:27Z"
+  }
+]

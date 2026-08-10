@@ -1,0 +1,5 @@
+[service]
+name = "mailpit-api"
+port = 8122
+env_var_name = "MAILPIT_API_URL"
+healthcheck_path = "/health"

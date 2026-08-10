@@ -1,0 +1,8 @@
+[
+  {"id": "0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1", "isPrimaryUser": "1", "timeJoined": "1704880800000", "primaryTenant": "public", "note": "amelia; emailpassword + github linked into one primary user"},
+  {"id": "5a92c04f-1b76-4d38-9e51-c8f0b273a469", "isPrimaryUser": "0", "timeJoined": "1707046200000", "primaryTenant": "public", "note": "jonas; emailpassword only"},
+  {"id": "b3f61d08-9e24-4a75-8c30-71d5e0a94b26", "isPrimaryUser": "0", "timeJoined": "1710771600000", "primaryTenant": "public", "note": "helena; github thirdparty only"},
+  {"id": "e84c25b7-0a63-4f91-bd28-3c7016fa5d84", "isPrimaryUser": "0", "timeJoined": "1727860200000", "primaryTenant": "public", "note": "rohit; emailpassword, email not verified"},
+  {"id": "7c05f9e2-46b1-48da-9037-2ba8d1c6e053", "isPrimaryUser": "0", "timeJoined": "1729269900000", "primaryTenant": "orbit-enterprise", "note": "noor; passwordless on the enterprise tenant"},
+  {"id": "2f7a83c1-d504-4e69-b1a2-60e9c745f83b", "isPrimaryUser": "0", "timeJoined": "1725264000000", "primaryTenant": "public", "note": "orbit sync bot; emailpassword service account"}
+]

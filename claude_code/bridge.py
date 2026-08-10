@@ -189,30 +189,66 @@ def _sse_error_bytes(err_type: str, message: str) -> bytes:
     )
 
 
-def _rejects_temperature(model: str) -> bool:
-    """True when this model 400s on ``temperature`` being present at all.
-
-    Driven by ``KAIJU_CC_NO_TEMPERATURE_MODELS`` (a regex, case-insensitive) so a
-    new model does not need a code change. The default encodes the one family we
-    have actually OBSERVED reject it, quoted verbatim from the upstream 400:
-
-        opus-4-8: `temperature` is deprecated for this model.
-
-    Deliberately not widened to "every future opus" -- guessing which models
-    reject the parameter would silently strip a sampling knob callers set on
-    purpose. Add to the regex when a real 400 says to, not in anticipation.
-    """
-    pattern = os.environ.get("KAIJU_CC_NO_TEMPERATURE_MODELS", "").strip()
+def _matches_model_list(env_var: str, default: str, model: str) -> bool:
+    """Case-insensitive regex match of `model` against an env-overridable list."""
+    pattern = os.environ.get(env_var, "").strip() or default
     if not pattern:
-        pattern = r"claude-opus-4-8"
+        return False
     try:
         return re.search(pattern, model, re.IGNORECASE) is not None
     except re.error:
-        _LOG.warning(
-            "KAIJU_CC_NO_TEMPERATURE_MODELS is not a valid regex (%r); "
-            "ignoring it and applying the pair rule only", pattern,
-        )
+        _LOG.warning("%s is not a valid regex (%r); ignoring it", env_var, pattern)
         return False
+
+
+def _rejects_temperature(model: str) -> bool:
+    """True when this model 400s on ``temperature`` being present at all.
+
+    Default is EMPTY: no model is currently known to reject it.
+
+    History, because the obvious reading was wrong twice. On 2026-08-04 opus-4-8
+    returned "`temperature` is deprecated for this model", so this list defaulted
+    to that model. Probing the live API on 2026-08-07 shows the opposite:
+
+        temperature only  -> 200        top_p only -> 400 "`top_p` is deprecated"
+        neither           -> 200        both       -> 400 (reports top_p)
+
+    So opus-4-8 accepts temperature and rejects top_p, and stripping temperature
+    left the rejected parameter in place -- the request stayed invalid, just for
+    the other reason. Either the API changed between those dates or the message
+    named whichever parameter it checked first. Both readings argue for probing
+    rather than trusting the error text.
+
+    Resolved by probing the bridge with each parameter in isolation, after
+    disabling the transform, on 2026-08-07:
+
+        neither          -> 200
+        temperature only -> 400  "`temperature` is deprecated for this model."
+        top_p only       -> 400  "`top_p` is deprecated for this model."
+        both             -> 400  (names whichever it checks first)
+
+    opus-4-8 accepts NEITHER sampling parameter. The earlier readings disagreed
+    because they were taken THROUGH the bridge while it was already stripping one
+    of them -- the probe measured the transform, not the API. Probe with the
+    transform disabled, or the evidence is circular.
+    """
+    return _matches_model_list("KAIJU_CC_NO_TEMPERATURE_MODELS",
+                               r"claude-opus-4-8", model)
+
+
+def _rejects_top_p(model: str) -> bool:
+    """True when this model 400s on ``top_p`` being present at all.
+
+    Defaults to claude-opus-4-8, verified live on 2026-08-07:
+
+        `top_p` is deprecated for this model.
+
+    This matters beyond the pair rule below. That rule only drops top_p when
+    temperature is ALSO present; a caller sending top_p alone would still be
+    rejected. OpenHands sends both, so the pair rule happens to cover it -- but
+    an agent that sends only top_p would fail on its first call with no clue why.
+    """
+    return _matches_model_list("KAIJU_CC_NO_TOP_P_MODELS", r"claude-opus-4-8", model)
 
 
 def drop_conflicting_sampling_params(body: dict[str, Any]) -> dict[str, Any]:
@@ -245,12 +281,18 @@ def drop_conflicting_sampling_params(body: dict[str, Any]) -> dict[str, Any]:
     """
     model = str(body.get("model") or "")
 
+    # Model-specific rejections first. A parameter the model refuses outright has
+    # to go regardless of what else is present -- applying only the pair rule
+    # leaves the refused parameter in place and the request stays invalid.
     if _rejects_temperature(model) and "temperature" in body:
         body.pop("temperature")
-        _LOG.info(
-            "dropped `temperature` for model %r, which rejects it outright", model
-        )
+        _LOG.info("dropped `temperature` for model %r, which rejects it", model)
 
+    if _rejects_top_p(model) and "top_p" in body:
+        body.pop("top_p")
+        _LOG.info("dropped `top_p` for model %r, which rejects it", model)
+
+    # Then the pair rule, for models that accept either but not both.
     if "temperature" in body and "top_p" in body:
         body.pop("top_p")
 

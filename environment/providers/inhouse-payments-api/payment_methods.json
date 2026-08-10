@@ -1,0 +1,122 @@
+[
+  {
+    "id": "pm_visa_4242",
+    "customer": "cus_amelia_3f7e1b0c",
+    "brand": "visa",
+    "last4": "4242",
+    "exp_month": "12",
+    "exp_year": "2029",
+    "funding": "credit",
+    "country": "ES",
+    "behaviour": "ok",
+    "created": "2025-11-04T09:13:02Z"
+  },
+  {
+    "id": "pm_mc_5555",
+    "customer": "cus_amelia_3f7e1b0c",
+    "brand": "mastercard",
+    "last4": "5555",
+    "exp_month": "08",
+    "exp_year": "2028",
+    "funding": "debit",
+    "country": "ES",
+    "behaviour": "ok",
+    "created": "2026-01-06T10:44:51Z"
+  },
+  {
+    "id": "pm_visa_0002",
+    "customer": "cus_acme_5b07d21f",
+    "brand": "visa",
+    "last4": "0002",
+    "exp_month": "03",
+    "exp_year": "2030",
+    "funding": "credit",
+    "country": "IE",
+    "behaviour": "decline_insufficient_funds",
+    "created": "2026-01-19T14:03:15Z"
+  },
+  {
+    "id": "pm_amex_0005",
+    "customer": "cus_acme_5b07d21f",
+    "brand": "amex",
+    "last4": "0005",
+    "exp_month": "01",
+    "exp_year": "2029",
+    "funding": "credit",
+    "country": "IE",
+    "behaviour": "capture_fails",
+    "created": "2026-02-02T09:30:00Z"
+  },
+  {
+    "id": "pm_visa_1881",
+    "customer": "cus_acme_5b07d21f",
+    "brand": "visa",
+    "last4": "1881",
+    "exp_month": "07",
+    "exp_year": "2030",
+    "funding": "debit",
+    "country": "IE",
+    "behaviour": "ok",
+    "created": "2026-02-14T11:12:09Z"
+  },
+  {
+    "id": "pm_visa_0119",
+    "customer": "cus_helena_9f14c73e",
+    "brand": "visa",
+    "last4": "0119",
+    "exp_month": "04",
+    "exp_year": "2024",
+    "funding": "credit",
+    "country": "DE",
+    "behaviour": "decline_expired_card",
+    "created": "2026-02-27T08:44:10Z"
+  },
+  {
+    "id": "pm_visa_3220",
+    "customer": "cus_helena_9f14c73e",
+    "brand": "visa",
+    "last4": "3220",
+    "exp_month": "11",
+    "exp_year": "2027",
+    "funding": "credit",
+    "country": "DE",
+    "behaviour": "requires_confirmation",
+    "created": "2026-02-27T08:42:33Z"
+  },
+  {
+    "id": "pm_visa_3221",
+    "customer": "cus_dmitri_2d47b9e0",
+    "brand": "visa",
+    "last4": "3221",
+    "exp_month": "05",
+    "exp_year": "2027",
+    "funding": "credit",
+    "country": "PL",
+    "behaviour": "confirmation_fails",
+    "created": "2026-03-11T19:08:12Z"
+  },
+  {
+    "id": "pm_visa_0069",
+    "customer": "cus_dmitri_2d47b9e0",
+    "brand": "visa",
+    "last4": "0069",
+    "exp_month": "04",
+    "exp_year": "2024",
+    "funding": "credit",
+    "country": "PL",
+    "behaviour": "decline_expired_card",
+    "created": "2025-08-13T17:56:04Z"
+  },
+  {
+    "id": "pm_visa_0259",
+    "customer": "cus_priya_c8e05a19",
+    "brand": "visa",
+    "last4": "0259",
+    "exp_month": "09",
+    "exp_year": "2028",
+    "funding": "credit",
+    "country": "US",
+    "behaviour": "ok",
+    "created": "2026-03-30T11:27:40Z"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "lago_id": "wal_5b07d21f8c64w001",
+    "external_customer_id": "cust_acme",
+    "name": "Acme prepaid credits",
+    "status": "active",
+    "currency": "EUR",
+    "rate_amount_cents": "100",
+    "credits_balance": "250",
+    "balance_cents": "25000",
+    "consumed_credits": "150",
+    "expiration_at": "2027-01-19T00:00:00Z",
+    "created_at": "2026-01-19T14:30:00Z"
+  }
+]

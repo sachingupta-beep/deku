@@ -1,0 +1,57 @@
+[
+  {
+    "id": "cus_amelia_3f7e1b0c",
+    "name": "Amelia Ortega",
+    "email": "amelia.ortega@orbit-labs.com",
+    "currency": "EUR",
+    "status": "active",
+    "country": "ES",
+    "tax_id": "ESB12345678",
+    "default_payment_method": "pm_visa_4242",
+    "created": "2025-11-04T09:12:44Z"
+  },
+  {
+    "id": "cus_acme_5b07d21f",
+    "name": "Acme Partner Ltd",
+    "email": "billing@acme-partner.example",
+    "currency": "EUR",
+    "status": "active",
+    "country": "IE",
+    "tax_id": "IE9876543X",
+    "default_payment_method": "pm_amex_0005",
+    "created": "2026-01-19T14:02:07Z"
+  },
+  {
+    "id": "cus_helena_9f14c73e",
+    "name": "Helena Park",
+    "email": "helena.park@orbit-labs.com",
+    "currency": "EUR",
+    "status": "active",
+    "country": "DE",
+    "tax_id": "",
+    "default_payment_method": "pm_visa_3220",
+    "created": "2026-02-27T08:41:19Z"
+  },
+  {
+    "id": "cus_dmitri_2d47b9e0",
+    "name": "Dmitri Volkov",
+    "email": "dmitri.volkov@orbit-labs.com",
+    "currency": "EUR",
+    "status": "delinquent",
+    "country": "PL",
+    "tax_id": "",
+    "default_payment_method": "pm_visa_0069",
+    "created": "2025-08-13T17:55:31Z"
+  },
+  {
+    "id": "cus_priya_c8e05a19",
+    "name": "Priya Raman",
+    "email": "priya.raman@acme-partner.example",
+    "currency": "USD",
+    "status": "active",
+    "country": "US",
+    "tax_id": "",
+    "default_payment_method": "pm_visa_0259",
+    "created": "2026-03-30T11:26:58Z"
+  }
+]

@@ -1,0 +1,4 @@
+[
+  {"id": "e97d2b40-5c81-4f36-a729-1b6e0d94c8f5", "user_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901", "friendly_name": "Authenticator app", "factor_type": "totp", "status": "verified", "verification_code": "482913", "secret": "JBSWY3DPEHPK3PXP", "created_at": "2025-06-04T09:00:00Z", "updated_at": "2025-06-04T09:04:00Z"},
+  {"id": "af5810c6-72b3-4e09-95d1-c0e3b74f2681", "user_id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445", "friendly_name": "Pending phone", "factor_type": "totp", "status": "unverified", "verification_code": "770412", "secret": "KRSXG5CTMVRXEZLU", "created_at": "2026-05-25T17:45:00Z", "updated_at": "2026-05-25T17:45:00Z"}
+]

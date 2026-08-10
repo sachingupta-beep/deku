@@ -1,0 +1,8 @@
+[
+  {"token": "st-rt-amelia-6b40d2a97f15", "sessionHandle": "0a4f1c7e-8b25-4d93-a610-5f2c9e08b374", "userId": "0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1", "parent": "", "used": "0", "createdTime": "1780646400000"},
+  {"token": "st-rt-jonas-2f83b0e6c194", "sessionHandle": "6d2b83f0-14c7-4a59-9e02-b7f5c168d4a3", "userId": "5a92c04f-1b76-4d38-9e51-c8f0b273a469", "parent": "st-rt-jonas-0e47c95b3d18", "used": "0", "createdTime": "1780560000000"},
+  {"token": "st-rt-jonas-0e47c95b3d18", "sessionHandle": "6d2b83f0-14c7-4a59-9e02-b7f5c168d4a3", "userId": "5a92c04f-1b76-4d38-9e51-c8f0b273a469", "parent": "", "used": "1", "createdTime": "1780473600000"},
+  {"token": "st-rt-jonas-mobile-c81d6a03", "sessionHandle": "b917e4c2-05d8-4f61-8a37-2c60e9db1745", "userId": "5a92c04f-1b76-4d38-9e51-c8f0b273a469", "parent": "", "used": "0", "createdTime": "1780473600000"},
+  {"token": "st-rt-noor-48c1e7b09d35", "sessionHandle": "3e58a1d6-7c04-42bf-9d13-8b0f6e2a57c9", "userId": "7c05f9e2-46b1-48da-9037-2ba8d1c6e053", "parent": "", "used": "0", "createdTime": "1780387200000"},
+  {"token": "st-rt-syncbot-1d75a0e934bc", "sessionHandle": "c40d7f19-2a86-4e35-b8c1-905e3f7a26d0", "userId": "2f7a83c1-d504-4e69-b1a2-60e9c745f83b", "parent": "", "used": "0", "createdTime": "1780300800000"}
+]

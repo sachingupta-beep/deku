@@ -1,0 +1,41 @@
+[
+  {
+    "collection": "posts",
+    "icon": "article",
+    "note": "Marketing blog posts",
+    "display_template": "{{title}}",
+    "hidden": "false",
+    "singleton": "false",
+    "sort_field": "publish_date",
+    "archive_field": "status",
+    "archive_value": "archived",
+    "accountability": "all",
+    "group": "content"
+  },
+  {
+    "collection": "categories",
+    "icon": "label",
+    "note": "Post categories",
+    "display_template": "{{name}}",
+    "hidden": "false",
+    "singleton": "false",
+    "sort_field": "sort",
+    "archive_field": "",
+    "archive_value": "",
+    "accountability": "activity",
+    "group": "content"
+  },
+  {
+    "collection": "job_openings",
+    "icon": "work",
+    "note": "Careers page listings",
+    "display_template": "{{title}}",
+    "hidden": "false",
+    "singleton": "false",
+    "sort_field": "posted_on",
+    "archive_field": "status",
+    "archive_value": "closed",
+    "accountability": "all",
+    "group": "content"
+  }
+]

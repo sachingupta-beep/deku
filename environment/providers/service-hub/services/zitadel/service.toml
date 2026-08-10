@@ -1,0 +1,53 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "zitadel"
+name     = "Zitadel"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.zitadel.service:ZitadelService"
+upstream = "https://zitadel.com/docs/apis/introduction"
+summary  = """
+Multi-tenant IAM: organizations, projects and grants, the v2 user and session APIs, and OAuth2/OIDC token issuance."""
+tags = [
+  "organizations",
+  "projects",
+  "sessions",
+  "oidc",
+  "multi-tenant",
+]
+
+[data]
+dir = "zitadel"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "user",
+  "org-owner",
+  "iam-owner",
+]
+description = """
+`Authorization: Bearer <token>`; `x-zitadel-orgid` selects the organization context, and omitting it resolves to the token's default org."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/v2/users",
+  "/v2/sessions",
+  "/v2/organizations",
+  "/management/v1/projects",
+  "/management/v1/apps",
+  "/auth/v1/users/me",
+  "/oauth/v2/token",
+  "/oidc/v1/userinfo",
+]

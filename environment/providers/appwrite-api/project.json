@@ -1,0 +1,33 @@
+{
+  "$id": "orbit-app",
+  "name": "Orbit App",
+  "teamId": "team_orbit_labs",
+  "region": "self-hosted",
+  "version": "1.6.0",
+  "platforms": [
+    {"type": "flutter-ios", "name": "Orbit iOS", "key": "com.orbitlabs.app"},
+    {"type": "flutter-android", "name": "Orbit Android", "key": "com.orbitlabs.app"},
+    {"type": "web", "name": "Orbit Web", "hostname": "app.orbit-labs.com"}
+  ],
+  "services": {
+    "databases": true,
+    "storage": true,
+    "functions": true,
+    "users": true,
+    "teams": true,
+    "messaging": false
+  },
+  "auth": {
+    "methods": ["email-password", "magic-url", "oauth2-github"],
+    "maxSessions": 10,
+    "passwordHistory": 3,
+    "passwordDictionary": true,
+    "personalDataCheck": true
+  },
+  "smtp": {"enabled": true, "host": "mailpit", "port": 1025, "senderEmail": "app@orbit-labs.com"},
+  "credentials": {
+    "apiKey": "standard_9f3c1a7e5b2d4086af51c7e93b0d6248",
+    "sessionSecret": "session_orbit_priya_9f3c1a7e",
+    "sessionUserId": "usr_priya_raman"
+  }
+}

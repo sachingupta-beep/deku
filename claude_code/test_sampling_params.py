@@ -46,14 +46,21 @@ check(
     {"model": SONNET, "temperature": 0.7},
 )
 
-# 3. THE REGRESSION. opus-4-8 rejects `temperature` itself, so the pair rule's
-#    remedy (drop top_p, keep temperature) leaves the request just as invalid.
-#    The old implementation produced {"model", "temperature"} here -> 400 -> the
-#    agent errored having taken zero actions.
+# 3. THE REGRESSION -- and a correction to it.
+#
+# Probed live 2026-08-07: opus-4-8 accepts `temperature` and rejects `top_p`.
+# The 2026-08-04 error said the opposite ("temperature is deprecated"), and acting
+# on that stripped the wrong parameter -- the request stayed invalid, just for the
+# other reason. Assert the probed behaviour, not the error text.
 check(
-    "opus-4-8 + both -> temperature dropped (NOT top_p)",
+    "opus-4-8 + both -> BOTH dropped",
     {"model": OPUS_48, "temperature": 0.0, "top_p": 1.0},
+    {"model": OPUS_48},
+)
+check(
+    "opus-4-8 + top_p alone -> dropped",
     {"model": OPUS_48, "top_p": 1.0},
+    {"model": OPUS_48},
 )
 check(
     "opus-4-8 + temperature alone -> dropped",
@@ -88,17 +95,17 @@ check(
 
 # 6. The matcher is env-tunable, and a broken regex degrades to the pair rule
 #    rather than taking the bridge down.
-os.environ["KAIJU_CC_NO_TEMPERATURE_MODELS"] = r"claude-opus-4-8|some-future-model"
+os.environ["KAIJU_CC_NO_TEMPERATURE_MODELS"] = r"some-future-model"
 check(
-    "env-extended matcher covers a new model",
+    "env can add a temperature-rejecting model",
     {"model": "some-future-model", "temperature": 0.0, "top_p": 1.0},
     {"model": "some-future-model", "top_p": 1.0},
 )
 os.environ["KAIJU_CC_NO_TEMPERATURE_MODELS"] = "[unclosed"
 check(
     "invalid regex falls back to the pair rule",
-    {"model": OPUS_48, "temperature": 0.0, "top_p": 1.0},
-    {"model": OPUS_48, "temperature": 0.0},
+    {"model": OPUS_45, "temperature": 0.0, "top_p": 1.0},
+    {"model": OPUS_45, "temperature": 0.0},
 )
 del os.environ["KAIJU_CC_NO_TEMPERATURE_MODELS"]
 

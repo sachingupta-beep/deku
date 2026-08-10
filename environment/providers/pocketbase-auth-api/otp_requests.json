@@ -1,0 +1,4 @@
+[
+  {"id": "otp1amelia00001", "collectionRef": "colusers0000001", "recordRef": "usramelia000001", "email": "amelia.ortega@orbit-labs.com", "password": "47182930", "sentTo": "amelia.ortega@orbit-labs.com", "used": "0", "created": "2026-05-26 08:10:00.000Z", "expires": "2027-05-26 08:10:00.000Z"},
+  {"id": "otp2jonas000002", "collectionRef": "colusers0000001", "recordRef": "usrjonas0000002", "email": "jonas.pereira@orbit-labs.com", "password": "60349175", "sentTo": "jonas.pereira@orbit-labs.com", "used": "0", "created": "2026-05-25 17:30:00.000Z", "expires": "2026-05-25 17:33:00.000Z"}
+]

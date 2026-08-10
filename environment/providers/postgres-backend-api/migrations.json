@@ -1,0 +1,9 @@
+[
+  {"version": "20240108090000", "name": "create_teams", "applied_at": "2024-01-08T09:00:00Z", "checksum": "9d3f01a6c47b5e28", "execution_ms": "41"},
+  {"version": "20240108090100", "name": "create_employees", "applied_at": "2024-01-08T09:01:00Z", "checksum": "41ba7c9e0d52f183", "execution_ms": "88"},
+  {"version": "20240110100000", "name": "create_users_and_sessions", "applied_at": "2024-01-10T10:00:00Z", "checksum": "7c02de84f193ab40", "execution_ms": "126"},
+  {"version": "20240520090000", "name": "create_assets", "applied_at": "2024-05-20T09:00:00Z", "checksum": "b58e1f70c3aa2d61", "execution_ms": "63"},
+  {"version": "20241001090000", "name": "create_access_requests", "applied_at": "2024-10-01T09:00:00Z", "checksum": "2f9c47a0be15c803", "execution_ms": "72"},
+  {"version": "20250114080000", "name": "create_audit_log", "applied_at": "2025-01-14T08:00:00Z", "checksum": "a013fe6b7c88d924", "execution_ms": "35"},
+  {"version": "20260211091400", "name": "add_users_failed_logins", "applied_at": "2026-02-11T09:14:00Z", "checksum": "c74b90e2af31056d", "execution_ms": "19"}
+]

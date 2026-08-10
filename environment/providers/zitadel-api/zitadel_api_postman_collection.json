@@ -1,0 +1,2306 @@
+{
+  "info": {
+    "name": "Zitadel Mock API v2.65.1",
+    "description": "Test collection for the mock Zitadel service. Base URL defaults to http://localhost:8118. In docker-compose, the service is reachable at http://zitadel-api:8118.\n\nTwo things shape this API. First, the **organization is a header**: `x-zitadel-orgid` selects it for the whole request, and absent it the instance default (Orbit Labs) is used. A user in one org is simply not found from another, and a token minted for one org cannot administer another.\n\nSecond, **sessions are built up factor by factor**. There is no login call. `POST /v2/sessions` records a factor for each `check` that passes -- user, password, webAuthN, totp -- and `PATCH` adds more as the user completes them. Every update rotates the session token. The org's login policy is enforced at the *end*, when a session is exchanged for an OIDC callback: orbit-labs sets `forceMfa`, so a password-only session is refused there and the identical request succeeds in the partner org.\n\nTokens: `zt-pat-instance-admin-5b07d21f8c64` (IAM_OWNER, any org), `zt-pat-orbit-ci-9f14c73e0b2a` (orbit-labs, may write), `zt-pat-readonly-c8e05a1976b3` (orbit-labs, read only), `zt-pat-partners-2d47b9e01f5c` (partner org), `zt-pat-revoked-1e94c7a305df` (revoked). Every write returns a `details` envelope with a monotonic `sequence`. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8118"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "healthz",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/debug/healthz"
+      }
+    },
+    {
+      "name": "instance info",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/v1/instance",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-instance-admin-5b07d21f8c64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "instance info with an org token (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/v1/instance",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "instance info without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/v1/instance"
+      }
+    },
+    {
+      "name": "instance info with a revoked token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/v1/instance",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-revoked-1e94c7a305df"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search organizations",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/v1/orgs/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-instance-admin-5b07d21f8c64"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 10}"
+        }
+      }
+    },
+    {
+      "name": "search organizations without IAM_OWNER (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/v1/orgs/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "my organization",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/orgs/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "my organization with the default org header omitted",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/orgs/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "the partner organization",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/orgs/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-partners-2d47b9e01f5c"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ]
+      }
+    },
+    {
+      "name": "the partner organization with an orbit-labs token (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/orgs/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ]
+      }
+    },
+    {
+      "name": "an inactive organization (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/orgs/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-instance-admin-5b07d21f8c64"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113989"
+          }
+        ]
+      }
+    },
+    {
+      "name": "an unknown organization (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/orgs/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-instance-admin-5b07d21f8c64"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611119999"
+          }
+        ]
+      }
+    },
+    {
+      "name": "login policy for orbit-labs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/policies/login",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "login policy for the partner org",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/policies/login",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-partners-2d47b9e01f5c"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search users",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 5}"
+        }
+      }
+    },
+    {
+      "name": "search users by query",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"park\"}"
+        }
+      }
+    },
+    {
+      "name": "search machine users",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"machine\"}"
+        }
+      }
+    },
+    {
+      "name": "search users in the partner org",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-partners-2d47b9e01f5c"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 5}"
+        }
+      }
+    },
+    {
+      "name": "search users with a read-only token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-readonly-c8e05a1976b3"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 2}"
+        }
+      }
+    },
+    {
+      "name": "get a user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/users/280310551611114001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown user (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/users/280310551611119999",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an orbit-labs user from the partner org (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/users/280310551611114001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-partners-2d47b9e01f5c"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a human user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/human",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"iris@orbit-labs.zitadel.cloud\", \"profile\": {\"givenName\": \"Iris\", \"familyName\": \"Tanaka\", \"nickName\": \"iris\"}, \"email\": {\"email\": \"iris.tanaka@orbit-labs.com\", \"isVerified\": true}, \"password\": {\"password\": \"StellarIris2026!\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a read-only token (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/human",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-readonly-c8e05a1976b3"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"denied@orbit-labs.zitadel.cloud\", \"profile\": {\"givenName\": \"De\", \"familyName\": \"Nied\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a taken username (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/human",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"amelia@orbit-labs.zitadel.cloud\", \"profile\": {\"givenName\": \"A\", \"familyName\": \"O\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a user without a name (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/human",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"noname@orbit-labs.zitadel.cloud\"}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a short password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/human",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"weak@orbit-labs.zitadel.cloud\", \"profile\": {\"givenName\": \"W\", \"familyName\": \"K\"}, \"password\": {\"password\": \"short\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a password missing a symbol (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/human",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"nosymbol@orbit-labs.zitadel.cloud\", \"profile\": {\"givenName\": \"N\", \"familyName\": \"S\"}, \"password\": {\"password\": \"NoSymbol2026\"}}"
+        }
+      }
+    },
+    {
+      "name": "update a user profile",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/v2/users/human/280310551611114003",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"profile\": {\"nickName\": \"hel\", \"displayName\": \"Helena J. Park\"}}"
+        }
+      }
+    },
+    {
+      "name": "set an email with a returned code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/email",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"rohit.bansal@orbit-labs.io\", \"verification\": {\"returnCode\": {}}}"
+        }
+      }
+    },
+    {
+      "name": "set an email that is already in use (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/email",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"verification\": {\"isVerified\": {}}}"
+        }
+      }
+    },
+    {
+      "name": "verify an email with a wrong code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/email/_verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"verificationCode\": \"000000\"}"
+        }
+      }
+    },
+    {
+      "name": "request a password reset",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114002/password_reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"returnCode\": {}}"
+        }
+      }
+    },
+    {
+      "name": "set a password for an INITIAL user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"newPassword\": {\"password\": \"NebulaRohit2026!\"}}"
+        }
+      }
+    },
+    {
+      "name": "check the user is now ACTIVE",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/users/280310551611114004",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "set a password that fails the complexity policy (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"newPassword\": {\"password\": \"nebula\"}}"
+        }
+      }
+    },
+    {
+      "name": "set a password with a wrong current password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114002/password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"newPassword\": {\"password\": \"NebulaJonas2026!\"}, \"verification\": {\"currentPassword\": \"notmypassword\"}}"
+        }
+      }
+    },
+    {
+      "name": "unlock the seeded locked user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114006/unlock",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "deactivate a user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/deactivate",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "deactivate the same user again (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/deactivate",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "reactivate a user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/reactivate",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "lock a user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114006/lock",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlock a user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114006/unlock",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlock a user that is not locked (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114006/unlock",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list authentication factors",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/users/280310551611114001/authentication_factors",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list factors for a user with none",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/users/280310551611114005/authentication_factors",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "register totp where one already exists (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114001/totp",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "register totp",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114004/totp",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verify the seeded unverified totp",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114002/totp/_verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"770412\"}"
+        }
+      }
+    },
+    {
+      "name": "verify totp with a wrong code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/users/280310551611114002/totp/_verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"000000\"}"
+        }
+      }
+    },
+    {
+      "name": "remove an authentication factor",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/v2/users/280310551611114001/authentication_factors/af-amelia-u2f-0001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "remove it again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/v2/users/280310551611114001/authentication_factors/af-amelia-u2f-0001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a session with only a user check",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"helena@orbit-labs.zitadel.cloud\"}}, \"metadata\": {\"device\": \"macbook-air\"}, \"userAgent\": {\"fingerprintId\": \"fp-collection-run\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a session with user and password in one call",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"amelia@orbit-labs.zitadel.cloud\"}, \"password\": {\"password\": \"OrbitZitadel2026!\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session with user, password and totp in one call",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"amelia@orbit-labs.zitadel.cloud\"}, \"password\": {\"password\": \"OrbitZitadel2026!\"}, \"totp\": {\"code\": \"482913\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session for a deactivated user (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"noor@orbit-labs.zitadel.cloud\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session for a user in another org (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"priya@orbit-partners.zitadel.cloud\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session with a wrong password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"amelia@orbit-labs.zitadel.cloud\"}, \"password\": {\"password\": \"notmypassword\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session with a password check but no user (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"password\": {\"password\": \"x\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session for a user with no password set (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"orbit-ci\"}, \"password\": {\"password\": \"anything\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session with a webAuthN check and no credential (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"jonas@orbit-labs.zitadel.cloud\"}, \"webAuthN\": {\"credentialAssertionData\": {}}}}"
+        }
+      }
+    },
+    {
+      "name": "create a session with a totp check and no verified factor (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checks\": {\"user\": {\"loginName\": \"rohit@orbit-labs.zitadel.cloud\"}, \"totp\": {\"code\": \"111111\"}}}"
+        }
+      }
+    },
+    {
+      "name": "read a seeded session",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/sessions/281940113077370881?sessionToken=zt-session-amelia-4c19f7e0b83d",
+        "header": [
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read a session with the wrong token (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/sessions/281940113077370881?sessionToken=zt-session-not-mine",
+        "header": [
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read an expired session (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/sessions/281940113077370885?sessionToken=zt-session-amelia-expired-3a6d80e5",
+        "header": [
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read an unknown session (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/sessions/281940113077379999?sessionToken=zt-session-nope",
+        "header": [
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "add a totp factor to the seeded jonas session",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/v2/sessions/281940113077370882",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sessionToken\": \"zt-session-jonas-91e5c7d40a26\", \"checks\": {\"totp\": {\"code\": \"770412\"}}, \"metadata\": {\"mfaPrompt\": \"completed\"}}"
+        }
+      }
+    },
+    {
+      "name": "reuse the pre-rotation session token (403 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/v2/sessions/281940113077370882",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sessionToken\": \"zt-session-jonas-91e5c7d40a26\", \"checks\": {\"totp\": {\"code\": \"770412\"}}}"
+        }
+      }
+    },
+    {
+      "name": "search sessions",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 10}"
+        }
+      }
+    },
+    {
+      "name": "search sessions for one user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/sessions/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"280310551611114001\"}"
+        }
+      }
+    },
+    {
+      "name": "read an auth request",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077373001",
+        "header": [
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read an auth request from the wrong org (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077373001",
+        "header": [
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read an unknown auth request (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077379999",
+        "header": [
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "finalize with a password-only session where the org forces MFA (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077373002",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"session\": {\"sessionId\": \"281940113077370886\", \"sessionToken\": \"zt-session-amelia-laptop-58c0e7d3\"}}"
+        }
+      }
+    },
+    {
+      "name": "finalize with a passwordless session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077373001",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"session\": {\"sessionId\": \"281940113077370883\", \"sessionToken\": \"zt-session-helena-70b2e4f9c81d\"}}"
+        }
+      }
+    },
+    {
+      "name": "finalize the same auth request twice (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077373001",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"session\": {\"sessionId\": \"281940113077370883\", \"sessionToken\": \"zt-session-helena-70b2e4f9c81d\"}}"
+        }
+      }
+    },
+    {
+      "name": "finalize in the partner org, which does not force MFA",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077373003",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"session\": {\"sessionId\": \"281940113077370884\", \"sessionToken\": \"zt-session-priya-1d75a0e934bc\"}}"
+        }
+      }
+    },
+    {
+      "name": "deny an auth request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/v2/oidc/auth_requests/281940113077373002",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"deny\": true}"
+        }
+      }
+    },
+    {
+      "name": "search projects",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 10}"
+        }
+      }
+    },
+    {
+      "name": "search projects in the partner org",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-partners-2d47b9e01f5c"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "get a project",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/projects/281940113077371001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a project from the wrong org (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/management/v1/projects/281940113077371001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-partners-2d47b9e01f5c"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a project",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Orbit Telemetry\", \"projectRoleAssertion\": true, \"projectRoleCheck\": true}"
+        }
+      }
+    },
+    {
+      "name": "create a project with a taken name (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Orbit Status Platform\"}"
+        }
+      }
+    },
+    {
+      "name": "create a project with a read-only token (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-readonly-c8e05a1976b3"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Denied\"}"
+        }
+      }
+    },
+    {
+      "name": "search project roles",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects/281940113077371001/roles/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "add a project role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects/281940113077371001/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleKey\": \"status.audit\", \"displayName\": \"Status Auditor\", \"group\": \"status\"}"
+        }
+      }
+    },
+    {
+      "name": "add a project role that already exists (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/projects/281940113077371001/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleKey\": \"status.read\", \"displayName\": \"Status Reader\"}"
+        }
+      }
+    },
+    {
+      "name": "search user grants",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/users/grants/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 10}"
+        }
+      }
+    },
+    {
+      "name": "search one user's grants",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/users/grants/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"280310551611114001\"}"
+        }
+      }
+    },
+    {
+      "name": "search inactive grants",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/users/grants/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"state\": \"USER_GRANT_STATE_INACTIVE\"}"
+        }
+      }
+    },
+    {
+      "name": "create a user grant",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/users/280310551611114003/grants",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"projectId\": \"281940113077371002\", \"roleKeys\": [\"billing.read\"]}"
+        }
+      }
+    },
+    {
+      "name": "create a grant with a role the project does not define (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/users/280310551611114004/grants",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"projectId\": \"281940113077371002\", \"roleKeys\": [\"billing.superuser\"]}"
+        }
+      }
+    },
+    {
+      "name": "create a duplicate grant (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/users/280310551611114003/grants",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"projectId\": \"281940113077371002\", \"roleKeys\": [\"billing.write\"]}"
+        }
+      }
+    },
+    {
+      "name": "update a user grant",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/management/v1/users/280310551611114001/grants/281940113077372001",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleKeys\": [\"status.admin\", \"status.read\"]}"
+        }
+      }
+    },
+    {
+      "name": "delete a user grant",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/management/v1/users/280310551611114001/grants/281940113077372002",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete it again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/management/v1/users/280310551611114001/grants/281940113077372002",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search organization members",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/orgs/me/members/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "add an organization member",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/orgs/me/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"280310551611114003\", \"roles\": [\"ORG_PROJECT_CREATOR\"]}"
+        }
+      }
+    },
+    {
+      "name": "add the same member again (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/orgs/me/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"280310551611114003\", \"roles\": [\"ORG_PROJECT_CREATOR\"]}"
+        }
+      }
+    },
+    {
+      "name": "add a member with an unknown role (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/management/v1/orgs/me/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"280310551611114004\", \"roles\": [\"SUPREME_LEADER\"]}"
+        }
+      }
+    },
+    {
+      "name": "remove an organization member",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/management/v1/orgs/me/members/280310551611114003",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "remove the last organization owner (400 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/management/v1/orgs/me/members/280310551611114001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "remove a member that is not one (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/management/v1/orgs/me/members/280310551611114004",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search events",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/v1/events/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 5}"
+        }
+      }
+    },
+    {
+      "name": "search events for one aggregate",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/v1/events/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"aggregateId\": \"280310551611114001\", \"limit\": 5}"
+        }
+      }
+    },
+    {
+      "name": "search events by type",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/v1/events/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"eventTypes\": [\"user.human.password.check.succeeded\"]}"
+        }
+      }
+    },
+    {
+      "name": "search events in the partner org",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/v1/events/_search",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-partners-2d47b9e01f5c"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113988"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"limit\": 5}"
+        }
+      }
+    },
+    {
+      "name": "delete a user",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/v2/users/280310551611114005",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete the same user again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/v2/users/280310551611114005",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-orbit-ci-9f14c73e0b2a"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete a user with a read-only token (403 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/v2/users/280310551611114004",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer zt-pat-readonly-c8e05a1976b3"
+          },
+          {
+            "key": "x-zitadel-orgid",
+            "value": "280310551611113987"
+          }
+        ]
+      }
+    }
+  ]
+}

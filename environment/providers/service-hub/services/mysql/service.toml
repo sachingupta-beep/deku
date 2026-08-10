@@ -1,0 +1,51 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "mysql"
+name     = "MySQL"
+category = "database"
+status   = "declared"
+version  = "v1"
+module   = "services.mysql.service:MysqlService"
+upstream = "https://dev.mysql.com/doc/refman/8.0/en/"
+summary  = """
+MySQL 8 dialect: SHOW statements, information_schema, numeric error codes and MySQL's looser type coercion."""
+tags = [
+  "sql",
+  "information-schema",
+  "show",
+  "grants",
+]
+
+[data]
+dir = "mysql"
+
+[auth]
+scheme      = "basic"
+roles       = [
+  "readonly",
+  "readwrite",
+  "root",
+]
+description = """
+HTTP Basic maps onto a MySQL user@host grant. Errors carry MySQL's numeric codes (1146 unknown table, 1045 access denied) and SQLSTATE."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/query",
+  "/execute",
+  "/databases",
+  "/tables",
+  "/status",
+  "/variables",
+  "/processlist",
+]

@@ -1,0 +1,45 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "mailhog"
+name     = "MailHog"
+category = "email"
+status   = "declared"
+version  = "v1"
+module   = "services.mailhog.service:MailhogService"
+upstream = "https://github.com/mailhog/MailHog/blob/master/docs/APIv2.md"
+summary  = """
+SMTP catcher with structured envelope Path objects, a v1 bare-array API alongside the v2 envelope, and Jim the chaos monkey for failure injection."""
+tags = [
+  "smtp",
+  "envelope",
+  "chaos",
+  "search",
+]
+
+[data]
+dir = "mailhog"
+
+[auth]
+scheme      = "none"
+roles       = []
+description = """
+No authentication -- MailHog is a development catcher. The v1 and v2 APIs differ in envelope shape, which is itself part of what a task may have to notice."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/api/v1/messages",
+  "/api/v2/messages",
+  "/api/v2/search",
+  "/api/v1/jim",
+  "/api/v2/jim",
+]

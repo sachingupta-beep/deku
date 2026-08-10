@@ -1,0 +1,54 @@
+{
+  "version": "PostgreSQL 15.6 on x86_64-pc-linux-gnu, compiled by gcc 12.2.0, 64-bit",
+  "server_version": "15.6",
+  "server_version_num": 150006,
+  "database": "orbit_core",
+  "schema": "public",
+  "search_path": "\"$user\", public",
+  "encoding": "UTF8",
+  "collate": "en_US.utf8",
+  "ctype": "en_US.utf8",
+  "size_bytes": 8438452224,
+  "started_at": "2026-05-12T02:14:07+00:00",
+  "uptime_seconds": 1231913,
+  "max_connections": 200,
+  "connections": {"active": 7, "idle": 24, "idle_in_transaction": 1, "total": 32},
+  "replication": {
+    "role": "primary",
+    "wal_lsn": "3F/8A21C440",
+    "standbys": [
+      {"application_name": "orbit-replica-1", "client_addr": "10.42.0.21", "state": "streaming", "sync_state": "sync", "replay_lag_bytes": 8192, "replay_lag_ms": 41},
+      {"application_name": "orbit-replica-2", "client_addr": "10.42.0.22", "state": "streaming", "sync_state": "async", "replay_lag_bytes": 1441792, "replay_lag_ms": 1870}
+    ]
+  },
+  "extensions": [
+    {"name": "plpgsql", "version": "1.0", "schema": "pg_catalog", "comment": "PL/pgSQL procedural language"},
+    {"name": "pg_stat_statements", "version": "1.10", "schema": "public", "comment": "track planning and execution statistics of all SQL statements executed"},
+    {"name": "uuid-ossp", "version": "1.1", "schema": "public", "comment": "generate universally unique identifiers (UUIDs)"},
+    {"name": "pgcrypto", "version": "1.3", "schema": "public", "comment": "cryptographic functions"},
+    {"name": "pg_trgm", "version": "1.6", "schema": "public", "comment": "text similarity measurement and index searching based on trigrams"}
+  ],
+  "settings": [
+    {"name": "max_connections", "setting": "200", "unit": null, "category": "Connections and Authentication", "context": "postmaster", "source": "configuration file"},
+    {"name": "shared_buffers", "setting": "262144", "unit": "8kB", "category": "Resource Usage / Memory", "context": "postmaster", "source": "configuration file"},
+    {"name": "work_mem", "setting": "16384", "unit": "kB", "category": "Resource Usage / Memory", "context": "user", "source": "configuration file"},
+    {"name": "effective_cache_size", "setting": "786432", "unit": "8kB", "category": "Query Tuning / Planner Cost Constants", "context": "user", "source": "configuration file"},
+    {"name": "random_page_cost", "setting": "1.1", "unit": null, "category": "Query Tuning / Planner Cost Constants", "context": "user", "source": "configuration file"},
+    {"name": "wal_level", "setting": "replica", "unit": null, "category": "Write-Ahead Log / Settings", "context": "postmaster", "source": "configuration file"},
+    {"name": "synchronous_commit", "setting": "on", "unit": null, "category": "Write-Ahead Log / Settings", "context": "user", "source": "default"},
+    {"name": "statement_timeout", "setting": "30000", "unit": "ms", "category": "Client Connection Defaults / Statement Behavior", "context": "user", "source": "configuration file"},
+    {"name": "idle_in_transaction_session_timeout", "setting": "60000", "unit": "ms", "category": "Client Connection Defaults / Statement Behavior", "context": "user", "source": "configuration file"},
+    {"name": "default_transaction_isolation", "setting": "read committed", "unit": null, "category": "Client Connection Defaults / Statement Behavior", "context": "user", "source": "default"},
+    {"name": "autovacuum", "setting": "on", "unit": null, "category": "Autovacuum", "context": "sighup", "source": "default"},
+    {"name": "log_min_duration_statement", "setting": "1000", "unit": "ms", "category": "Reporting and Logging / When to Log", "context": "superuser", "source": "configuration file"}
+  ],
+  "auth": {
+    "default_role": "orbit_app",
+    "passwords": {
+      "postgres": "OrbitCluster2026!",
+      "orbit_app": "OrbitApp2026!",
+      "orbit_readonly": "OrbitReadOnly2026!",
+      "orbit_analytics": "OrbitAnalytics2026!"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+[service]
+name = "mariadb-api"
+port = 8111
+env_var_name = "MARIADB_API_URL"
+healthcheck_path = "/health"

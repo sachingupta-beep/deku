@@ -1,0 +1,7 @@
+[
+  {"id": "rol0admin0001", "name": "admin", "description": "Full operator of the Orbit status platform", "type": "User", "scopeIds": "scp0all000001;scp3readinc01;scp4writeinc1;scp5readsvc01"},
+  {"id": "rol1operator1", "name": "operator", "description": "Manages incidents but not users", "type": "User", "scopeIds": "scp3readinc01;scp4writeinc1;scp5readsvc01"},
+  {"id": "rol2viewer001", "name": "viewer", "description": "Read-only access to the status data", "type": "User", "scopeIds": "scp3readinc01;scp5readsvc01"},
+  {"id": "rol3m2mci0001", "name": "machine:ci", "description": "CI pipeline; full Management API", "type": "MachineToMachine", "scopeIds": "scp0all000001"},
+  {"id": "rol4m2mrep001", "name": "machine:reporting", "description": "Reporting job; read-only Management API", "type": "MachineToMachine", "scopeIds": "scp1readuser1;scp3readinc01;scp6readbill1"}
+]

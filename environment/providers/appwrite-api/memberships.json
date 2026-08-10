@@ -1,0 +1,74 @@
+[
+  {
+    "id": "mem_aurora_priya",
+    "teamId": "team_aurora",
+    "teamName": "Aurora Bistro",
+    "userId": "usr_priya_raman",
+    "userName": "Priya Raman",
+    "userEmail": "priya.raman@aurorabistro.com",
+    "roles": "owner;admin",
+    "confirm": "true",
+    "invited": "2025-03-04T10:25:00.000+00:00",
+    "joined": "2025-03-04T10:31:00.000+00:00"
+  },
+  {
+    "id": "mem_aurora_ines",
+    "teamId": "team_aurora",
+    "teamName": "Aurora Bistro",
+    "userId": "usr_ines_moreau",
+    "userName": "Ines Moreau",
+    "userEmail": "ines.moreau@verdantfarms.org",
+    "roles": "member",
+    "confirm": "true",
+    "invited": "2026-01-20T09:00:00.000+00:00",
+    "joined": "2026-01-20T09:42:00.000+00:00"
+  },
+  {
+    "id": "mem_helix_marcus",
+    "teamId": "team_helix",
+    "teamName": "Helix Robotics",
+    "userId": "usr_marcus_feld",
+    "userName": "Marcus Feld",
+    "userEmail": "marcus.feld@helixrobotics.io",
+    "roles": "owner",
+    "confirm": "true",
+    "invited": "2024-09-12T08:10:00.000+00:00",
+    "joined": "2024-09-12T08:14:00.000+00:00"
+  },
+  {
+    "id": "mem_helix_daniel",
+    "teamId": "team_helix",
+    "teamName": "Helix Robotics",
+    "userId": "usr_daniel_osei",
+    "userName": "Daniel Osei",
+    "userEmail": "daniel.osei@quanta.ai",
+    "roles": "member;billing",
+    "confirm": "true",
+    "invited": "2025-02-10T10:00:00.000+00:00",
+    "joined": "2025-02-10T10:22:00.000+00:00"
+  },
+  {
+    "id": "mem_lumen_sofia",
+    "teamId": "team_lumen",
+    "teamName": "Lumen Design Studio",
+    "userId": "usr_sofia_duarte",
+    "userName": "Sofia Duarte",
+    "userEmail": "sofia.duarte@lumendesign.co",
+    "roles": "owner;admin",
+    "confirm": "true",
+    "invited": "2025-06-18T14:35:00.000+00:00",
+    "joined": "2025-06-18T14:39:00.000+00:00"
+  },
+  {
+    "id": "mem_lumen_tobias",
+    "teamId": "team_lumen",
+    "teamName": "Lumen Design Studio",
+    "userId": "usr_tobias_krause",
+    "userName": "Tobias Krause",
+    "userEmail": "tobias.krause@pelagicfreight.com",
+    "roles": "member",
+    "confirm": "false",
+    "invited": "2026-05-19T16:30:00.000+00:00",
+    "joined": ""
+  }
+]

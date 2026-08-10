@@ -1,0 +1,11 @@
+[
+  {"id": "r1-default-orbit-labs", "realm": "orbit-labs", "name": "default-roles-orbit-labs", "description": "Default roles granted to every new user", "composite": "1", "compositeRealmRoles": "offline_access;uma_authorization", "compositeClientRoles": ""},
+  {"id": "r2-offline-access-ol", "realm": "orbit-labs", "name": "offline_access", "description": "Allows offline tokens to be issued", "composite": "0", "compositeRealmRoles": "", "compositeClientRoles": ""},
+  {"id": "r3-uma-authz-ol0000", "realm": "orbit-labs", "name": "uma_authorization", "description": "Allows obtaining UMA authorization", "composite": "0", "compositeRealmRoles": "", "compositeClientRoles": ""},
+  {"id": "r4-platform-operator", "realm": "orbit-labs", "name": "platform-operator", "description": "Runs the status platform; composite role", "composite": "1", "compositeRealmRoles": "incident-responder;status-viewer", "compositeClientRoles": "realm-management:view-users"},
+  {"id": "r5-incident-responde", "realm": "orbit-labs", "name": "incident-responder", "description": "May open and update incidents", "composite": "0", "compositeRealmRoles": "", "compositeClientRoles": ""},
+  {"id": "r6-status-viewer0000", "realm": "orbit-labs", "name": "status-viewer", "description": "Read-only access to the status page", "composite": "0", "compositeRealmRoles": "", "compositeClientRoles": ""},
+  {"id": "r7-default-partners0", "realm": "orbit-partners", "name": "default-roles-orbit-partners", "description": "Default roles granted to every new partner user", "composite": "1", "compositeRealmRoles": "uma_authorization", "compositeClientRoles": ""},
+  {"id": "r8-uma-authz-part000", "realm": "orbit-partners", "name": "uma_authorization", "description": "Allows obtaining UMA authorization", "composite": "0", "compositeRealmRoles": "", "compositeClientRoles": ""},
+  {"id": "r9-partner-viewer000", "realm": "orbit-partners", "name": "partner-viewer", "description": "Read-only partner access", "composite": "0", "compositeRealmRoles": "", "compositeClientRoles": ""}
+]

@@ -1,0 +1,5 @@
+[service]
+name = "supabase-auth-api"
+port = 8113
+env_var_name = "SUPABASE_AUTH_API_URL"
+healthcheck_path = "/health"

@@ -1,0 +1,5 @@
+[
+  {"name": "github", "displayName": "GitHub", "clientId": "Iv1.orbit-labs-status", "authURL": "https://github.com/login/oauth/authorize", "tokenURL": "https://github.com/login/oauth/access_token", "userInfoURL": "https://api.github.com/user", "scopes": "read:user;user:email", "pkce": "true", "enabled": "true"},
+  {"name": "google", "displayName": "Google", "clientId": "orbit-labs-status.apps.googleusercontent.com", "authURL": "https://accounts.google.com/o/oauth2/v2/auth", "tokenURL": "https://oauth2.googleapis.com/token", "userInfoURL": "https://www.googleapis.com/oauth2/v3/userinfo", "scopes": "openid;email;profile", "pkce": "true", "enabled": "true"},
+  {"name": "gitlab", "displayName": "GitLab", "clientId": "", "authURL": "https://gitlab.com/oauth/authorize", "tokenURL": "https://gitlab.com/oauth/token", "userInfoURL": "https://gitlab.com/api/v4/user", "scopes": "read_user", "pkce": "true", "enabled": "false"}
+]

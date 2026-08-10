@@ -1,0 +1,5 @@
+[
+  {"id": "1", "grantee": "forum_analytics", "table_name": "page_views", "privileges": "SELECT"},
+  {"id": "2", "grantee": "forum_analytics", "table_name": "threads", "privileges": "SELECT"},
+  {"id": "3", "grantee": "forum_analytics", "table_name": "categories", "privileges": "SELECT"}
+]

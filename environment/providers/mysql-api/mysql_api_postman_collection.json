@@ -1,0 +1,841 @@
+{
+  "info": {
+    "name": "MySQL Mock API 8.0",
+    "description": "Test collection for the mock MySQL HTTP service. Base URL defaults to http://localhost:8110. In docker-compose, the service is reachable at http://mysql-api:8110. Statements are executed by a real SQL engine and reported with MySQL error numbers plus SQLSTATE. The X-MySQL-User header selects the account and grants are enforced against it: root (all privileges), orbit_shop (default, SELECT/INSERT/UPDATE/DELETE), orbit_report (SELECT only), orbit_etl (SELECT on customers, orders, order_items and products only), orbit_legacy (locked).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8110"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "health db",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/db"
+      }
+    },
+    {
+      "name": "version",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/version"
+      }
+    },
+    {
+      "name": "server status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/status"
+      }
+    },
+    {
+      "name": "query select",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, sku, name, price_cents FROM products WHERE active = 1 ORDER BY price_cents DESC\"}"
+        }
+      }
+    },
+    {
+      "name": "query with backticks and LIMIT offset,count",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT `id`, `status`, `total_cents` FROM `orders` ORDER BY `id` LIMIT 2, 3\"}"
+        }
+      }
+    },
+    {
+      "name": "query with CONCAT and DATE_FORMAT",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT CONCAT(name, ' (', country, ')') AS who, DATE_FORMAT(created_at, '%d/%m/%Y') AS joined FROM customers ORDER BY id\"}"
+        }
+      }
+    },
+    {
+      "name": "query with IF()",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT sku, IF(active = 1, 'live', 'retired') AS state FROM products ORDER BY id\"}"
+        }
+      }
+    },
+    {
+      "name": "query with placeholders",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, status, total_cents FROM orders WHERE status = ? AND currency = ?\", \"params\": [\"delivered\", \"EUR\"]}"
+        }
+      }
+    },
+    {
+      "name": "query join and aggregate",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT c.country, COUNT(*) AS orders, SUM(o.total_cents) AS cents FROM orders o JOIN customers c ON c.id = o.customer_id GROUP BY c.country ORDER BY cents DESC\"}"
+        }
+      }
+    },
+    {
+      "name": "query revenue by product",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT p.sku, p.name, SUM(i.quantity) AS units, SUM(i.quantity * i.unit_price_cents - i.discount_cents) AS revenue_cents FROM order_items i JOIN products p ON p.id = i.product_id GROUP BY p.id ORDER BY revenue_cents DESC LIMIT 5\"}"
+        }
+      }
+    },
+    {
+      "name": "query a view",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM order_totals ORDER BY order_id\"}"
+        }
+      }
+    },
+    {
+      "name": "query stock below reorder point",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT p.sku, p.name, v.on_hand, v.reserved, v.reorder_point FROM inventory v JOIN products p ON p.id = v.product_id WHERE v.on_hand - v.reserved <= v.reorder_point AND v.warehouse <> 'DIGITAL' ORDER BY v.on_hand\"}"
+        }
+      }
+    },
+    {
+      "name": "query orders without shipments",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT o.id, o.status FROM orders o LEFT JOIN shipments s ON s.order_id = o.id WHERE s.id IS NULL ORDER BY o.id\"}"
+        }
+      }
+    },
+    {
+      "name": "query with GREATEST and IFNULL",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, IFNULL(payment_reference, 'unpaid') AS payment, GREATEST(shipping_cents, tax_cents) AS larger FROM orders ORDER BY id LIMIT 4\"}"
+        }
+      }
+    },
+    {
+      "name": "query with max_rows truncation",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id FROM order_items ORDER BY id\", \"max_rows\": 5}"
+        }
+      }
+    },
+    {
+      "name": "query unknown table (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM invoices\"}"
+        }
+      }
+    },
+    {
+      "name": "query unknown column (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT nonexistent FROM products\"}"
+        }
+      }
+    },
+    {
+      "name": "query syntax error (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELEC * FROM products\"}"
+        }
+      }
+    },
+    {
+      "name": "query write on read endpoint (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM shipments WHERE id = 3\"}"
+        }
+      }
+    },
+    {
+      "name": "execute insert",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO customers (id, email, name, country, marketing_opt_in, created_at) VALUES (7, 'ops@nimbus.coffee', 'Nimbus Coffee', 'PT', 1, '2026-05-26 09:00:00')\"}"
+        }
+      }
+    },
+    {
+      "name": "execute update",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"UPDATE orders SET status = 'shipped' WHERE id = 5002\"}"
+        }
+      }
+    },
+    {
+      "name": "execute delete cascading to items",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM orders WHERE id = 5006\"}"
+        }
+      }
+    },
+    {
+      "name": "execute duplicate entry (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO products (id, sku, name, category, price_cents, weight_grams, active, created_at) VALUES (99, 'ORB-GW-100', 'Duplicate', 'hardware', 100, 0, 1, '2026-05-26 09:00:00')\"}"
+        }
+      }
+    },
+    {
+      "name": "execute foreign key failure (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO orders (id, customer_id, status, currency, placed_at) VALUES (9999, 999, 'pending', 'EUR', '2026-05-26 09:00:00')\"}"
+        }
+      }
+    },
+    {
+      "name": "execute check constraint violation (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"UPDATE inventory SET on_hand = -5 WHERE product_id = 1\"}"
+        }
+      }
+    },
+    {
+      "name": "execute null in NOT NULL column (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO products (id, sku, category, price_cents, created_at) VALUES (98, 'ORB-NEW-1', 'hardware', 100, '2026-05-26 09:00:00')\"}"
+        }
+      }
+    },
+    {
+      "name": "execute as read-only account (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MySQL-User",
+            "value": "orbit_report"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM customers WHERE id = 5\"}"
+        }
+      }
+    },
+    {
+      "name": "execute forbidden statement (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"ATTACH DATABASE '/etc/passwd' AS leak\"}"
+        }
+      }
+    },
+    {
+      "name": "query as etl account (granted table)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MySQL-User",
+            "value": "orbit_etl"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT COUNT(*) AS orders FROM orders\"}"
+        }
+      }
+    },
+    {
+      "name": "query shipments as etl account (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MySQL-User",
+            "value": "orbit_etl"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM shipments\"}"
+        }
+      }
+    },
+    {
+      "name": "query as locked account (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MySQL-User",
+            "value": "orbit_legacy"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT 1\"}"
+        }
+      }
+    },
+    {
+      "name": "query as root",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MySQL-User",
+            "value": "root"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT COUNT(*) AS shipments FROM shipments\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction commit",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"UPDATE inventory SET reserved = reserved + ? WHERE product_id = ?\", \"params\": [2, 1]}, {\"sql\": \"INSERT INTO order_items (id, order_id, product_id, quantity, unit_price_cents, discount_cents) VALUES (13, 5008, 1, 2, 49900, 0)\"}, {\"sql\": \"SELECT product_id, on_hand, reserved FROM inventory WHERE product_id = 1\"}], \"isolation_level\": \"REPEATABLE READ\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction rollback (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"UPDATE inventory SET on_hand = 999 WHERE product_id = 3\"}, {\"sql\": \"INSERT INTO order_items (id, order_id, product_id, quantity, unit_price_cents) VALUES (14, 5001, 2, 1, 129900)\"}], \"isolation_level\": \"SERIALIZABLE\"}"
+        }
+      }
+    },
+    {
+      "name": "verify rollback left stock unchanged",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT product_id, on_hand FROM inventory WHERE product_id = 3\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction bad isolation level (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"SELECT 1\"}], \"isolation_level\": \"SNAPSHOT\"}"
+        }
+      }
+    },
+    {
+      "name": "explain traditional",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/explain",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM orders WHERE customer_id = 2\"}"
+        }
+      }
+    },
+    {
+      "name": "explain json",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/explain",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM customers WHERE name LIKE '%Robotics%'\", \"format\": \"json\"}"
+        }
+      }
+    },
+    {
+      "name": "list databases",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/databases"
+      }
+    },
+    {
+      "name": "list tables",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables"
+      }
+    },
+    {
+      "name": "list tables as etl account",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables",
+        "header": [
+          {
+            "key": "X-MySQL-User",
+            "value": "orbit_etl"
+          }
+        ]
+      }
+    },
+    {
+      "name": "describe table",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/orders"
+      }
+    },
+    {
+      "name": "describe view",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/order_totals"
+      }
+    },
+    {
+      "name": "describe unknown table (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/invoices"
+      }
+    },
+    {
+      "name": "show index",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/order_items/indexes"
+      }
+    },
+    {
+      "name": "show variables",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/variables"
+      }
+    },
+    {
+      "name": "show variables like innodb",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/variables?like=innodb%"
+      }
+    },
+    {
+      "name": "show status counters",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/status/counters?like=Innodb%"
+      }
+    },
+    {
+      "name": "show processlist as shop account (own threads)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/processlist"
+      }
+    },
+    {
+      "name": "show processlist as root",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/processlist",
+        "header": [
+          {
+            "key": "X-MySQL-User",
+            "value": "root"
+          }
+        ]
+      }
+    },
+    {
+      "name": "show engines",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/engines"
+      }
+    },
+    {
+      "name": "show replication as root",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/replication",
+        "header": [
+          {
+            "key": "X-MySQL-User",
+            "value": "root"
+          }
+        ]
+      }
+    },
+    {
+      "name": "show replication as shop account (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/replication"
+      }
+    },
+    {
+      "name": "list users as root",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/users",
+        "header": [
+          {
+            "key": "X-MySQL-User",
+            "value": "root"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users as shop account (own row)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/users"
+      }
+    },
+    {
+      "name": "show grants for self",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/grants"
+      }
+    },
+    {
+      "name": "show grants for another account as root",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/grants?user=orbit_etl",
+        "header": [
+          {
+            "key": "X-MySQL-User",
+            "value": "root"
+          }
+        ]
+      }
+    },
+    {
+      "name": "show grants for another account (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/grants?user=root"
+      }
+    },
+    {
+      "name": "show grants for unknown account (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/grants?user=nobody",
+        "header": [
+          {
+            "key": "X-MySQL-User",
+            "value": "root"
+          }
+        ]
+      }
+    }
+  ]
+}

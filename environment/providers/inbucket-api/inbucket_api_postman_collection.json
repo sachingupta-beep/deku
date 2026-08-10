@@ -1,0 +1,401 @@
+{
+  "info": {
+    "name": "Inbucket Mock API v3.1.0",
+    "description": "Test collection for the mock Inbucket service. Base URL defaults to http://localhost:8123. In docker-compose, the service is reachable at http://inbucket-api:8123.\n\nInbucket is a third model, and the difference is structural. **There is no global inbox**: every read names a mailbox, there is no endpoint listing all mail, and none listing the mailboxes either. **The mailbox is derived from the address, not stored** -- under the `local` policy it is the local part, lowercased, with any `+subaddress` stripped, so `Amelia.Ortega@orbit-labs.com`, `amelia.ortega+billing@orbit-labs.com` and `AMELIA.ORTEGA@acme-partner.example` are three addresses, two domains and **one mailbox**. The `{name}` segment takes either form. **Every mailbox exists**: an unknown one is `200 []`, never a 404. **A message to two recipients is two messages**, one per mailbox, each with its own id and `seen` flag. **Deletion is per-mailbox**; nothing empties the server.\n\nKeys are hyphenated (`posix-millis`, `content-type`, `download-link`) because Inbucket's are, and mailboxes list **oldest first**, where MailHog and Mailpit list newest first.\n\nTwo endpoints are marked in their own responses as mock additions: `POST /api/v1/mailbox/{name}` stands in for the SMTP delivery a mock cannot accept, and the monitor returns a snapshot rather than an SSE stream. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8123"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "status (reports the naming policy and the cap)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/status"}
+    },
+    {
+      "name": "expvar counters",
+      "request": {"method": "GET", "url": "{{baseUrl}}/debug/vars"}
+    },
+    {
+      "name": "policy: the mailbox by its bare name",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega"}
+    },
+    {
+      "name": "policy: the same mailbox by a plain address",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/Amelia.Ortega%40orbit-labs.com"}
+    },
+    {
+      "name": "policy: the same mailbox through a +subaddress",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega%2Bbilling%40orbit-labs.com"}
+    },
+    {
+      "name": "policy: the same mailbox at a different domain, upper case",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/AMELIA.ORTEGA%40acme-partner.example"}
+    },
+    {
+      "name": "policy: the same mailbox from a display-name address",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/Amelia%20Ortega%20%3Camelia.ortega%40orbit-labs.com%3E"}
+    },
+    {
+      "name": "policy: case folds on a bare name too",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/AMELIA.ORTEGA"}
+    },
+    {
+      "name": "jonas.pereira's mailbox",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/jonas.pereira"}
+    },
+    {
+      "name": "the oncall mailbox",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/oncall"}
+    },
+    {
+      "name": "helena.park's mailbox (her copy of the same incident)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/helena.park"}
+    },
+    {
+      "name": "the billing mailbox",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/billing"}
+    },
+    {
+      "name": "the support mailbox",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/support"}
+    },
+    {
+      "name": "an unknown mailbox is empty, not missing",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/nobody"}
+    },
+    {
+      "name": "so is an address nobody has ever written to",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/who.ever%40nowhere.example"}
+    },
+    {
+      "name": "and so is a mailbox that was never created",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/qa-run-2026-08"}
+    },
+    {
+      "name": "read the order confirmation (attachment list included)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260528T091412-0001"}
+    },
+    {
+      "name": "read the invoice that arrived via a +subaddress",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260527T143055-0002"}
+    },
+    {
+      "name": "read a message by naming the mailbox as an address",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega%2Bwhatever%40orbit-labs.com/20260526T101733-0003"}
+    },
+    {
+      "name": "the incident, in oncall's copy",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/oncall/20260526T142208-0006"}
+    },
+    {
+      "name": "the same incident, helena's copy with its own id",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/helena.park/20260526T142208-0007"}
+    },
+    {
+      "name": "helena's id does not exist in oncall (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/oncall/20260526T142208-0007"}
+    },
+    {
+      "name": "reading from the wrong mailbox (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/jonas.pereira/20260528T091412-0001"}
+    },
+    {
+      "name": "reading an id that does not exist (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260101T000000-9999"}
+    },
+    {
+      "name": "raw source of a text message",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/jonas.pereira/20260527T164155-0004/source"}
+    },
+    {
+      "name": "raw source of a multipart message",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260528T091412-0001/source"}
+    },
+    {
+      "name": "raw source from the wrong mailbox (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/support/20260527T164155-0004/source"}
+    },
+    {
+      "name": "download the PDF attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260528T091412-0001/attach/0/receipt-ORD-2026-4417.pdf"}
+    },
+    {
+      "name": "download the CSV attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260527T143055-0002/attach/0/invoice-INV-2026-0417.csv"}
+    },
+    {
+      "name": "download the screenshot",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/support/20260522T083045-0010/attach/0/export-error.png"}
+    },
+    {
+      "name": "the filename in the path is checked (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260527T143055-0002/attach/0/not-the-file.csv"}
+    },
+    {
+      "name": "attachment index out of range (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260527T143055-0002/attach/3/invoice-INV-2026-0417.csv"}
+    },
+    {
+      "name": "attachment index must be a number (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/amelia.ortega/20260527T143055-0002/attach/first/invoice-INV-2026-0417.csv"}
+    },
+    {
+      "name": "a message with no attachments at all (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/jonas.pereira/20260527T164155-0004/attach/0/anything.txt"}
+    },
+    {
+      "name": "mark the incident seen",
+      "request": {
+        "method": "PATCH",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"seen\": true}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/oncall/20260526T142208-0006"
+      }
+    },
+    {
+      "name": "helena's copy is still unseen (the flag is per-copy)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/helena.park/20260526T142208-0007"}
+    },
+    {
+      "name": "mark it unseen again",
+      "request": {
+        "method": "PATCH",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"seen\": false}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/oncall/20260526T142208-0006"
+      }
+    },
+    {
+      "name": "mark seen by naming the mailbox as an address",
+      "request": {
+        "method": "PATCH",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"seen\": true}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/oncall%40orbit-labs.com/20260524T193012-0008"
+      }
+    },
+    {
+      "name": "seen must be a boolean (400 expected)",
+      "request": {
+        "method": "PATCH",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"seen\": \"yes\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/oncall/20260526T142208-0006"
+      }
+    },
+    {
+      "name": "seen is required (400 expected)",
+      "request": {
+        "method": "PATCH",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/oncall/20260526T142208-0006"
+      }
+    },
+    {
+      "name": "patching from the wrong mailbox (404 expected)",
+      "request": {
+        "method": "PATCH",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"seen\": true}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/billing/20260526T142208-0006"
+      }
+    },
+    {
+      "name": "monitor: the only cross-mailbox view",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/monitor/messages?limit=5"}
+    },
+    {
+      "name": "monitor: the whole history",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/monitor/messages"}
+    },
+    {
+      "name": "monitor: one mailbox",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/monitor/mailbox/amelia.ortega"}
+    },
+    {
+      "name": "monitor: a mailbox that has never had mail",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/monitor/mailbox/nobody"}
+    },
+    {
+      "name": "deliver to a bare mailbox name",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"Orbit Sync Bot <sync-bot@orbit-labs.com>\", \"subject\": \"Deploy 2026.05.29-1 succeeded\", \"text\": \"production: SUCCEEDED in 6m41s\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/deploys"
+      }
+    },
+    {
+      "name": "the new mailbox now has mail",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/deploys"}
+    },
+    {
+      "name": "deliver to a +subaddress and watch where it lands",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"ci@orbit-labs.com\", \"subject\": \"Nightly build 4417\", \"text\": \"All suites green.\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/Jonas.Pereira%2Bci%40orbit-labs.com"
+      }
+    },
+    {
+      "name": "it landed in jonas.pereira, subaddress and case gone",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/jonas.pereira"}
+    },
+    {
+      "name": "deliver an HTML message with explicit recipients",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"Orbit Labs <news@orbit-labs.com>\", \"to\": [\"subscribers@orbit-labs.com\"], \"cc\": [\"noor.aziz@orbit-labs.com\"], \"subject\": \"June digest\", \"text\": \"What shipped in June.\", \"html\": \"<h2>What shipped in June</h2>\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/subscribers%40orbit-labs.com"
+      }
+    },
+    {
+      "name": "deliver with no sender (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"subject\": \"orphan\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/support"
+      }
+    },
+    {
+      "name": "deliver with a malformed sender (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"not-an-address\", \"subject\": \"bad sender\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/support"
+      }
+    },
+    {
+      "name": "deliver to a half-written address (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"sync-bot@orbit-labs.com\", \"subject\": \"nowhere\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/broken%40"
+      }
+    },
+    {
+      "name": "cap: fill a fresh mailbox, 1 of 6",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"loadgen@orbit-labs.com\", \"subject\": \"burst 1\", \"text\": \"1\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/loadtest"
+      }
+    },
+    {
+      "name": "cap: 2 of 6",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"loadgen@orbit-labs.com\", \"subject\": \"burst 2\", \"text\": \"2\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/loadtest"
+      }
+    },
+    {
+      "name": "cap: 3 of 6",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"loadgen@orbit-labs.com\", \"subject\": \"burst 3\", \"text\": \"3\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/loadtest"
+      }
+    },
+    {
+      "name": "cap: 4 of 6",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"loadgen@orbit-labs.com\", \"subject\": \"burst 4\", \"text\": \"4\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/loadtest"
+      }
+    },
+    {
+      "name": "cap: 5 of 6, the mailbox is now full",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"loadgen@orbit-labs.com\", \"subject\": \"burst 5\", \"text\": \"5\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/loadtest"
+      }
+    },
+    {
+      "name": "cap: 6 of 6 evicts the oldest",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"from\": \"loadgen@orbit-labs.com\", \"subject\": \"burst 6\", \"text\": \"6\"}"},
+        "url": "{{baseUrl}}/api/v1/mailbox/loadtest"
+      }
+    },
+    {
+      "name": "cap: five left, burst 1 is gone",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/loadtest"}
+    },
+    {
+      "name": "delete one message",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/mailbox/billing/20260523T111020-0009"}
+    },
+    {
+      "name": "delete it again (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/mailbox/billing/20260523T111020-0009"}
+    },
+    {
+      "name": "delete from the wrong mailbox (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/mailbox/support/20260524T193012-0008"}
+    },
+    {
+      "name": "the billing mailbox is empty now",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/billing"}
+    },
+    {
+      "name": "purge a whole mailbox",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/mailbox/loadtest"}
+    },
+    {
+      "name": "purging again reports nothing to purge",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/mailbox/loadtest"}
+    },
+    {
+      "name": "purging a mailbox that never existed is fine too",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/mailbox/never-used"}
+    },
+    {
+      "name": "purge by naming the mailbox as an address",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/mailbox/oncall%2Bpager%40orbit-labs.com"}
+    },
+    {
+      "name": "oncall is empty, and helena's copy survived",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/mailbox/helena.park"}
+    },
+    {
+      "name": "status after the run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/status"}
+    },
+    {
+      "name": "expvar counters after the run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/debug/vars"}
+    },
+    {
+      "name": "audit trail of this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/requests?limit=5"}
+    },
+    {
+      "name": "audit summary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/summary"}
+    }
+  ]
+}

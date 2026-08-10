@@ -1,0 +1,5 @@
+[service]
+name = "zitadel-api"
+port = 8118
+env_var_name = "ZITADEL_API_URL"
+healthcheck_path = "/health"

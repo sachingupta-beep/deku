@@ -1,0 +1,5 @@
+[
+  {"id": "orl0admin0001", "name": "org:admin", "description": "Organization administrator", "type": "User", "scopeIds": "osc0read00001;osc1write0001;osc2invite001;osc3billing01"},
+  {"id": "orl1member001", "name": "org:member", "description": "Organization member", "type": "User", "scopeIds": "osc0read00001;osc1write0001"},
+  {"id": "orl2guest0001", "name": "org:guest", "description": "Read-only organization guest", "type": "User", "scopeIds": "osc0read00001"}
+]

@@ -1,0 +1,5 @@
+[
+  {"name": "thread_number_seq", "start_value": "5000", "minimum_value": "1", "maximum_value": "9223372036854775806", "increment": "1", "cache_size": "1000", "cycle_option": "0", "next_not_cached_value": "5008", "last_value": "5007"},
+  {"name": "kb_version_seq", "start_value": "1", "minimum_value": "1", "maximum_value": "9223372036854775806", "increment": "1", "cache_size": "10", "cycle_option": "0", "next_not_cached_value": "7", "last_value": "6"},
+  {"name": "moderation_case_seq", "start_value": "100", "minimum_value": "100", "maximum_value": "999", "increment": "1", "cache_size": "1", "cycle_option": "1", "next_not_cached_value": "104", "last_value": "103"}
+]

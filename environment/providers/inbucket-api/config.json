@@ -1,0 +1,15 @@
+{
+  "mailboxNaming": "local",
+  "caseSensitive": false,
+  "stripSubaddress": true,
+  "subaddressDelimiter": "+",
+  "mailboxMessageCap": 5,
+  "retentionPeriod": "72h",
+  "retentionSweepInterval": "1m",
+  "smtpAddr": "0.0.0.0:2500",
+  "pop3Addr": "0.0.0.0:1100",
+  "webAddr": "0.0.0.0:9000",
+  "storageType": "memory",
+  "monitorVisible": true,
+  "monitorHistory": 30
+}

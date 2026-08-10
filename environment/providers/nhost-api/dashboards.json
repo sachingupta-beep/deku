@@ -1,0 +1,86 @@
+[
+  {
+    "id": "101",
+    "workspace_id": "1",
+    "name": "Storefront Overview",
+    "slug": "storefront-overview",
+    "visibility": "workspace",
+    "widget_count": "8",
+    "created_by": "2b7f1c94-3d05-4e68-a91f-6c48e07b2d53",
+    "starred": "true",
+    "created_at": "2025-03-06T09:00:00+00:00",
+    "updated_at": "2026-05-24T14:12:00+00:00"
+  },
+  {
+    "id": "102",
+    "workspace_id": "1",
+    "name": "Public Status Metrics",
+    "slug": "public-status-metrics",
+    "visibility": "public",
+    "widget_count": "3",
+    "created_by": "a6902f5c-8b13-47de-90a4-2c7f5e18b930",
+    "starred": "false",
+    "created_at": "2025-11-02T13:20:00+00:00",
+    "updated_at": "2026-05-20T08:40:00+00:00"
+  },
+  {
+    "id": "103",
+    "workspace_id": "2",
+    "name": "Fleet Telemetry",
+    "slug": "fleet-telemetry",
+    "visibility": "workspace",
+    "widget_count": "21",
+    "created_by": "8e40a5d1-72b6-4c39-95f0-1d83c7e6b0a4",
+    "starred": "true",
+    "created_at": "2024-10-01T11:00:00+00:00",
+    "updated_at": "2026-05-26T06:05:00+00:00"
+  },
+  {
+    "id": "104",
+    "workspace_id": "2",
+    "name": "Revenue by Region",
+    "slug": "revenue-by-region",
+    "visibility": "workspace",
+    "widget_count": "12",
+    "created_by": "5d83e2a9-041b-4f76-8c35-b9e07a1d264c",
+    "starred": "false",
+    "created_at": "2025-04-18T15:30:00+00:00",
+    "updated_at": "2026-05-19T15:00:00+00:00"
+  },
+  {
+    "id": "105",
+    "workspace_id": "2",
+    "name": "Uptime Scorecard",
+    "slug": "uptime-scorecard",
+    "visibility": "public",
+    "widget_count": "5",
+    "created_by": "8e40a5d1-72b6-4c39-95f0-1d83c7e6b0a4",
+    "starred": "false",
+    "created_at": "2026-02-09T10:15:00+00:00",
+    "updated_at": "2026-05-22T09:00:00+00:00"
+  },
+  {
+    "id": "106",
+    "workspace_id": "3",
+    "name": "Client Delivery Health",
+    "slug": "client-delivery-health",
+    "visibility": "workspace",
+    "widget_count": "9",
+    "created_by": "f1c60b37-9a24-4d85-b7e2-05a9d3f81c6e",
+    "starred": "true",
+    "created_at": "2025-07-02T09:45:00+00:00",
+    "updated_at": "2026-04-30T12:00:00+00:00"
+  },
+  {
+    "id": "107",
+    "workspace_id": "3",
+    "name": "Archived: 2025 Retainers",
+    "slug": "archived-2025-retainers",
+    "visibility": "private",
+    "widget_count": "4",
+    "created_by": "f1c60b37-9a24-4d85-b7e2-05a9d3f81c6e",
+    "starred": "false",
+    "created_at": "2025-01-15T08:00:00+00:00",
+    "updated_at": "2025-12-31T23:00:00+00:00"
+  }
+]

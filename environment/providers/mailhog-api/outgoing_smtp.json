@@ -1,0 +1,22 @@
+{
+  "orbit-relay": {
+    "Name": "orbit-relay",
+    "Save": true,
+    "Email": "status@orbit-labs.com",
+    "Host": "smtp.orbit-labs.com",
+    "Port": "587",
+    "Username": "status@orbit-labs.com",
+    "Password": "orbit-relay-app-password",
+    "Mechanism": "PLAIN"
+  },
+  "acme-partner": {
+    "Name": "acme-partner",
+    "Save": true,
+    "Email": "partners@orbit-labs.com",
+    "Host": "smtp.acme-partner.com",
+    "Port": "465",
+    "Username": "orbit-partners",
+    "Password": "acme-relay-secret",
+    "Mechanism": "CRAM-MD5"
+  }
+}

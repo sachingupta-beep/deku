@@ -1,0 +1,5 @@
+[service]
+name = "lago-api"
+port = 8127
+env_var_name = "LAGO_API_URL"
+healthcheck_path = "/health"

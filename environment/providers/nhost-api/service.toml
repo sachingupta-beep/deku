@@ -1,0 +1,5 @@
+[service]
+name = "nhost-api"
+port = 8106
+env_var_name = "NHOST_API_URL"
+healthcheck_path = "/health"

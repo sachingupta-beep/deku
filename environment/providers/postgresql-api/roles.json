@@ -1,0 +1,7 @@
+[
+  {"rolname": "postgres", "rolsuper": "1", "rolcreaterole": "1", "rolcreatedb": "1", "rolcanlogin": "1", "rolreplication": "1", "rolbypassrls": "1", "rolconnlimit": "-1", "description": "Cluster superuser"},
+  {"rolname": "orbit_app", "rolsuper": "0", "rolcreaterole": "0", "rolcreatedb": "0", "rolcanlogin": "1", "rolreplication": "0", "rolbypassrls": "0", "rolconnlimit": "80", "description": "Application role used by the API tier"},
+  {"rolname": "orbit_readonly", "rolsuper": "0", "rolcreaterole": "0", "rolcreatedb": "0", "rolcanlogin": "1", "rolreplication": "0", "rolbypassrls": "0", "rolconnlimit": "20", "description": "Read-only role for dashboards"},
+  {"rolname": "orbit_analytics", "rolsuper": "0", "rolcreaterole": "0", "rolcreatedb": "0", "rolcanlogin": "1", "rolreplication": "0", "rolbypassrls": "0", "rolconnlimit": "10", "description": "Analytics role; no access to webhook payloads"},
+  {"rolname": "orbit_replica", "rolsuper": "0", "rolcreaterole": "0", "rolcreatedb": "0", "rolcanlogin": "1", "rolreplication": "1", "rolbypassrls": "0", "rolconnlimit": "5", "description": "Physical replication role"}
+]

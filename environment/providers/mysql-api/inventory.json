@@ -1,0 +1,10 @@
+[
+  {"product_id": "1", "warehouse": "LIS-1", "on_hand": "142", "reserved": "18", "reorder_point": "40", "updated_at": "2026-05-26 06:00:00"},
+  {"product_id": "2", "warehouse": "LIS-1", "on_hand": "27", "reserved": "9", "reorder_point": "15", "updated_at": "2026-05-26 06:00:00"},
+  {"product_id": "3", "warehouse": "LIS-1", "on_hand": "310", "reserved": "44", "reorder_point": "80", "updated_at": "2026-05-26 06:00:00"},
+  {"product_id": "4", "warehouse": "LIS-1", "on_hand": "12", "reserved": "12", "reorder_point": "30", "updated_at": "2026-05-26 06:00:00"},
+  {"product_id": "5", "warehouse": "DIGITAL", "on_hand": "0", "reserved": "0", "reorder_point": "0", "updated_at": "2024-02-01 09:00:00"},
+  {"product_id": "6", "warehouse": "DIGITAL", "on_hand": "0", "reserved": "0", "reorder_point": "0", "updated_at": "2024-02-01 09:00:00"},
+  {"product_id": "7", "warehouse": "DIGITAL", "on_hand": "0", "reserved": "0", "reorder_point": "0", "updated_at": "2024-06-01 09:00:00"},
+  {"product_id": "8", "warehouse": "LIS-1", "on_hand": "3", "reserved": "0", "reorder_point": "0", "updated_at": "2025-11-30 09:00:00"}
+]

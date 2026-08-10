@@ -1,0 +1,74 @@
+[
+  {
+    "id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901",
+    "username": "amelia",
+    "full_name": "Amelia Ortega",
+    "email": "amelia.ortega@orbit-labs.com",
+    "avatar_url": "https://avatars.example.com/amelia.png",
+    "role": "owner",
+    "plan": "team",
+    "is_active": "true",
+    "last_seen_at": "2026-05-26T08:12:00+00:00",
+    "created_at": "2024-01-10T10:00:00+00:00"
+  },
+  {
+    "id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445",
+    "username": "jonas",
+    "full_name": "Jonas Pereira",
+    "email": "jonas.pereira@orbit-labs.com",
+    "avatar_url": "https://avatars.example.com/jonas.png",
+    "role": "developer",
+    "plan": "team",
+    "is_active": "true",
+    "last_seen_at": "2026-05-25T17:40:00+00:00",
+    "created_at": "2024-02-04T11:30:00+00:00"
+  },
+  {
+    "id": "a41f7c88-5be9-42d7-9c03-77e2f8b41d16",
+    "username": "helena",
+    "full_name": "Helena Park",
+    "email": "helena.park@orbit-labs.com",
+    "avatar_url": "https://avatars.example.com/helena.png",
+    "role": "developer",
+    "plan": "team",
+    "is_active": "true",
+    "last_seen_at": "2026-05-26T07:05:00+00:00",
+    "created_at": "2024-03-18T14:20:00+00:00"
+  },
+  {
+    "id": "c72e5a94-1d38-4b6f-ae90-2f4b8c07d532",
+    "username": "rohit",
+    "full_name": "Rohit Bansal",
+    "email": "rohit.bansal@orbit-labs.com",
+    "avatar_url": "https://avatars.example.com/rohit.png",
+    "role": "read_only",
+    "plan": "team",
+    "is_active": "true",
+    "last_seen_at": "2026-05-21T09:10:00+00:00",
+    "created_at": "2024-10-02T09:10:00+00:00"
+  },
+  {
+    "id": "d05b3f61-9c27-4e8a-b134-6a8d0e52f7c3",
+    "username": "noor",
+    "full_name": "Noor Aziz",
+    "email": "noor.aziz@orbit-labs.com",
+    "avatar_url": "https://avatars.example.com/noor.png",
+    "role": "developer",
+    "plan": "free",
+    "is_active": "false",
+    "last_seen_at": "2026-03-11T16:45:00+00:00",
+    "created_at": "2024-10-18T16:45:00+00:00"
+  },
+  {
+    "id": "0f9a2c7d-4e61-4b03-8d75-3c1e9f60a284",
+    "username": "orbit_sync_bot",
+    "full_name": "Orbit Sync Bot",
+    "email": "sync-bot@orbit-labs.com",
+    "avatar_url": "https://avatars.example.com/bot.png",
+    "role": "service",
+    "plan": "team",
+    "is_active": "true",
+    "last_seen_at": "2026-05-26T08:30:00+00:00",
+    "created_at": "2024-09-02T08:00:00+00:00"
+  }
+]

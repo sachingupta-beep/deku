@@ -1,0 +1,202 @@
+[
+  {
+    "transaction_id": "evt_growth_api_2026_05_07",
+    "lago_id": "ev_3f7e1b0c2d54e001",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "api_calls",
+    "timestamp": "2026-05-07T23:59:00Z",
+    "properties": "{\"count\": 118400, \"region\": \"eu-west\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-08T00:02:11Z"
+  },
+  {
+    "transaction_id": "evt_growth_api_2026_05_15",
+    "lago_id": "ev_3f7e1b0c2d54e002",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "api_calls",
+    "timestamp": "2026-05-15T23:59:00Z",
+    "properties": "{\"count\": 132600, \"region\": \"eu-west\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-16T00:01:47Z"
+  },
+  {
+    "transaction_id": "evt_growth_api_2026_05_23",
+    "lago_id": "ev_3f7e1b0c2d54e003",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "api_calls",
+    "timestamp": "2026-05-23T23:59:00Z",
+    "properties": "{\"count\": 69000, \"region\": \"us-east\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-24T00:03:02Z"
+  },
+  {
+    "transaction_id": "evt_growth_egress_2026_05_10",
+    "lago_id": "ev_3f7e1b0c2d54e004",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "data_egress_gb",
+    "timestamp": "2026-05-10T23:59:00Z",
+    "properties": "{\"gb\": 265, \"region\": \"eu-west\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-11T00:00:58Z"
+  },
+  {
+    "transaction_id": "evt_growth_egress_2026_05_24",
+    "lago_id": "ev_3f7e1b0c2d54e005",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "data_egress_gb",
+    "timestamp": "2026-05-24T23:59:00Z",
+    "properties": "{\"gb\": 155, \"region\": \"eu-west\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-25T00:01:19Z"
+  },
+  {
+    "transaction_id": "evt_growth_seats_2026_05_04",
+    "lago_id": "ev_3f7e1b0c2d54e006",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "active_seats",
+    "timestamp": "2026-05-04T12:00:00Z",
+    "properties": "{\"seats\": 18}",
+    "invoice_id": "",
+    "created_at": "2026-05-04T12:00:03Z"
+  },
+  {
+    "transaction_id": "evt_growth_seats_2026_05_18",
+    "lago_id": "ev_3f7e1b0c2d54e007",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "active_seats",
+    "timestamp": "2026-05-18T12:00:00Z",
+    "properties": "{\"seats\": 24}",
+    "invoice_id": "",
+    "created_at": "2026-05-18T12:00:04Z"
+  },
+  {
+    "transaction_id": "evt_growth_seats_2026_05_29",
+    "lago_id": "ev_3f7e1b0c2d54e008",
+    "external_subscription_id": "sub_orbit_growth",
+    "code": "active_seats",
+    "timestamp": "2026-05-29T12:00:00Z",
+    "properties": "{\"seats\": 21}",
+    "invoice_id": "",
+    "created_at": "2026-05-29T12:00:02Z"
+  },
+  {
+    "transaction_id": "evt_acme_api_2026_05_21",
+    "lago_id": "ev_5b07d21f8c64e001",
+    "external_subscription_id": "sub_acme_starter",
+    "code": "api_calls",
+    "timestamp": "2026-05-21T23:59:00Z",
+    "properties": "{\"count\": 21500, \"region\": \"eu-west\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-22T00:02:40Z"
+  },
+  {
+    "transaction_id": "evt_acme_api_2026_06_02",
+    "lago_id": "ev_5b07d21f8c64e002",
+    "external_subscription_id": "sub_acme_starter",
+    "code": "api_calls",
+    "timestamp": "2026-06-02T23:59:00Z",
+    "properties": "{\"count\": 12500, \"region\": \"eu-west\"}",
+    "invoice_id": "",
+    "created_at": "2026-06-03T00:01:33Z"
+  },
+  {
+    "transaction_id": "evt_acme_ticket_0417",
+    "lago_id": "ev_5b07d21f8c64e003",
+    "external_subscription_id": "sub_acme_starter",
+    "code": "support_tickets",
+    "timestamp": "2026-05-22T09:14:00Z",
+    "properties": "{\"severity\": \"p2\", \"ticket\": \"OPS-4417\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-22T09:14:06Z"
+  },
+  {
+    "transaction_id": "evt_acme_ticket_0418",
+    "lago_id": "ev_5b07d21f8c64e004",
+    "external_subscription_id": "sub_acme_starter",
+    "code": "support_tickets",
+    "timestamp": "2026-05-27T16:02:00Z",
+    "properties": "{\"severity\": \"p3\", \"ticket\": \"OPS-4418\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-27T16:02:11Z"
+  },
+  {
+    "transaction_id": "evt_acme_ticket_0419",
+    "lago_id": "ev_5b07d21f8c64e005",
+    "external_subscription_id": "sub_acme_starter",
+    "code": "support_tickets",
+    "timestamp": "2026-06-01T11:41:00Z",
+    "properties": "{\"severity\": \"p1\", \"ticket\": \"OPS-4419\"}",
+    "invoice_id": "",
+    "created_at": "2026-06-01T11:41:04Z"
+  },
+  {
+    "transaction_id": "evt_acme_ticket_0420",
+    "lago_id": "ev_5b07d21f8c64e006",
+    "external_subscription_id": "sub_acme_starter",
+    "code": "support_tickets",
+    "timestamp": "2026-06-11T08:25:00Z",
+    "properties": "{\"severity\": \"p3\", \"ticket\": \"OPS-4420\"}",
+    "invoice_id": "",
+    "created_at": "2026-06-11T08:25:09Z"
+  },
+  {
+    "transaction_id": "evt_northwind_api_2026_05_19",
+    "lago_id": "ev_9f14c73e0b2ae001",
+    "external_subscription_id": "sub_northwind_scale",
+    "code": "api_calls",
+    "timestamp": "2026-05-19T23:59:00Z",
+    "properties": "{\"count\": 90000, \"region\": \"us-west\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-20T00:02:55Z"
+  },
+  {
+    "transaction_id": "evt_northwind_user_a",
+    "lago_id": "ev_9f14c73e0b2ae002",
+    "external_subscription_id": "sub_northwind_scale",
+    "code": "unique_users",
+    "timestamp": "2026-05-06T10:00:00Z",
+    "properties": "{\"user_id\": \"u_priya\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-06T10:00:02Z"
+  },
+  {
+    "transaction_id": "evt_northwind_user_b",
+    "lago_id": "ev_9f14c73e0b2ae003",
+    "external_subscription_id": "sub_northwind_scale",
+    "code": "unique_users",
+    "timestamp": "2026-05-13T10:00:00Z",
+    "properties": "{\"user_id\": \"u_dmitri\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-13T10:00:03Z"
+  },
+  {
+    "transaction_id": "evt_northwind_user_c",
+    "lago_id": "ev_9f14c73e0b2ae004",
+    "external_subscription_id": "sub_northwind_scale",
+    "code": "unique_users",
+    "timestamp": "2026-05-27T10:00:00Z",
+    "properties": "{\"user_id\": \"u_priya\"}",
+    "invoice_id": "",
+    "created_at": "2026-05-27T10:00:01Z"
+  },
+  {
+    "transaction_id": "evt_northwind_volume_2026_05_12",
+    "lago_id": "ev_9f14c73e0b2ae005",
+    "external_subscription_id": "sub_northwind_scale",
+    "code": "payment_volume_cents",
+    "timestamp": "2026-05-12T23:59:00Z",
+    "properties": "{\"amount_cents\": 780000}",
+    "invoice_id": "",
+    "created_at": "2026-05-13T00:01:28Z"
+  },
+  {
+    "transaction_id": "evt_northwind_volume_2026_05_26",
+    "lago_id": "ev_9f14c73e0b2ae006",
+    "external_subscription_id": "sub_northwind_scale",
+    "code": "payment_volume_cents",
+    "timestamp": "2026-05-26T23:59:00Z",
+    "properties": "{\"amount_cents\": 470000}",
+    "invoice_id": "",
+    "created_at": "2026-05-27T00:02:07Z"
+  }
+]

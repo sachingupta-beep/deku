@@ -1,0 +1,1903 @@
+{
+  "info": {
+    "name": "Logto Mock API v1.23.0",
+    "description": "Test collection for the mock Logto service. Base URL defaults to http://localhost:8116. In docker-compose, the service is reachable at http://logto-api:8116.\n\nLogto is OIDC-first, and the collection is built around that. `/oidc/*` is a real OAuth 2.0 authorization server: `POST /oidc/token` takes a grant_type (authorization_code, refresh_token, client_credentials), a `resource` indicator and a `scope`, and mints an access token bound to that resource. Errors follow RFC 6749.\n\n`/api/*` is the Management API, which is itself just another protected resource. A bearer works there only if it was issued FOR https://default.logto.app/api and carries a wide enough scope. The collection sends the same `GET /api/users` with four different tokens to show the four answers: full management token (200), read-only management token (200 for reads, 403 for writes), a token minted for the Orbit Status API (403, wrong audience) and an organization token (403).\n\nSeeded tokens: full management `logto_at_ci_full_9f14c73e0b2a`, read-only `logto_at_reporting_ro_5b07d21f8c64`, status-API `logto_at_amelia_status_c8e05a1976b3`, organization `logto_at_amelia_org_platform_7a63f04c9e21`. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8116"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "logto status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/status"
+      }
+    },
+    {
+      "name": "openid configuration",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/.well-known/openid-configuration"
+      }
+    },
+    {
+      "name": "jwks",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/jwks"
+      }
+    },
+    {
+      "name": "client credentials for the management api",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"appm2m1a5e0y\", \"client_secret\": \"logto_secret_ci_pipeline_9a2b6d31\", \"resource\": \"https://default.logto.app/api\", \"scope\": \"all\"}"
+        }
+      }
+    },
+    {
+      "name": "client credentials for the reporting job",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"appm2m7c3u4p\", \"client_secret\": \"logto_secret_reporting_1c84f065\", \"resource\": \"https://default.logto.app/api\", \"scope\": \"read:user\"}"
+        }
+      }
+    },
+    {
+      "name": "client credentials with a wrong secret (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"appm2m1a5e0y\", \"client_secret\": \"not-the-secret\", \"resource\": \"https://default.logto.app/api\"}"
+        }
+      }
+    },
+    {
+      "name": "client credentials from a public client (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"app6qk2v9x1m\"}"
+        }
+      }
+    },
+    {
+      "name": "client credentials for a resource the app has no scopes on (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"appm2m7c3u4p\", \"client_secret\": \"logto_secret_reporting_1c84f065\", \"resource\": \"https://api.orbit-labs.com/billing\", \"scope\": \"write:x\"}"
+        }
+      }
+    },
+    {
+      "name": "unknown client (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"appdoesnotexi\"}"
+        }
+      }
+    },
+    {
+      "name": "unsupported grant type (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"app6qk2v9x1m\"}"
+        }
+      }
+    },
+    {
+      "name": "authorize",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/auth?client_id=app6qk2v9x1m&redirect_uri=https://status.orbit-labs.com/callback&response_type=code&scope=openid%20profile%20email%20offline_access&resource=https://api.orbit-labs.com/status&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256&state=orbit-status-42"
+      }
+    },
+    {
+      "name": "authorize without pkce from a public client (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/auth?client_id=app6qk2v9x1m&redirect_uri=https://status.orbit-labs.com/callback&response_type=code"
+      }
+    },
+    {
+      "name": "authorize with an unregistered redirect uri (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/auth?client_id=app6qk2v9x1m&redirect_uri=https://evil.example.com/callback&response_type=code&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+      }
+    },
+    {
+      "name": "authorize from a machine-to-machine app (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/auth?client_id=appm2m1a5e0y&redirect_uri=https://status.orbit-labs.com/callback&response_type=code"
+      }
+    },
+    {
+      "name": "authorize with an unsupported response type (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/auth?client_id=app6qk2v9x1m&redirect_uri=https://status.orbit-labs.com/callback&response_type=token"
+      }
+    },
+    {
+      "name": "exchange the seeded authorization code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"app6qk2v9x1m\", \"code\": \"logto_code_amelia_e70b2c948d15\", \"code_verifier\": \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\", \"redirect_uri\": \"https://status.orbit-labs.com/callback\"}"
+        }
+      }
+    },
+    {
+      "name": "replay the same authorization code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"app6qk2v9x1m\", \"code\": \"logto_code_amelia_e70b2c948d15\", \"code_verifier\": \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\", \"redirect_uri\": \"https://status.orbit-labs.com/callback\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange a code with the wrong verifier (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"appt3z7w0b8n\", \"client_secret\": \"logto_secret_admin_console_4f19c7e0\", \"code\": \"logto_code_rohit_used_5a1c93e08b74\", \"redirect_uri\": \"https://admin.orbit-labs.com/callback\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange an unknown code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"app6qk2v9x1m\", \"code\": \"logto_code_does_not_exist\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh a session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"app6qk2v9x1m\", \"refresh_token\": \"logto_rt_jonas_spa_6c19af35e082\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with a revoked token (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"appt3z7w0b8n\", \"client_secret\": \"logto_secret_admin_console_4f19c7e0\", \"refresh_token\": \"logto_rt_rohit_web_b530d7419ce6\"}"
+        }
+      }
+    },
+    {
+      "name": "exchange for an organization token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"app6qk2v9x1m\", \"refresh_token\": \"logto_rt_amelia_spa_04b7e21c9d38\", \"organization_id\": \"org5platform1\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect an active token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/introspection",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_ci_full_9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect a user token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/introspection",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_amelia_status_c8e05a1976b3\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect an organization token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/introspection",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_amelia_org_platform_7a63f04c9e21\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect a revoked token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/introspection",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_jonas_revoked_1e94c7a305df\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect an unknown token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/introspection",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_never_issued\"}"
+        }
+      }
+    },
+    {
+      "name": "userinfo",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_amelia_status_c8e05a1976b3"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userinfo without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/me"
+      }
+    },
+    {
+      "name": "userinfo with a revoked token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_jonas_revoked_1e94c7a305df"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userinfo with a machine token (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/oidc/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "revoke a token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/revocation",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_jonas_status_2d47b9e01f5c\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect it after revocation",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/introspection",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_jonas_status_2d47b9e01f5c\"}"
+        }
+      }
+    },
+    {
+      "name": "revoke an unknown token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token/revocation",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"logto_at_never_issued\"}"
+        }
+      }
+    },
+    {
+      "name": "list users with a full management token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users?page=1&page_size=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users with a read-only management token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users?page=1&page_size=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_reporting_ro_5b07d21f8c64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a user with a read-only token (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_reporting_ro_5b07d21f8c64"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"denied\", \"primaryEmail\": \"denied@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "list users with a token issued for another resource (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_amelia_status_c8e05a1976b3"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users with an organization token (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_amelia_org_platform_7a63f04c9e21"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users"
+      }
+    },
+    {
+      "name": "list users with a revoked token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_jonas_revoked_1e94c7a305df"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users?search=park&page_size=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list suspended users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users?isSuspended=true",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown user (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/zz00nosuchid0",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"iris\", \"primaryEmail\": \"iris.tanaka@orbit-labs.com\", \"password\": \"Stellar-Iris-2026!\", \"name\": \"Iris Tanaka\", \"customData\": {\"team\": \"support\", \"seatId\": \"SEAT-410\"}}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a taken email (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"primaryEmail\": \"amelia.ortega@orbit-labs.com\", \"password\": \"Stellar-Duplicate-2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a short password (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"primaryEmail\": \"short@orbit-labs.com\", \"password\": \"Sh0rt!\"}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a password containing a rejected word (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"primaryEmail\": \"worded@orbit-labs.com\", \"password\": \"MyOrbitPassword2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "create a user with no identifier (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Nobody\"}"
+        }
+      }
+    },
+    {
+      "name": "update a user",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/d6y0jl52nvk8",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Rohit K. Bansal\", \"avatar\": \"https://cdn.orbit-labs.com/avatars/rohit.png\"}"
+        }
+      }
+    },
+    {
+      "name": "update a user to a taken email (422 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/d6y0jl52nvk8",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"primaryEmail\": \"amelia.ortega@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "verify a password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users/d6y0jl52nvk8/password/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"OrbitRohit2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "verify a wrong password (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users/d6y0jl52nvk8/password/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "verify a password on a social-only account (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users/p1s7ea94hgu2/password/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"any\"}"
+        }
+      }
+    },
+    {
+      "name": "set a password",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/d6y0jl52nvk8/password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"Nebula-Rohit-2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "set a rejected password (422 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/d6y0jl52nvk8/password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"aaaaaaaaaa\"}"
+        }
+      }
+    },
+    {
+      "name": "verify the new password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users/d6y0jl52nvk8/password/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"Nebula-Rohit-2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "read custom data",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1/custom-data",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "merge custom data",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1/custom-data",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"customData\": {\"team\": \"platform-core\", \"oncall\": \"true\"}}"
+        }
+      }
+    },
+    {
+      "name": "read identities",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1/identities",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlink an identity",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1/identities/google",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlink it again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1/identities/google",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlink the only identity of a passwordless account (422 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/users/p1s7ea94hgu2/identities/github",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read a user's roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1/roles",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "grant a role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users/p1s7ea94hgu2/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleIds\": [\"rol2viewer001\"]}"
+        }
+      }
+    },
+    {
+      "name": "grant the same role twice (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users/p1s7ea94hgu2/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleIds\": [\"rol2viewer001\"]}"
+        }
+      }
+    },
+    {
+      "name": "grant an unknown role (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/users/p1s7ea94hgu2/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"roleIds\": [\"rolnope00001\"]}"
+        }
+      }
+    },
+    {
+      "name": "revoke a role",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/users/p1s7ea94hgu2/roles/rol2viewer001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "revoke a role the user does not hold (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/users/p1s7ea94hgu2/roles/rol2viewer001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read a user's organizations",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/n4k29xqf7bd1/organizations",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/roles",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list machine roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/roles?type=MachineToMachine",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a role",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/roles/rol1operator1",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown role (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/roles/rolnope00001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"auditor\", \"description\": \"Read-only auditor\", \"scopeNames\": [\"read:incidents\", \"read:services\"]}"
+        }
+      }
+    },
+    {
+      "name": "create a role with a taken name (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"admin\"}"
+        }
+      }
+    },
+    {
+      "name": "list applications",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/applications",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list machine-to-machine applications",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/applications?type=MachineToMachine",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an application",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/applications/app6qk2v9x1m",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown application (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/applications/appnope00001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create an application",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/applications",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Orbit Webhook Relay\", \"type\": \"MachineToMachine\", \"description\": \"Delivers status webhooks\"}"
+        }
+      }
+    },
+    {
+      "name": "create an application with an invalid type (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/applications",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Broken\", \"type\": \"Desktop\"}"
+        }
+      }
+    },
+    {
+      "name": "delete an application that still has users (422 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/applications/app6qk2v9x1m",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list api resources",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/resources",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list a resource's scopes",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/resources/res5statusapi/scopes",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list an unknown resource's scopes (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/resources/resnope00001/scopes",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list organizations",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/organizations?page=1&page_size=10",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an organization",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/organizations/org5platform1",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown organization (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/organizations/orgnope00001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list organization members",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/organizations/org5platform1/users",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list organization roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/organization-roles",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list organization scopes",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/organization-scopes",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create an organization",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/organizations",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Orbit Support\", \"description\": \"Front-line support team\", \"isMfaRequired\": false, \"customData\": {\"tier\": \"internal\"}}"
+        }
+      }
+    },
+    {
+      "name": "create an organization without a name (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/organizations",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"description\": \"no name\"}"
+        }
+      }
+    },
+    {
+      "name": "add a member to an organization",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/organizations/org6acmepart1/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userIds\": [\"z5r2od38kxa9\"]}"
+        }
+      }
+    },
+    {
+      "name": "add an unknown member (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/organizations/org6acmepart1/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userIds\": [\"zz00nosuchid0\"]}"
+        }
+      }
+    },
+    {
+      "name": "set a member's organization roles",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/organizations/org6acmepart1/users/z5r2od38kxa9/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"organizationRoleIds\": [\"orl2guest0001\"]}"
+        }
+      }
+    },
+    {
+      "name": "set roles for a non-member (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/organizations/org6acmepart1/users/n4k29xqf7bd1/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"organizationRoleIds\": [\"orl2guest0001\"]}"
+        }
+      }
+    },
+    {
+      "name": "list the organization's members after the change",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/organizations/org6acmepart1/users",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "remove a member",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/organizations/org6acmepart1/users/z5r2od38kxa9",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "remove the member again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/organizations/org6acmepart1/users/z5r2od38kxa9",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read my organization with an organization token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/my-organization",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_amelia_org_platform_7a63f04c9e21"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read my organization with a management token (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/my-organization",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read my organization without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/my-organization"
+      }
+    },
+    {
+      "name": "list connectors",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/connectors",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list social connectors",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/connectors?type=Social",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a connector",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/connectors/con2smtp00001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown connector (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/connectors/connope00001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read the sign-in experience",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/sign-in-exp",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "update the sign-in experience",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/sign-in-exp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"termsOfUseUrl\": \"https://orbit-labs.com/terms-2026\", \"supportEmail\": \"help@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "list audit logs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs?page=1&page_size=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list audit logs for one key",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs?logKey=ExchangeTokenBy.ClientCredentials",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list audit logs for one user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs?userId=n4k29xqf7bd1",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an audit log entry",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs/log0000000003",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown audit log entry (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs/lognope00001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dashboard totals",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/dashboard/users/total",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "suspend a user",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/t8m3vc06wzr5/is-suspended",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"isSuspended\": true}"
+        }
+      }
+    },
+    {
+      "name": "refresh after suspension (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/oidc/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"app6qk2v9x1m\", \"refresh_token\": \"logto_rt_jonas_spa_6c19af35e082\"}"
+        }
+      }
+    },
+    {
+      "name": "lift a suspension",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/c3b8wq71tfm4/is-suspended",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"isSuspended\": false}"
+        }
+      }
+    },
+    {
+      "name": "suspend without a value (422 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/users/c3b8wq71tfm4/is-suspended",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "delete a user",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/users/z5r2od38kxa9",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete the same user again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/users/z5r2od38kxa9",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer logto_at_ci_full_9f14c73e0b2a"
+          }
+        ]
+      }
+    }
+  ]
+}

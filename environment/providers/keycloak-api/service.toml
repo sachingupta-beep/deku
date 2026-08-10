@@ -1,0 +1,5 @@
+[service]
+name = "keycloak-api"
+port = 8117
+env_var_name = "KEYCLOAK_API_URL"
+healthcheck_path = "/health"

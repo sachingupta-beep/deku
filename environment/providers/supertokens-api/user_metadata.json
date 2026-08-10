@@ -1,0 +1,7 @@
+[
+  {"userId": "0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1", "metadata": "firstName=Amelia;lastName=Ortega;team=platform;onboardedAt=2024-01-10;seatId=SEAT-114"},
+  {"userId": "5a92c04f-1b76-4d38-9e51-c8f0b273a469", "metadata": "firstName=Jonas;lastName=Pereira;team=infrastructure;onboardedAt=2024-02-04;seatId=SEAT-207"},
+  {"userId": "b3f61d08-9e24-4a75-8c30-71d5e0a94b26", "metadata": "firstName=Helena;lastName=Park;team=infrastructure;onboardedAt=2024-03-18;seatId=SEAT-251"},
+  {"userId": "e84c25b7-0a63-4f91-bd28-3c7016fa5d84", "metadata": "firstName=Rohit;lastName=Bansal;team=support;onboardedAt=2024-10-02;seatId=SEAT-302"},
+  {"userId": "7c05f9e2-46b1-48da-9037-2ba8d1c6e053", "metadata": "firstName=Noor;lastName=Aziz;team=infrastructure;onboardedAt=2024-10-18;seatId=SEAT-338"}
+]

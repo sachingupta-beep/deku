@@ -1,0 +1,11 @@
+[
+  {"id": "1", "article_id": "1", "version": "1", "editor_id": "1", "summary": "Initial draft", "changed_at": "2025-04-02 10:00:00"},
+  {"id": "2", "article_id": "1", "version": "2", "editor_id": "1", "summary": "Added the firewall port note", "changed_at": "2025-09-11 14:20:00"},
+  {"id": "3", "article_id": "1", "version": "3", "editor_id": "2", "summary": "Clarified LED meanings", "changed_at": "2026-02-11 11:00:00"},
+  {"id": "4", "article_id": "1", "version": "4", "editor_id": "1", "summary": "Linked the forum answer", "changed_at": "2026-03-02 08:05:00"},
+  {"id": "5", "article_id": "2", "version": "1", "editor_id": "1", "summary": "Initial draft", "changed_at": "2026-05-19 10:45:00"},
+  {"id": "6", "article_id": "2", "version": "2", "editor_id": "1", "summary": "Added the 40-node threshold", "changed_at": "2026-05-19 11:00:00"},
+  {"id": "7", "article_id": "3", "version": "5", "editor_id": "2", "summary": "Raised the read ceiling to 1200", "changed_at": "2026-04-18 09:30:00"},
+  {"id": "8", "article_id": "3", "version": "6", "editor_id": "2", "summary": "Documented the per-key scope", "changed_at": "2026-05-26 07:20:00"},
+  {"id": "9", "article_id": "5", "version": "3", "editor_id": "2", "summary": "Marked archived", "changed_at": "2025-11-14 09:00:00"}
+]

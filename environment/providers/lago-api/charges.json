@@ -1,0 +1,90 @@
+[
+  {
+    "_pk": "orbit_starter#api_calls",
+    "lago_id": "chr_3f7e1b0c2d54a001",
+    "plan_code": "orbit_starter",
+    "billable_metric_code": "api_calls",
+    "charge_model": "package",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"free_units\": 10000, \"package_size\": 10000, \"amount_cents\": 500}"
+  },
+  {
+    "_pk": "orbit_starter#support_tickets",
+    "lago_id": "chr_3f7e1b0c2d54a002",
+    "plan_code": "orbit_starter",
+    "billable_metric_code": "support_tickets",
+    "charge_model": "standard",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"per_unit_amount_millicents\": 1500000}"
+  },
+  {
+    "_pk": "orbit_growth#api_calls",
+    "lago_id": "chr_5b07d21f8c642001",
+    "plan_code": "orbit_growth",
+    "billable_metric_code": "api_calls",
+    "charge_model": "graduated",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"graduated_ranges\": [{\"from_value\": 0, \"to_value\": 50000, \"per_unit_amount_millicents\": 0, \"flat_amount_cents\": 0}, {\"from_value\": 50001, \"to_value\": 200000, \"per_unit_amount_millicents\": 200, \"flat_amount_cents\": 0}, {\"from_value\": 200001, \"to_value\": null, \"per_unit_amount_millicents\": 120, \"flat_amount_cents\": 0}]}"
+  },
+  {
+    "_pk": "orbit_growth#data_egress_gb",
+    "lago_id": "chr_5b07d21f8c642002",
+    "plan_code": "orbit_growth",
+    "billable_metric_code": "data_egress_gb",
+    "charge_model": "volume",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"volume_ranges\": [{\"from_value\": 0, \"to_value\": 100, \"per_unit_amount_millicents\": 15000, \"flat_amount_cents\": 0}, {\"from_value\": 101, \"to_value\": 1000, \"per_unit_amount_millicents\": 11000, \"flat_amount_cents\": 500}, {\"from_value\": 1001, \"to_value\": null, \"per_unit_amount_millicents\": 8000, \"flat_amount_cents\": 2000}]}"
+  },
+  {
+    "_pk": "orbit_growth#active_seats",
+    "lago_id": "chr_5b07d21f8c642003",
+    "plan_code": "orbit_growth",
+    "billable_metric_code": "active_seats",
+    "charge_model": "standard",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"per_unit_amount_millicents\": 1200000}"
+  },
+  {
+    "_pk": "orbit_scale#api_calls",
+    "lago_id": "chr_9f14c73e0b2a3001",
+    "plan_code": "orbit_scale",
+    "billable_metric_code": "api_calls",
+    "charge_model": "graduated",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"graduated_ranges\": [{\"from_value\": 0, \"to_value\": 100000, \"per_unit_amount_millicents\": 150, \"flat_amount_cents\": 0}, {\"from_value\": 100001, \"to_value\": null, \"per_unit_amount_millicents\": 90, \"flat_amount_cents\": 0}]}"
+  },
+  {
+    "_pk": "orbit_scale#unique_users",
+    "lago_id": "chr_9f14c73e0b2a3002",
+    "plan_code": "orbit_scale",
+    "billable_metric_code": "unique_users",
+    "charge_model": "standard",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"per_unit_amount_millicents\": 250000}"
+  },
+  {
+    "_pk": "orbit_scale#payment_volume_cents",
+    "lago_id": "chr_9f14c73e0b2a3003",
+    "plan_code": "orbit_scale",
+    "billable_metric_code": "payment_volume_cents",
+    "charge_model": "percentage",
+    "pay_in_advance": "0",
+    "invoiceable": "1",
+    "min_amount_cents": "0",
+    "properties": "{\"rate_bps\": 150, \"fixed_amount_cents_per_event\": 50, \"free_units\": 0}"
+  }
+]

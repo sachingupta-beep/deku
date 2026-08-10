@@ -1,0 +1,55 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "directus"
+name     = "Directus"
+category = "backend"
+status   = "declared"
+version  = "v1"
+module   = "services.directus.service:DirectusService"
+upstream = "https://docs.directus.io/reference/introduction.html"
+summary  = """
+Headless CMS over an arbitrary schema: /items CRUD with deep filters, sorting and aggregation, plus the collections, fields and permissions metadata that drive it."""
+tags = [
+  "items",
+  "collections",
+  "schema",
+  "permissions",
+  "flows",
+]
+
+[data]
+dir = "directus"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "public",
+  "user",
+  "admin",
+]
+description = """
+`Authorization: Bearer <token>`. The token maps onto a Directus role, and role permissions decide which collections are readable and which fields come back."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/items",
+  "/collections",
+  "/fields",
+  "/relations",
+  "/files",
+  "/users",
+  "/roles",
+  "/permissions",
+  "/flows",
+  "/server",
+]

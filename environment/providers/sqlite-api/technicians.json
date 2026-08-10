@@ -1,0 +1,7 @@
+[
+  {"id": "1", "name": "Helena Park", "email": "helena.park@orbit-labs.com", "region": "EMEA", "certification": "senior", "active": "1", "hired_on": "2024-03-18"},
+  {"id": "2", "name": "Daniel Osei", "email": "daniel.osei@orbit-labs.com", "region": "EMEA", "certification": "standard", "active": "1", "hired_on": "2025-09-08"},
+  {"id": "3", "name": "Ines Moreau", "email": "ines.moreau@orbit-labs.com", "region": "EMEA", "certification": "standard", "active": "1", "hired_on": "2025-04-14"},
+  {"id": "4", "name": "Marcus Feld", "email": "marcus.feld@orbit-labs.com", "region": "AMER", "certification": "senior", "active": "1", "hired_on": "2024-11-04"},
+  {"id": "5", "name": "Tobias Krause", "email": "tobias.krause@orbit-labs.com", "region": "EMEA", "certification": "apprentice", "active": "0", "hired_on": "2024-06-03"}
+]

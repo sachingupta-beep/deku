@@ -1,0 +1,6 @@
+[
+  {"id": "orbit-status-web", "name": "Orbit Status Web", "secret": "dex-secret-status-web-9f14c73e0b2a", "public": "0", "redirectURIs": "https://status.orbit-labs.com/callback;http://localhost:5555/callback", "trustedPeers": "orbit-grafana", "logoURL": "https://cdn.orbit-labs.com/logo.svg", "grantTypes": "authorization_code;refresh_token;password"},
+  {"id": "orbit-cli", "name": "Orbit CLI", "secret": "", "public": "1", "redirectURIs": "urn:ietf:wg:oauth:2.0:oob;http://127.0.0.1/callback", "trustedPeers": "", "logoURL": "", "grantTypes": "authorization_code;refresh_token;urn:ietf:params:oauth:grant-type:device_code"},
+  {"id": "orbit-grafana", "name": "Orbit Grafana", "secret": "dex-secret-grafana-5b07d21f8c64", "public": "0", "redirectURIs": "https://grafana.orbit-labs.com/login/generic_oauth", "trustedPeers": "orbit-kubectl", "logoURL": "", "grantTypes": "authorization_code;refresh_token"},
+  {"id": "orbit-kubectl", "name": "Orbit kubectl", "secret": "dex-secret-kubectl-1c84f065", "public": "0", "redirectURIs": "http://localhost:8000;http://localhost:18000", "trustedPeers": "", "logoURL": "", "grantTypes": "authorization_code;refresh_token;urn:ietf:params:oauth:grant-type:device_code"}
+]

@@ -1,0 +1,93 @@
+[
+  {
+    "id": "3a9c4e17-2b81-4f60-9d3e-7c05a1b2c3d4",
+    "clientAddress": "172.19.0.14",
+    "clientName": "kratos.orbit-labs.com",
+    "startDate": "2026-05-27T16:41:52.101Z",
+    "endDate": "2026-05-28T09:14:13.402Z",
+    "terminatedWithError": "0",
+    "sessionErrorType": "None",
+    "sessionError": "",
+    "secureConnection": "1",
+    "authenticatedUser": "orbit-mailer",
+    "log": "S: 220 smtp4dev.orbit-labs.local smtp4dev ready\nC: EHLO kratos.orbit-labs.com\nS: 250-smtp4dev.orbit-labs.local\nS: 250-STARTTLS\nS: 250-AUTH PLAIN LOGIN\nS: 250 8BITMIME\nC: STARTTLS\nS: 220 Ready to start TLS\nC: AUTH PLAIN AG9yYml0LW1haWxlcgAqKioqKg==\nS: 235 Authentication successful\nC: MAIL FROM:<auth@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<jonas.pereira@orbit-labs.com>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <1104 bytes of message data>\nS: 250 OK: queued\nC: MAIL FROM:<billing@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<amelia.ortega@orbit-labs.com>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <1687 bytes of message data>\nS: 250 OK: queued\nC: QUIT\nS: 221 Goodbye"
+  },
+  {
+    "id": "4b0d5f28-3c92-4071-8e4f-8d16b2c3d4e5",
+    "clientAddress": "203.0.113.44",
+    "clientName": "mx1.stripe.example",
+    "startDate": "2026-05-27T14:30:51.880Z",
+    "endDate": "2026-05-27T14:30:56.004Z",
+    "terminatedWithError": "0",
+    "sessionErrorType": "None",
+    "sessionError": "",
+    "secureConnection": "1",
+    "authenticatedUser": "",
+    "log": "S: 220 smtp4dev.orbit-labs.local smtp4dev ready\nC: EHLO mx1.stripe.example\nS: 250-smtp4dev.orbit-labs.local\nS: 250-STARTTLS\nS: 250 8BITMIME\nC: STARTTLS\nS: 220 Ready to start TLS\nC: MAIL FROM:<noreply@stripe.example>\nS: 250 OK\nC: RCPT TO:<billing@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<finance@orbit-labs.com>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <1402 bytes of message data>\nS: 250 OK: queued\nC: QUIT\nS: 221 Goodbye"
+  },
+  {
+    "id": "5c1e6039-4da3-4182-9f50-9e27c3d4e5f6",
+    "clientAddress": "172.19.0.31",
+    "clientName": "status.orbit-labs.com",
+    "startDate": "2026-05-24T19:30:09.223Z",
+    "endDate": "2026-05-26T14:22:09.610Z",
+    "terminatedWithError": "0",
+    "sessionErrorType": "None",
+    "sessionError": "",
+    "secureConnection": "0",
+    "authenticatedUser": "",
+    "log": "S: 220 smtp4dev.orbit-labs.local smtp4dev ready\nC: HELO status.orbit-labs.com\nS: 250 smtp4dev.orbit-labs.local\nC: MAIL FROM:<monitoring@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<oncall@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<sre@orbit-labs.com>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <892 bytes of message data>\nS: 250 OK: queued\nC: MAIL FROM:<status@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<oncall@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<helena.park@orbit-labs.com>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <1341 bytes of message data>\nS: 250 OK: queued\nC: QUIT\nS: 221 Goodbye"
+  },
+  {
+    "id": "6d2f714a-5eb4-4293-a061-af38d4e5f607",
+    "clientAddress": "172.19.0.22",
+    "clientName": "app.orbit-labs.com",
+    "startDate": "2026-05-25T10:05:38.900Z",
+    "endDate": "2026-05-25T10:05:42.331Z",
+    "terminatedWithError": "0",
+    "sessionErrorType": "None",
+    "sessionError": "",
+    "secureConnection": "1",
+    "authenticatedUser": "orbit-mailer",
+    "log": "S: 220 smtp4dev.orbit-labs.local smtp4dev ready\nC: EHLO app.orbit-labs.com\nS: 250-smtp4dev.orbit-labs.local\nS: 250-STARTTLS\nS: 250-AUTH PLAIN LOGIN\nS: 250 8BITMIME\nC: STARTTLS\nS: 220 Ready to start TLS\nC: AUTH PLAIN AG9yYml0LW1haWxlcgAqKioqKg==\nS: 235 Authentication successful\nC: MAIL FROM:<noor.aziz@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<partners@acme-partner.example>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <742 bytes of message data>\nS: 250 OK: queued\nC: QUIT\nS: 221 Goodbye"
+  },
+  {
+    "id": "7e30825b-6fc5-43a4-b172-b049e5f60718",
+    "clientAddress": "198.51.100.77",
+    "clientName": "unknown",
+    "startDate": "2026-05-26T03:11:04.512Z",
+    "endDate": "2026-05-26T03:11:06.980Z",
+    "terminatedWithError": "1",
+    "sessionErrorType": "UnexpectedException",
+    "sessionError": "Authentication failed for user 'admin' after 3 attempts",
+    "secureConnection": "0",
+    "authenticatedUser": "",
+    "log": "S: 220 smtp4dev.orbit-labs.local smtp4dev ready\nC: EHLO unknown\nS: 250-smtp4dev.orbit-labs.local\nS: 250-AUTH PLAIN LOGIN\nS: 250 8BITMIME\nC: AUTH LOGIN\nS: 334 VXNlcm5hbWU6\nC: YWRtaW4=\nS: 334 UGFzc3dvcmQ6\nC: ***\nS: 535 5.7.8 Authentication credentials invalid\nC: AUTH LOGIN\nS: 334 VXNlcm5hbWU6\nC: YWRtaW4=\nS: 334 UGFzc3dvcmQ6\nC: ***\nS: 535 5.7.8 Authentication credentials invalid\nC: AUTH LOGIN\nS: 334 VXNlcm5hbWU6\nC: YWRtaW4=\nS: 334 UGFzc3dvcmQ6\nC: ***\nS: 535 5.7.8 Authentication credentials invalid\nS: 421 4.7.0 Too many failed authentication attempts, closing connection"
+  },
+  {
+    "id": "8f41936c-70d6-44b5-8283-c15af6071829",
+    "clientAddress": "192.0.2.13",
+    "clientName": "relay.partner.example",
+    "startDate": "2026-05-25T22:47:19.044Z",
+    "endDate": "2026-05-25T22:47:20.771Z",
+    "terminatedWithError": "1",
+    "sessionErrorType": "ClientDisconnected",
+    "sessionError": "Client disconnected after the recipient was rejected, before DATA",
+    "secureConnection": "0",
+    "authenticatedUser": "",
+    "log": "S: 220 smtp4dev.orbit-labs.local smtp4dev ready\nC: EHLO relay.partner.example\nS: 250-smtp4dev.orbit-labs.local\nS: 250 8BITMIME\nC: MAIL FROM:<bulk@relay.partner.example>\nS: 250 OK\nC: RCPT TO:<dmitri.volkov@orbit-labs.com>\nS: 550 5.1.1 Recipient address rejected: user unknown\nC: RCPT TO:<postmaster@orbit-labs.com>\nS: 550 5.1.1 Recipient address rejected: user unknown\n<connection closed by client>"
+  },
+  {
+    "id": "9052a47d-81e7-46c6-9394-d26b0718293a",
+    "clientAddress": "172.19.0.9",
+    "clientName": "legacy.orbit-labs.com",
+    "startDate": "2026-05-23T02:14:58.117Z",
+    "endDate": "2026-05-23T11:10:21.205Z",
+    "terminatedWithError": "0",
+    "sessionErrorType": "None",
+    "sessionError": "",
+    "secureConnection": "0",
+    "authenticatedUser": "",
+    "log": "S: 220 smtp4dev.orbit-labs.local smtp4dev ready\nC: HELO legacy.orbit-labs.com\nS: 250 smtp4dev.orbit-labs.local\nC: MAIL FROM:<legacy-exporter@orbit-labs.com>\nS: 250 OK\nC: RCPT TO:<archive@orbit-labs.com>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <2211 bytes of message data>\nS: 250 OK: queued (1 MIME warning)\nC: MAIL FROM:<noreply@stripe.example>\nS: 250 OK\nC: RCPT TO:<invoices@orbit-labs.com>\nS: 250 OK\nC: DATA\nS: 354 Start mail input; end with <CRLF>.<CRLF>\nC: <766 bytes of message data>\nS: 250 OK: queued\nC: QUIT\nS: 221 Goodbye"
+  }
+]

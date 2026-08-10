@@ -1,0 +1,6 @@
+[
+  {"id": "osc0read00001", "name": "org:read", "description": "Read organization resources"},
+  {"id": "osc1write0001", "name": "org:write", "description": "Modify organization resources"},
+  {"id": "osc2invite001", "name": "org:invite", "description": "Invite members to the organization"},
+  {"id": "osc3billing01", "name": "org:billing", "description": "Read and pay organization invoices"}
+]

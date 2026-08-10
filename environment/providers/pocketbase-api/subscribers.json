@@ -1,0 +1,52 @@
+[
+  {
+    "id": "subscriber00001",
+    "email": "ops@aurorabistro.com",
+    "name": "Aurora Bistro Ops",
+    "services": "svcauthapi00001;svcwebapp000003",
+    "confirmed": "true",
+    "subscribed": "2025-06-04 09:12:00.000Z",
+    "created": "2025-06-04 09:12:00.000Z",
+    "updated": "2025-06-04 09:20:00.000Z"
+  },
+  {
+    "id": "subscriber00002",
+    "email": "sre@helixrobotics.io",
+    "name": "Helix SRE",
+    "services": "svcauthapi00001;svcbillingapi02;svcinfra0000004",
+    "confirmed": "true",
+    "subscribed": "2025-09-18 14:02:00.000Z",
+    "created": "2025-09-18 14:02:00.000Z",
+    "updated": "2025-09-18 14:06:00.000Z"
+  },
+  {
+    "id": "subscriber00003",
+    "email": "accounts@lumendesign.co",
+    "name": "Lumen Design",
+    "services": "svcbillingapi02",
+    "confirmed": "true",
+    "subscribed": "2026-01-22 11:45:00.000Z",
+    "created": "2026-01-22 11:45:00.000Z",
+    "updated": "2026-01-22 11:51:00.000Z"
+  },
+  {
+    "id": "subscriber00004",
+    "email": "finance@pelagicfreight.com",
+    "name": "Pelagic Freight Finance",
+    "services": "svcbillingapi02",
+    "confirmed": "false",
+    "subscribed": "2026-05-19 16:30:00.000Z",
+    "created": "2026-05-19 16:30:00.000Z",
+    "updated": "2026-05-19 16:30:00.000Z"
+  },
+  {
+    "id": "subscriber00005",
+    "email": "hello@verdantfarms.org",
+    "name": "Verdant Farms",
+    "services": "svcwebapp000003;svcdocs00000005",
+    "confirmed": "true",
+    "subscribed": "2026-03-02 08:15:00.000Z",
+    "created": "2026-03-02 08:15:00.000Z",
+    "updated": "2026-03-02 08:22:00.000Z"
+  }
+]

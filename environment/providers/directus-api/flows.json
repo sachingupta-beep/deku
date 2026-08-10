@@ -1,0 +1,38 @@
+[
+  {
+    "id": "d3b18f57-0c94-4a26-b7e1-5f8290ac6d34",
+    "name": "Publish notification",
+    "icon": "campaign",
+    "color": "#00B37E",
+    "status": "active",
+    "trigger": "event",
+    "accountability": "all",
+    "options": "type=action;scope=items.update;collections=posts",
+    "operation": "op_notify_slack",
+    "date_created": "2025-10-14T09:00:00.000Z"
+  },
+  {
+    "id": "7c02a469-8e35-4d71-9b60-2a5f13ed8c07",
+    "name": "Nightly sitemap rebuild",
+    "icon": "schedule",
+    "color": "#2E7DFF",
+    "status": "active",
+    "trigger": "schedule",
+    "accountability": "null",
+    "options": "cron=0 3 * * *",
+    "operation": "op_rebuild_sitemap",
+    "date_created": "2025-08-02T11:30:00.000Z"
+  },
+  {
+    "id": "b5f70e21-4a86-49c3-8d02-6e14b97cf5a8",
+    "name": "Archive stale drafts",
+    "icon": "auto_delete",
+    "color": "#F2A03D",
+    "status": "inactive",
+    "trigger": "schedule",
+    "accountability": "null",
+    "options": "cron=0 4 * * 1",
+    "operation": "op_archive_drafts",
+    "date_created": "2026-01-20T08:15:00.000Z"
+  }
+]

@@ -1,0 +1,52 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "postgresql"
+name     = "PostgreSQL"
+category = "database"
+status   = "declared"
+version  = "v1"
+module   = "services.postgresql.service:PostgresqlService"
+upstream = "https://www.postgresql.org/docs/current/protocol.html"
+summary  = """
+Server-class SQL: schemas, EXPLAIN plans, pg_stat views, SQLSTATE error codes and PostgreSQL's strict typing."""
+tags = [
+  "sql",
+  "sqlstate",
+  "explain",
+  "schemas",
+  "pg-catalog",
+]
+
+[data]
+dir = "postgresql"
+
+[auth]
+scheme      = "basic"
+roles       = [
+  "readonly",
+  "readwrite",
+  "superuser",
+]
+description = """
+HTTP Basic maps onto a database role. Denied statements return the real SQLSTATE (42501 insufficient_privilege, 42P01 undefined_table)."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/query",
+  "/execute",
+  "/databases",
+  "/schemas",
+  "/tables",
+  "/explain",
+  "/stat",
+]

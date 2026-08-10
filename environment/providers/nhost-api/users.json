@@ -1,0 +1,80 @@
+[
+  {
+    "id": "2b7f1c94-3d05-4e68-a91f-6c48e07b2d53",
+    "email": "priya.raman@aurorabistro.com",
+    "display_name": "Priya Raman",
+    "avatar_url": "https://avatars.example.com/priya.png",
+    "default_role": "user",
+    "roles": "user;me",
+    "locale": "en",
+    "email_verified": "true",
+    "disabled": "false",
+    "last_seen": "2026-05-26T07:58:00+00:00",
+    "created_at": "2025-03-04T10:22:00+00:00"
+  },
+  {
+    "id": "8e40a5d1-72b6-4c39-95f0-1d83c7e6b0a4",
+    "email": "marcus.feld@helixrobotics.io",
+    "display_name": "Marcus Feld",
+    "avatar_url": "https://avatars.example.com/marcus.png",
+    "default_role": "user",
+    "roles": "user;me",
+    "locale": "de",
+    "email_verified": "true",
+    "disabled": "false",
+    "last_seen": "2026-05-25T18:12:00+00:00",
+    "created_at": "2024-09-12T08:05:00+00:00"
+  },
+  {
+    "id": "f1c60b37-9a24-4d85-b7e2-05a9d3f81c6e",
+    "email": "sofia.duarte@lumendesign.co",
+    "display_name": "Sofia Duarte",
+    "avatar_url": "https://avatars.example.com/sofia.png",
+    "default_role": "user",
+    "roles": "user;me",
+    "locale": "pt",
+    "email_verified": "true",
+    "disabled": "false",
+    "last_seen": "2026-05-24T09:44:00+00:00",
+    "created_at": "2025-06-18T14:30:00+00:00"
+  },
+  {
+    "id": "5d83e2a9-041b-4f76-8c35-b9e07a1d264c",
+    "email": "daniel.osei@quanta.ai",
+    "display_name": "Daniel Osei",
+    "avatar_url": "https://avatars.example.com/daniel.png",
+    "default_role": "user",
+    "roles": "user;me",
+    "locale": "en",
+    "email_verified": "true",
+    "disabled": "false",
+    "last_seen": "2026-05-26T08:20:00+00:00",
+    "created_at": "2024-11-27T15:50:00+00:00"
+  },
+  {
+    "id": "a6902f5c-8b13-47de-90a4-2c7f5e18b930",
+    "email": "amelia.ortega@orbit-labs.com",
+    "display_name": "Amelia Ortega",
+    "avatar_url": "https://avatars.example.com/amelia.png",
+    "default_role": "user",
+    "roles": "user;me;support",
+    "locale": "en",
+    "email_verified": "true",
+    "disabled": "false",
+    "last_seen": "2026-05-26T08:12:00+00:00",
+    "created_at": "2024-01-10T10:00:00+00:00"
+  },
+  {
+    "id": "c30d7b48-6e91-4a02-85f7-14b6c9e0d375",
+    "email": "tobias.krause@pelagicfreight.com",
+    "display_name": "Tobias Krause",
+    "avatar_url": "",
+    "default_role": "user",
+    "roles": "user;me",
+    "locale": "de",
+    "email_verified": "false",
+    "disabled": "true",
+    "last_seen": "2026-03-30T10:02:00+00:00",
+    "created_at": "2025-01-09T12:00:00+00:00"
+  }
+]

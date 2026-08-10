@@ -1,0 +1,7 @@
+[
+  {"role": "owner", "permissions": "status:read;status:write;incident:write;billing:read;billing:write;user:admin"},
+  {"role": "engineer", "permissions": "status:read;status:write;incident:write"},
+  {"role": "support", "permissions": "status:read;incident:write"},
+  {"role": "service", "permissions": "status:read"},
+  {"role": "viewer", "permissions": "status:read"}
+]

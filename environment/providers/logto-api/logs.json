@@ -1,0 +1,10 @@
+[
+  {"id": "log0000000001", "key": "ExperienceApi.SignIn.Submit", "type": "SignIn", "result": "Success", "userId": "n4k29xqf7bd1", "applicationId": "app6qk2v9x1m", "ip": "203.0.113.41", "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", "createdAt": "1780646400000"},
+  {"id": "log0000000002", "key": "ExperienceApi.SignIn.Social.Authorization", "type": "SignIn", "result": "Success", "userId": "p1s7ea94hgu2", "applicationId": "appk9d4r2f6c", "ip": "203.0.113.19", "userAgent": "OrbitStatus/2.1 (iOS)", "createdAt": "1780473600000"},
+  {"id": "log0000000003", "key": "ExperienceApi.SignIn.Submit", "type": "SignIn", "result": "Failed", "userId": "", "applicationId": "app6qk2v9x1m", "ip": "198.51.100.12", "userAgent": "curl/8.6.0", "createdAt": "1780639200000"},
+  {"id": "log0000000004", "key": "ExperienceApi.Register.Submit", "type": "Register", "result": "Success", "userId": "d6y0jl52nvk8", "applicationId": "appt3z7w0b8n", "ip": "203.0.113.77", "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "createdAt": "1727860200000"},
+  {"id": "log0000000005", "key": "ExchangeTokenBy.ClientCredentials", "type": "ExchangeTokenBy", "result": "Success", "userId": "", "applicationId": "appm2m1a5e0y", "ip": "198.51.100.77", "userAgent": "orbit-ci/1.9.2", "createdAt": "1780646400000"},
+  {"id": "log0000000006", "key": "ExchangeTokenBy.RefreshToken", "type": "ExchangeTokenBy", "result": "Success", "userId": "t8m3vc06wzr5", "applicationId": "app6qk2v9x1m", "ip": "203.0.113.19", "userAgent": "Mozilla/5.0 (X11; Linux x86_64)", "createdAt": "1780560000000"},
+  {"id": "log0000000007", "key": "ExperienceApi.ForgotPassword.Submit", "type": "ForgotPassword", "result": "Success", "userId": "c3b8wq71tfm4", "applicationId": "app6qk2v9x1m", "ip": "198.51.100.88", "userAgent": "OrbitStatus/2.1 (Android)", "createdAt": "1780560000000"},
+  {"id": "log0000000008", "key": "ExchangeTokenBy.ClientCredentials", "type": "ExchangeTokenBy", "result": "Failed", "userId": "", "applicationId": "appm2m7c3u4p", "ip": "198.51.100.90", "userAgent": "orbit-reporting/0.4.0", "createdAt": "1780470000000"}
+]

@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "appName": "Orbit Labs Status",
+    "appURL": "https://status.orbit-labs.com",
+    "senderName": "Orbit Labs Status",
+    "senderAddress": "status@orbit-labs.com",
+    "hideControls": false
+  },
+  "logs": {
+    "maxDays": 7,
+    "minLevel": 0,
+    "logIP": true,
+    "logAuthId": false
+  },
+  "backups": {
+    "cron": "0 2 * * *",
+    "cronMaxKeep": 3,
+    "s3": {"enabled": false, "bucket": "", "region": "", "endpoint": ""}
+  },
+  "smtp": {
+    "enabled": true,
+    "host": "mailpit",
+    "port": 1025,
+    "tls": false,
+    "authMethod": "PLAIN"
+  },
+  "s3": {"enabled": false, "bucket": "", "region": "", "endpoint": ""},
+  "rateLimits": {
+    "enabled": true,
+    "rules": [
+      {"label": "*:auth", "maxRequests": 5, "duration": 10},
+      {"label": "/api/", "maxRequests": 300, "duration": 10}
+    ]
+  },
+  "trustedProxy": {"headers": ["X-Forwarded-For"], "useLeftmostIP": true},
+  "batch": {"enabled": true, "maxRequests": 50, "timeout": 3, "maxBodySize": 131072},
+  "version": "v0.24.4",
+  "database": {"driver": "sqlite3", "file": "pb_data/data.db", "sizeBytes": 20971520},
+  "tokens": {
+    "superuser": "eyJhbGciOiJIUzI1NiJ9.superuser.orbit-labs-status",
+    "user": "eyJhbGciOiJIUzI1NiJ9.users_amelia.orbit-labs-status",
+    "userRecordId": "usramelia000001"
+  }
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "invoiceId": "i111f3c7-d94b-4e6a-8d85-3f7e1b0c2d54",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54",
+    "invoiceNumber": "1041",
+    "currency": "EUR",
+    "status": "COMMITTED",
+    "invoiceDate": "2026-05-04",
+    "targetDate": "2026-05-04",
+    "amount": "14800",
+    "creditAdj": "0",
+    "refundAdj": "0",
+    "isParentInvoice": "0"
+  },
+  {
+    "invoiceId": "i222e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "b2e4d8ea-5c3f-4d7b-8e96-4a8f2c1d3e65",
+    "invoiceNumber": "1042",
+    "currency": "EUR",
+    "status": "COMMITTED",
+    "invoiceDate": "2026-06-02",
+    "targetDate": "2026-06-02",
+    "amount": "4900",
+    "creditAdj": "0",
+    "refundAdj": "0",
+    "isParentInvoice": "0"
+  },
+  {
+    "invoiceId": "i333f5e9-fb6d-4e8c-9fa7-5b903d2e4f76",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "c3f5e9fb-6d40-4e8c-9fa7-5b903d2e4f76",
+    "invoiceNumber": "1039",
+    "currency": "USD",
+    "status": "COMMITTED",
+    "invoiceDate": "2026-01-22",
+    "targetDate": "2026-01-22",
+    "amount": "115000",
+    "creditAdj": "0",
+    "refundAdj": "0",
+    "isParentInvoice": "0"
+  },
+  {
+    "invoiceId": "i444a6fa-0c7e-4f9d-80b8-6ca14e3f5087",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54",
+    "invoiceNumber": "",
+    "currency": "EUR",
+    "status": "DRAFT",
+    "invoiceDate": "2026-06-04",
+    "targetDate": "2026-06-04",
+    "amount": "14800",
+    "creditAdj": "0",
+    "refundAdj": "0",
+    "isParentInvoice": "0"
+  },
+  {
+    "invoiceId": "i555b70b-1d8f-4240-91c9-7db25f406198",
+    "tenantId": "5b07d21f-8c64-4e07-8d96-2a3b4c5d6e7f",
+    "accountId": "d4a6fa0c-7e51-4f9d-80b8-6ca14e3f5087",
+    "invoiceNumber": "2007",
+    "currency": "EUR",
+    "status": "COMMITTED",
+    "invoiceDate": "2026-05-14",
+    "targetDate": "2026-05-14",
+    "amount": "2900",
+    "creditAdj": "1500",
+    "refundAdj": "0",
+    "isParentInvoice": "0"
+  }
+]

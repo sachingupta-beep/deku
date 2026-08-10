@@ -1,0 +1,30 @@
+[
+  {
+    "id": "dp_6b19d5ec8f30",
+    "payment": "pay_c8e05a1976b3",
+    "amount_minor": "25000",
+    "currency": "USD",
+    "reason": "product_not_received",
+    "status": "needs_response",
+    "network_reason_code": "13.1",
+    "evidence_due_by": "2027-06-10T23:59:59Z",
+    "evidence_submitted_at": "",
+    "evidence": "",
+    "resolution": "",
+    "created": "2026-05-29T07:04:22Z"
+  },
+  {
+    "id": "dp_9e21b7304c15",
+    "payment": "pay_0b2a4d6f8e13",
+    "amount_minor": "4500",
+    "currency": "EUR",
+    "reason": "unrecognized",
+    "status": "needs_response",
+    "network_reason_code": "10.4",
+    "evidence_due_by": "2026-06-05T23:59:59Z",
+    "evidence_submitted_at": "",
+    "evidence": "",
+    "resolution": "",
+    "created": "2026-05-21T16:30:11Z"
+  }
+]

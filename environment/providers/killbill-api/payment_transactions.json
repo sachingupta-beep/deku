@@ -1,0 +1,67 @@
+[
+  {
+    "transactionId": "t111f3c7-d94b-4e6a-8d85-3f7e1b0c2d54",
+    "paymentId": "p111f3c7-d94b-4e6a-8d85-3f7e1b0c2d54",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "transactionExternalKey": "orbit-amelia-2026-05-purchase",
+    "transactionType": "PURCHASE",
+    "status": "SUCCESS",
+    "amount": "14800",
+    "currency": "EUR",
+    "gatewayErrorCode": "",
+    "gatewayErrorMsg": "",
+    "effectiveDate": "2026-05-04T02:10:04Z"
+  },
+  {
+    "transactionId": "t222e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "paymentId": "p222e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "transactionExternalKey": "orbit-acme-2026-06-purchase-1",
+    "transactionType": "PURCHASE",
+    "status": "PAYMENT_FAILURE",
+    "amount": "4900",
+    "currency": "EUR",
+    "gatewayErrorCode": "insufficient_funds",
+    "gatewayErrorMsg": "The card issuer declined the charge",
+    "effectiveDate": "2026-06-02T02:10:06Z"
+  },
+  {
+    "transactionId": "t333f5e9-fb6d-4e8c-9fa7-5b903d2e4f76",
+    "paymentId": "p222e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "transactionExternalKey": "orbit-acme-2026-06-purchase-2",
+    "transactionType": "PURCHASE",
+    "status": "PAYMENT_FAILURE",
+    "amount": "4900",
+    "currency": "EUR",
+    "gatewayErrorCode": "insufficient_funds",
+    "gatewayErrorMsg": "The card issuer declined the charge",
+    "effectiveDate": "2026-06-05T02:10:03Z"
+  },
+  {
+    "transactionId": "t444a6fa-0c7e-4f9d-80b8-6ca14e3f5087",
+    "paymentId": "p333f5e9-fb6d-4e8c-9fa7-5b903d2e4f76",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "transactionExternalKey": "orbit-northwind-2026-01-auth",
+    "transactionType": "AUTHORIZE",
+    "status": "SUCCESS",
+    "amount": "115000",
+    "currency": "USD",
+    "gatewayErrorCode": "",
+    "gatewayErrorMsg": "",
+    "effectiveDate": "2026-01-22T17:15:02Z"
+  },
+  {
+    "transactionId": "t555b70b-1d8f-4240-91c9-7db25f406198",
+    "paymentId": "p333f5e9-fb6d-4e8c-9fa7-5b903d2e4f76",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "transactionExternalKey": "orbit-northwind-2026-01-capture-1",
+    "transactionType": "CAPTURE",
+    "status": "SUCCESS",
+    "amount": "92900",
+    "currency": "USD",
+    "gatewayErrorCode": "",
+    "gatewayErrorMsg": "",
+    "effectiveDate": "2026-01-23T09:00:00Z"
+  }
+]

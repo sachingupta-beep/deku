@@ -1,0 +1,5 @@
+[service]
+name = "killbill-api"
+port = 8128
+env_var_name = "KILLBILL_API_URL"
+healthcheck_path = "/health"

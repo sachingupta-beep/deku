@@ -1,0 +1,129 @@
+{
+  "name": "OrbitLabs",
+  "effectiveDate": "2025-09-01T00:00:00Z",
+  "currencies": ["EUR", "USD"],
+  "products": [
+    {
+      "name": "OrbitStarter",
+      "type": "BASE",
+      "available": ["OrbitSupport"],
+      "included": []
+    },
+    {
+      "name": "OrbitGrowth",
+      "type": "BASE",
+      "available": ["OrbitSupport", "OrbitEgressPack"],
+      "included": []
+    },
+    {
+      "name": "OrbitScale",
+      "type": "BASE",
+      "available": ["OrbitSupport", "OrbitEgressPack"],
+      "included": ["OrbitSupport"]
+    },
+    {
+      "name": "OrbitSupport",
+      "type": "ADD_ON",
+      "available": [],
+      "included": []
+    },
+    {
+      "name": "OrbitEgressPack",
+      "type": "ADD_ON",
+      "available": [],
+      "included": []
+    },
+    {
+      "name": "OrbitOnboarding",
+      "type": "STANDALONE",
+      "available": [],
+      "included": []
+    }
+  ],
+  "plans": [
+    {
+      "name": "orbit-starter-monthly",
+      "product": "OrbitStarter",
+      "productType": "BASE",
+      "priceList": "DEFAULT",
+      "billingPeriod": "MONTHLY",
+      "phases": [
+        {"type": "TRIAL", "duration": {"unit": "DAYS", "number": 14},
+         "prices": [], "fixedPrices": []},
+        {"type": "EVERGREEN", "duration": {"unit": "UNLIMITED", "number": -1},
+         "prices": [{"currency": "EUR", "value": 29.00},
+                    {"currency": "USD", "value": 34.00}],
+         "fixedPrices": []}
+      ]
+    },
+    {
+      "name": "orbit-growth-monthly",
+      "product": "OrbitGrowth",
+      "productType": "BASE",
+      "priceList": "DEFAULT",
+      "billingPeriod": "MONTHLY",
+      "phases": [
+        {"type": "EVERGREEN", "duration": {"unit": "UNLIMITED", "number": -1},
+         "prices": [{"currency": "EUR", "value": 99.00},
+                    {"currency": "USD", "value": 115.00}],
+         "fixedPrices": []}
+      ]
+    },
+    {
+      "name": "orbit-scale-annual",
+      "product": "OrbitScale",
+      "productType": "BASE",
+      "priceList": "DEFAULT",
+      "billingPeriod": "ANNUAL",
+      "phases": [
+        {"type": "EVERGREEN", "duration": {"unit": "UNLIMITED", "number": -1},
+         "prices": [{"currency": "EUR", "value": 990.00},
+                    {"currency": "USD", "value": 1150.00}],
+         "fixedPrices": []}
+      ]
+    },
+    {
+      "name": "orbit-support-monthly",
+      "product": "OrbitSupport",
+      "productType": "ADD_ON",
+      "priceList": "DEFAULT",
+      "billingPeriod": "MONTHLY",
+      "phases": [
+        {"type": "EVERGREEN", "duration": {"unit": "UNLIMITED", "number": -1},
+         "prices": [{"currency": "EUR", "value": 49.00},
+                    {"currency": "USD", "value": 55.00}],
+         "fixedPrices": []}
+      ]
+    },
+    {
+      "name": "orbit-egress-monthly",
+      "product": "OrbitEgressPack",
+      "productType": "ADD_ON",
+      "priceList": "DEFAULT",
+      "billingPeriod": "MONTHLY",
+      "phases": [
+        {"type": "EVERGREEN", "duration": {"unit": "UNLIMITED", "number": -1},
+         "prices": [{"currency": "EUR", "value": 25.00},
+                    {"currency": "USD", "value": 29.00}],
+         "fixedPrices": []}
+      ]
+    },
+    {
+      "name": "orbit-onboarding-onetime",
+      "product": "OrbitOnboarding",
+      "productType": "STANDALONE",
+      "priceList": "DEFAULT",
+      "billingPeriod": "NO_BILLING_PERIOD",
+      "phases": [
+        {"type": "EVERGREEN", "duration": {"unit": "UNLIMITED", "number": -1},
+         "prices": [],
+         "fixedPrices": [{"currency": "EUR", "value": 750.00},
+                         {"currency": "USD", "value": 850.00}]}
+      ]
+    }
+  ],
+  "priceLists": [{"name": "DEFAULT", "plans": [
+    "orbit-starter-monthly", "orbit-growth-monthly", "orbit-scale-annual",
+    "orbit-support-monthly", "orbit-egress-monthly",
+    "orbit-onboarding-onetime"]}]
+}

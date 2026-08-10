@@ -1,0 +1,7 @@
+[
+  {"id": "1", "slug": "gateway-first-boot", "title": "Gateway first boot checklist", "body": "Power, link, then cloud. The LEDs report the first two only.", "status": "published", "author_id": "1", "version": "4", "helpful_votes": "412", "updated_at": "2026-03-02 08:05:00"},
+  {"id": "2", "slug": "can-bus-bitrates", "title": "Choosing a CAN bus bitrate", "body": "Node count and cable length set the ceiling. Above 40 nodes stay at 250 kbit/s.", "status": "published", "author_id": "1", "version": "2", "helpful_votes": "188", "updated_at": "2026-05-19 11:00:00"},
+  {"id": "3", "slug": "api-rate-limits", "title": "API rate limits", "body": "Limits are per key, per minute. Batch ingest is 300; reads are 600 to 1200.", "status": "published", "author_id": "2", "version": "6", "helpful_votes": "904", "updated_at": "2026-05-26 07:20:00"},
+  {"id": "4", "slug": "cursor-pagination", "title": "Cursor pagination and key rotation", "body": "Cursors are signed with the issuing key and are invalidated when it is rotated.", "status": "draft", "author_id": "2", "version": "1", "helpful_votes": "0", "updated_at": "2026-05-25 17:00:00"},
+  {"id": "5", "slug": "legacy-v0-metrics", "title": "Migrating off /v0/metrics", "body": "The v0 metrics endpoint is deprecated and returns 410 for all callers.", "status": "archived", "author_id": "2", "version": "3", "helpful_votes": "57", "updated_at": "2025-11-14 09:00:00"}
+]

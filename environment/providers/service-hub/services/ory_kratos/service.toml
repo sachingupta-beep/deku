@@ -1,0 +1,52 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "ory-kratos"
+name     = "Ory Kratos"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.ory_kratos.service:OryKratosService"
+upstream = "https://www.ory.sh/docs/kratos/reference/api"
+summary  = """
+Identity server with self-service flows: every interaction is create-flow then submit-flow, with identity schemas and traits rather than a fixed user model."""
+tags = [
+  "flows",
+  "identities",
+  "traits",
+  "sessions",
+  "csrf",
+]
+
+[data]
+dir = "ory-kratos"
+
+[auth]
+scheme      = "cookie"
+roles       = [
+  "anonymous",
+  "identity",
+  "admin",
+]
+description = """
+Public routes are flow-based: create a flow, then submit it with the returned `flow` id and CSRF token. The admin API on the separate port is unauthenticated by design and must not be exposed to the agent."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/self-service/login/api",
+  "/self-service/registration/api",
+  "/self-service/recovery/api",
+  "/self-service/verification/api",
+  "/self-service/settings/api",
+  "/sessions/whoami",
+  "/admin/identities",
+]

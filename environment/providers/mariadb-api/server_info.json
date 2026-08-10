@@ -1,0 +1,99 @@
+{
+  "version": "10.11.7-MariaDB-1:10.11.7+maria~ubu2204",
+  "version_comment": "mariadb.org binary distribution",
+  "version_short": "10.11.7",
+  "version_compile_os": "debian-linux-gnu",
+  "version_compile_machine": "x86_64",
+  "database": "orbit_forum",
+  "character_set_server": "utf8mb4",
+  "collation_server": "utf8mb4_general_ci",
+  "default_storage_engine": "InnoDB",
+  "sql_mode": "STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION",
+  "uptime_seconds": 2884411,
+  "data_dir": "/var/lib/mysql/",
+  "socket": "/run/mysqld/mysqld.sock",
+  "port": 3306,
+  "databases": ["information_schema", "mysql", "orbit_forum", "performance_schema", "sys"],
+  "table_engines": {
+    "forum_users": "InnoDB",
+    "categories": "InnoDB",
+    "threads": "InnoDB",
+    "posts": "InnoDB",
+    "kb_articles": "InnoDB",
+    "article_revisions": "InnoDB",
+    "page_views": "Aria"
+  },
+  "variables": [
+    {"Variable_name": "aria_pagecache_buffer_size", "Value": "134217728"},
+    {"Variable_name": "aria_group_commit", "Value": "none"},
+    {"Variable_name": "character_set_server", "Value": "utf8mb4"},
+    {"Variable_name": "collation_server", "Value": "utf8mb4_general_ci"},
+    {"Variable_name": "default_storage_engine", "Value": "InnoDB"},
+    {"Variable_name": "innodb_buffer_pool_size", "Value": "4294967296"},
+    {"Variable_name": "innodb_flush_log_at_trx_commit", "Value": "1"},
+    {"Variable_name": "log_bin", "Value": "ON"},
+    {"Variable_name": "gtid_domain_id", "Value": "0"},
+    {"Variable_name": "gtid_strict_mode", "Value": "ON"},
+    {"Variable_name": "max_connections", "Value": "400"},
+    {"Variable_name": "optimizer_switch", "Value": "index_merge=on,rowid_filter=on,split_materialized=on,condition_pushdown_for_derived=on"},
+    {"Variable_name": "query_cache_type", "Value": "OFF"},
+    {"Variable_name": "thread_handling", "Value": "pool-of-threads"},
+    {"Variable_name": "thread_pool_size", "Value": "8"},
+    {"Variable_name": "transaction_isolation", "Value": "REPEATABLE-READ"},
+    {"Variable_name": "version", "Value": "10.11.7-MariaDB"}
+  ],
+  "status": [
+    {"Variable_name": "Uptime", "Value": "2884411"},
+    {"Variable_name": "Threads_connected", "Value": "22"},
+    {"Variable_name": "Threads_running", "Value": "2"},
+    {"Variable_name": "Connections", "Value": "1284315"},
+    {"Variable_name": "Queries", "Value": "88412003"},
+    {"Variable_name": "Slow_queries", "Value": "412"},
+    {"Variable_name": "Aria_pagecache_reads", "Value": "204118"},
+    {"Variable_name": "Aria_pagecache_read_requests", "Value": "18204881"},
+    {"Variable_name": "Innodb_buffer_pool_reads", "Value": "88214"},
+    {"Variable_name": "Innodb_deadlocks", "Value": "1"},
+    {"Variable_name": "Threadpool_threads", "Value": "8"},
+    {"Variable_name": "Threadpool_idle_threads", "Value": "6"},
+    {"Variable_name": "Rows_read", "Value": "412088412"},
+    {"Variable_name": "Feature_json", "Value": "88214"}
+  ],
+  "engines": [
+    {"Engine": "InnoDB", "Support": "DEFAULT", "Comment": "Supports transactions, row-level locking, foreign keys and encryption for tables", "Transactions": "YES", "XA": "YES", "Savepoints": "YES"},
+    {"Engine": "Aria", "Support": "YES", "Comment": "Crash-safe tables with MyISAM heritage. Used for internal temporary tables and the mysql schema", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "MyISAM", "Support": "YES", "Comment": "Non-transactional engine with good performance and small data footprint", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "SEQUENCE", "Support": "YES", "Comment": "Generated tables filled with sequential values", "Transactions": "YES", "XA": "NO", "Savepoints": "YES"},
+    {"Engine": "CSV", "Support": "YES", "Comment": "Stores tables as CSV files", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "MEMORY", "Support": "YES", "Comment": "Hash based, stored in memory, useful for temporary tables", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "MRG_MyISAM", "Support": "YES", "Comment": "Collection of identical MyISAM tables", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"},
+    {"Engine": "CONNECT", "Support": "YES", "Comment": "Management of External Data (SQL/NOSQL/IN-MEMORY), including many file formats", "Transactions": "NO", "XA": "NO", "Savepoints": "NO"}
+  ],
+  "replication": {
+    "gtid_binlog_pos": "0-1-88412003",
+    "gtid_current_pos": "0-1-88412003",
+    "binlog_file": "mariadb-bin.000318",
+    "binlog_position": 412088993,
+    "replicas": [
+      {"Connection_name": "", "Server_id": 2, "Host": "10.42.0.22", "Port": 3306, "Slave_IO_Running": "Yes", "Slave_SQL_Running": "Yes", "Seconds_Behind_Master": 0, "Using_Gtid": "Slave_Pos", "Gtid_IO_Pos": "0-1-88412003"},
+      {"Connection_name": "backup", "Server_id": 3, "Host": "10.42.0.23", "Port": 3306, "Slave_IO_Running": "Yes", "Slave_SQL_Running": "Yes", "Seconds_Behind_Master": 4, "Using_Gtid": "Slave_Pos", "Gtid_IO_Pos": "0-1-88411994"}
+    ]
+  },
+  "table_meta": [
+    {"TABLE_NAME": "forum_users", "ENGINE": "InnoDB", "TABLE_ROWS": 7, "DATA_LENGTH": 16384, "INDEX_LENGTH": 32768, "AUTO_INCREMENT": 8, "TABLE_COLLATION": "utf8mb4_general_ci", "TRANSACTIONAL": "YES"},
+    {"TABLE_NAME": "categories", "ENGINE": "InnoDB", "TABLE_ROWS": 5, "DATA_LENGTH": 16384, "INDEX_LENGTH": 16384, "AUTO_INCREMENT": 6, "TABLE_COLLATION": "utf8mb4_general_ci", "TRANSACTIONAL": "YES"},
+    {"TABLE_NAME": "threads", "ENGINE": "InnoDB", "TABLE_ROWS": 7, "DATA_LENGTH": 536870912, "INDEX_LENGTH": 201326592, "AUTO_INCREMENT": 5008, "TABLE_COLLATION": "utf8mb4_general_ci", "TRANSACTIONAL": "YES"},
+    {"TABLE_NAME": "posts", "ENGINE": "InnoDB", "TABLE_ROWS": 10, "DATA_LENGTH": 1073741824, "INDEX_LENGTH": 402653184, "AUTO_INCREMENT": 11, "TABLE_COLLATION": "utf8mb4_general_ci", "TRANSACTIONAL": "YES"},
+    {"TABLE_NAME": "kb_articles", "ENGINE": "InnoDB", "TABLE_ROWS": 5, "DATA_LENGTH": 32768, "INDEX_LENGTH": 32768, "AUTO_INCREMENT": 6, "TABLE_COLLATION": "utf8mb4_general_ci", "TRANSACTIONAL": "YES"},
+    {"TABLE_NAME": "article_revisions", "ENGINE": "InnoDB", "TABLE_ROWS": 9, "DATA_LENGTH": 32768, "INDEX_LENGTH": 32768, "AUTO_INCREMENT": 10, "TABLE_COLLATION": "utf8mb4_general_ci", "TRANSACTIONAL": "YES"},
+    {"TABLE_NAME": "page_views", "ENGINE": "Aria", "TABLE_ROWS": 8, "DATA_LENGTH": 268435456, "INDEX_LENGTH": 67108864, "AUTO_INCREMENT": 9, "TABLE_COLLATION": "utf8mb4_general_ci", "TRANSACTIONAL": "NO"}
+  ],
+  "auth": {
+    "default_user": "forum_app",
+    "passwords": {
+      "root": "OrbitForumRoot2026!",
+      "forum_app": "OrbitForumApp2026!",
+      "forum_mod": "OrbitForumMod2026!",
+      "forum_analytics": "OrbitForumRead2026!"
+    }
+  }
+}

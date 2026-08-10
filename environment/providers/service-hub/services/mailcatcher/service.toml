@@ -1,0 +1,45 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "mailcatcher"
+name     = "MailCatcher"
+category = "email"
+status   = "declared"
+version  = "v1"
+module   = "services.mailcatcher.service:MailcatcherService"
+upstream = "https://mailcatcher.me/"
+summary  = """
+Ruby SMTP catcher whose format is a file extension: .json, .html, .plain, .source on the same message id, with cid: references rewritten to fetchable parts."""
+tags = [
+  "format-extension",
+  "cid-rewriting",
+  "minimal",
+]
+
+[data]
+dir = "mailcatcher"
+
+[auth]
+scheme      = "none"
+roles       = []
+description = """
+No authentication. The smallest surface of the five catchers, and deliberately so."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/messages",
+  "/messages/{id}.json",
+  "/messages/{id}.html",
+  "/messages/{id}.plain",
+  "/messages/{id}.source",
+  "/messages/{id}/parts/{cid}",
+]

@@ -1,0 +1,7 @@
+[
+  {"id": "1", "slug": "getting-started", "name": "Getting Started", "description": "Setup, first gateway, first telemetry stream.", "sort_order": "1", "locked": "0"},
+  {"id": "2", "slug": "hardware", "name": "Hardware", "description": "Gateways, sensors, wiring and enclosures.", "sort_order": "2", "locked": "0"},
+  {"id": "3", "slug": "api-and-sdks", "name": "API and SDKs", "description": "REST, GraphQL, and the mobile SDKs.", "sort_order": "3", "locked": "0"},
+  {"id": "4", "slug": "announcements", "name": "Announcements", "description": "Release notes and service advisories.", "sort_order": "4", "locked": "1"},
+  {"id": "5", "slug": "archive-2024", "name": "Archive 2024", "description": "Read-only archive of the 2024 forum.", "sort_order": "9", "locked": "1"}
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "role": "public",
+    "table": "dashboards",
+    "action": "select",
+    "filter": "{\"visibility\":{\"_eq\":\"public\"}}",
+    "columns": "id,workspace_id,name,slug,visibility,widget_count,updated_at",
+    "limit": "25"
+  },
+  {
+    "id": "2",
+    "role": "user",
+    "table": "workspaces",
+    "action": "select",
+    "filter": "{\"members\":{\"user_id\":{\"_eq\":\"X-Hasura-User-Id\"}}}",
+    "columns": "*",
+    "limit": "100"
+  },
+  {
+    "id": "3",
+    "role": "user",
+    "table": "workspace_members",
+    "action": "select",
+    "filter": "{\"workspace\":{\"members\":{\"user_id\":{\"_eq\":\"X-Hasura-User-Id\"}}}}",
+    "columns": "*",
+    "limit": "100"
+  },
+  {
+    "id": "4",
+    "role": "user",
+    "table": "dashboards",
+    "action": "select",
+    "filter": "{\"workspace\":{\"members\":{\"user_id\":{\"_eq\":\"X-Hasura-User-Id\"}}}}",
+    "columns": "*",
+    "limit": "100"
+  },
+  {
+    "id": "5",
+    "role": "user",
+    "table": "saved_queries",
+    "action": "select",
+    "filter": "{\"dashboard\":{\"workspace\":{\"members\":{\"user_id\":{\"_eq\":\"X-Hasura-User-Id\"}}}}}",
+    "columns": "*",
+    "limit": "100"
+  },
+  {
+    "id": "6",
+    "role": "user",
+    "table": "users",
+    "action": "select",
+    "filter": "{}",
+    "columns": "id,display_name,avatar_url,locale,last_seen",
+    "limit": "100"
+  },
+  {
+    "id": "7",
+    "role": "user",
+    "table": "dashboards",
+    "action": "insert",
+    "filter": "{\"workspace\":{\"members\":{\"user_id\":{\"_eq\":\"X-Hasura-User-Id\"}}}}",
+    "columns": "workspace_id,name,slug,visibility,widget_count,starred",
+    "limit": ""
+  },
+  {
+    "id": "8",
+    "role": "user",
+    "table": "dashboards",
+    "action": "update",
+    "filter": "{\"workspace\":{\"members\":{\"user_id\":{\"_eq\":\"X-Hasura-User-Id\"}}}}",
+    "columns": "name,visibility,widget_count,starred",
+    "limit": ""
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "isRunning": true,
+  "exception": null,
+  "portNumber": 2525,
+  "hostName": "smtp4dev.orbit-labs.local",
+  "allowRemoteConnections": true,
+  "numberOfMessagesToKeep": 100,
+  "numberOfSessionsToKeep": 100,
+  "imapPortNumber": 1143,
+  "webAuthenticationRequired": false,
+  "disableMessageSanitisation": false,
+  "credentialsValidationExpression": "",
+  "authenticationRequired": false,
+  "secureConnectionMode": "StartTls",
+  "deliverMessagesToUsersDefaultMailbox": true,
+  "recycleOnStartup": false,
+  "relayOptions": {
+    "isEnabled": true,
+    "smtpServer": "smtp.orbit-labs.com",
+    "smtpPort": 587,
+    "tlsMode": "StartTls",
+    "login": "orbit-relay",
+    "password": "********",
+    "senderAddress": "bounces@orbit-labs.com",
+    "automaticEmails": ["partners@acme-partner.example"],
+    "automaticRelayExpression": "@acme-partner\\.example$"
+  }
+}

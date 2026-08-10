@@ -1,0 +1,2512 @@
+{
+  "info": {
+    "name": "SuperTokens Core Mock API v9.2.2",
+    "description": "Test collection for the mock SuperTokens core. Base URL defaults to http://localhost:8115. In docker-compose, the service is reachable at http://supertokens-api:8115. Every request carries `api-key: orbit-labs-supertokens-core-key` and `cdi-version: 5.1`.\n\nThe core reports domain outcomes in the BODY as a `status` string with HTTP 200 -- a wrong password is `{\"status\": \"WRONG_CREDENTIALS_ERROR\"}`, not a 401. Requests whose name ends in a bare STATUS_NAME assert one of those; only requests labelled '(N expected)' assert a non-2xx, which the core reserves for transport problems: a missing api key (401), an unsupported cdi-version (400), an unknown tenant (404) and deleting the public tenant (403).\n\nTwo tenants are seeded: `public` (emailpassword + thirdparty) and `orbit-enterprise` (thirdparty + passwordless, emailpassword off), so the same request succeeds on one and is refused on the other.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8115"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "hello",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/hello"
+      }
+    },
+    {
+      "name": "api versions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/apiversion"
+      }
+    },
+    {
+      "name": "core config",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/config",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "core config without an api key (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/config"
+      }
+    },
+    {
+      "name": "core config with a wrong api key (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/config",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "not-the-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users with an unsupported cdi version (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/users",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "9.9"
+          }
+        ]
+      }
+    },
+    {
+      "name": "jwks",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/jwt/jwks"
+      }
+    },
+    {
+      "name": "list tenants",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/multitenancy/tenant/list",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get the public tenant",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/appid-public/public/recipe/multitenancy/tenant",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get the enterprise tenant",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/multitenancy/tenant",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown tenant (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/appid-public/orbit-nope/recipe/multitenancy/tenant",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sign in",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in with a wrong password (WRONG_CREDENTIALS_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in with an unknown email (WRONG_CREDENTIALS_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"nobody@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in on the tenant that has emailpassword off (EMAIL_PASSWORD_NOT_ENABLED_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in against an unknown tenant (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-nope/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"iris.tanaka@orbit-labs.com\", \"password\": \"OrbitIris2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up with a taken email (EMAIL_ALREADY_EXISTS_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitIris2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up without a password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"no.password@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "get an emailpassword user by email",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user?email=jonas.pereira@orbit-labs.com",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an emailpassword user by id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user?userId=5a92c04f-1b76-4d38-9e51-c8f0b273a469",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an emailpassword user by an unknown email (UNKNOWN_EMAIL_ERROR)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user?email=nobody@orbit-labs.com",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an emailpassword user by an unknown id (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user?userId=00000000-0000-0000-0000-000000000000",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "update a user's email",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"2f7a83c1-d504-4e69-b1a2-60e9c745f83b\", \"email\": \"orbit-sync@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "update a user's email to a taken one (EMAIL_ALREADY_EXISTS_ERROR)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"2f7a83c1-d504-4e69-b1a2-60e9c745f83b\", \"email\": \"amelia.ortega@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "update an unknown user (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"00000000-0000-0000-0000-000000000000\", \"password\": \"OrbitAnything2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "third party sign in for a known account",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signinup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"thirdPartyId\": \"github\", \"thirdPartyUserId\": \"2210448\", \"email\": \"helena.park@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "third party sign up for a new account",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signinup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"thirdPartyId\": \"google\", \"thirdPartyUserId\": \"114872003991425506118\", \"email\": \"priya.raman@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "third party with a provider the tenant does not have (UNKNOWN_PROVIDER_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signinup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"thirdPartyId\": \"okta\", \"thirdPartyUserId\": \"88213\", \"email\": \"someone@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "third party without a user id (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signinup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"thirdPartyId\": \"github\"}"
+        }
+      }
+    },
+    {
+      "name": "get a third party user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user?thirdPartyId=github&thirdPartyUserId=1840221",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown third party user (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user?thirdPartyId=github&thirdPartyUserId=999999",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a passwordless code on the tenant that has it off (PASSWORDLESS_NOT_ENABLED_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signinup/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"noor.aziz@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "create a passwordless code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signinup/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"priya.raman@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "create a passwordless code without a contact (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signinup/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "consume a wrong code (INCORRECT_USER_INPUT_CODE_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signinup/code/consume",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"preAuthSessionId\": \"st-preauth-noor-91d7a205\", \"deviceId\": \"st-device-noor-3c8b0f4e\", \"userInputCode\": \"000000\"}"
+        }
+      }
+    },
+    {
+      "name": "consume an expired code (EXPIRED_USER_INPUT_CODE_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signinup/code/consume",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"preAuthSessionId\": \"st-preauth-helena-4e08b3f7\", \"deviceId\": \"st-device-helena-6a15c92d\", \"userInputCode\": \"770412\"}"
+        }
+      }
+    },
+    {
+      "name": "consume an unknown session (RESTART_FLOW_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signinup/code/consume",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"preAuthSessionId\": \"st-preauth-does-not-exist\", \"userInputCode\": \"482913\"}"
+        }
+      }
+    },
+    {
+      "name": "consume a valid code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signinup/code/consume",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"preAuthSessionId\": \"st-preauth-noor-91d7a205\", \"deviceId\": \"st-device-noor-3c8b0f4e\", \"userInputCode\": \"482913\"}"
+        }
+      }
+    },
+    {
+      "name": "get a passwordless user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/user?recipeId=passwordless&email=noor.aziz@orbit-labs.com",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a passwordless user that is not on this tenant (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user?recipeId=passwordless&email=noor.aziz@orbit-labs.com",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1\", \"recipeUserId\": \"0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1\", \"userDataInJWT\": {\"role\": \"owner\", \"plan\": \"enterprise\"}, \"userDataInDatabase\": {\"device\": \"cli\"}, \"enableAntiCsrf\": true}"
+        }
+      }
+    },
+    {
+      "name": "create a session for an unknown user (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"00000000-0000-0000-0000-000000000000\"}"
+        }
+      }
+    },
+    {
+      "name": "create a session without a user id (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userDataInJWT\": {\"role\": \"owner\"}}"
+        }
+      }
+    },
+    {
+      "name": "verify a session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"accessToken\": \"st-at-amelia-4c19f7e0b83d\"}"
+        }
+      }
+    },
+    {
+      "name": "verify a session with the anti-csrf check",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"accessToken\": \"st-at-amelia-4c19f7e0b83d\", \"doAntiCsrfCheck\": true, \"antiCsrfToken\": \"st-csrf-amelia-e37b\"}"
+        }
+      }
+    },
+    {
+      "name": "verify with a wrong anti-csrf token (TRY_REFRESH_TOKEN)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"accessToken\": \"st-at-amelia-4c19f7e0b83d\", \"doAntiCsrfCheck\": true, \"antiCsrfToken\": \"st-csrf-not-mine\"}"
+        }
+      }
+    },
+    {
+      "name": "verify an unknown access token (UNAUTHORISED)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"accessToken\": \"st-at-does-not-exist\"}"
+        }
+      }
+    },
+    {
+      "name": "verify jonas's session before the theft check",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"accessToken\": \"st-at-jonas-91e5c7d40a26\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh a session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/refresh",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refreshToken\": \"st-rt-jonas-mobile-c81d6a03\"}"
+        }
+      }
+    },
+    {
+      "name": "replay a rotated refresh token (TOKEN_THEFT_DETECTED)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/refresh",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refreshToken\": \"st-rt-jonas-0e47c95b3d18\"}"
+        }
+      }
+    },
+    {
+      "name": "verify jonas's session after the theft check (UNAUTHORISED)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"accessToken\": \"st-at-jonas-91e5c7d40a26\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh an unknown token (UNAUTHORISED)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/refresh",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refreshToken\": \"st-rt-does-not-exist\"}"
+        }
+      }
+    },
+    {
+      "name": "read session data",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/session/data?sessionHandle=0a4f1c7e-8b25-4d93-a610-5f2c9e08b374",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write session data",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/session/data",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sessionHandle\": \"0a4f1c7e-8b25-4d93-a610-5f2c9e08b374\", \"userDataInDatabase\": {\"lastDevice\": \"ipad-pro\", \"seatId\": \"SEAT-114\"}}"
+        }
+      }
+    },
+    {
+      "name": "read session data for a revoked session (UNAUTHORISED)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/session/data?sessionHandle=6d2b83f0-14c7-4a59-9e02-b7f5c168d4a3",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list a user's sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/session/user?userId=0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "revoke sessions without a selector (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "revoke a session by handle",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/session/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sessionHandles\": [\"0a4f1c7e-8b25-4d93-a610-5f2c9e08b374\"]}"
+        }
+      }
+    },
+    {
+      "name": "check whether an email is verified",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user/email/verify?userId=e84c25b7-0a63-4f91-bd28-3c7016fa5d84",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create an email verification token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/email/verify/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"e84c25b7-0a63-4f91-bd28-3c7016fa5d84\"}"
+        }
+      }
+    },
+    {
+      "name": "create a token for an already verified email (EMAIL_ALREADY_VERIFIED_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/email/verify/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"5a92c04f-1b76-4d38-9e51-c8f0b273a469\"}"
+        }
+      }
+    },
+    {
+      "name": "create a token for an unknown user (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/email/verify/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"00000000-0000-0000-0000-000000000000\"}"
+        }
+      }
+    },
+    {
+      "name": "verify an email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/email/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"token\", \"token\": \"st-emailverify-7b04d1a95c3e628f\"}"
+        }
+      }
+    },
+    {
+      "name": "verify the same token twice (EMAIL_VERIFICATION_INVALID_TOKEN_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/email/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"token\", \"token\": \"st-emailverify-7b04d1a95c3e628f\"}"
+        }
+      }
+    },
+    {
+      "name": "verify with an unsupported method (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/email/verify",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"link\", \"token\": \"st-emailverify-7b04d1a95c3e628f\"}"
+        }
+      }
+    },
+    {
+      "name": "check the email again after verification",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user/email/verify?userId=e84c25b7-0a63-4f91-bd28-3c7016fa5d84",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read user metadata",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user/metadata?userId=0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "merge user metadata",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/user/metadata",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1\", \"metadataUpdate\": {\"team\": \"platform-core\", \"seatId\": null, \"pagerDuty\": \"PD-4417\"}}"
+        }
+      }
+    },
+    {
+      "name": "read metadata for a user that has none",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user/metadata?userId=2f7a83c1-d504-4e69-b1a2-60e9c745f83b",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "clear user metadata",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/metadata/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"2f7a83c1-d504-4e69-b1a2-60e9c745f83b\"}"
+        }
+      }
+    },
+    {
+      "name": "list roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/roles",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read a role's permissions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/role/permissions?role=owner",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read an unknown role's permissions (UNKNOWN_ROLE_ERROR)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/role/permissions?role=auditor",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a role",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/role",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"auditor\", \"permissions\": [\"status:read\", \"billing:read\"]}"
+        }
+      }
+    },
+    {
+      "name": "add permissions to an existing role",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/role",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"auditor\", \"permissions\": [\"incident:read\"]}"
+        }
+      }
+    },
+    {
+      "name": "read a user's roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/user/roles?userId=0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "grant a role",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/user/role",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\", \"role\": \"auditor\"}"
+        }
+      }
+    },
+    {
+      "name": "grant the same role twice",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/user/role",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\", \"role\": \"auditor\"}"
+        }
+      }
+    },
+    {
+      "name": "grant an unknown role (UNKNOWN_ROLE_ERROR)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/user/role",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\", \"role\": \"superadmin\"}"
+        }
+      }
+    },
+    {
+      "name": "list the users holding a role",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/recipe/role/users?role=engineer",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "revoke a role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/role/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\", \"role\": \"auditor\"}"
+        }
+      }
+    },
+    {
+      "name": "revoke a role the user does not hold",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/role/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\", \"role\": \"auditor\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/role/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"auditor\"}"
+        }
+      }
+    },
+    {
+      "name": "create a tenant",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/recipe/multitenancy/tenant",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tenantId\": \"orbit-sandbox\", \"emailPasswordEnabled\": true, \"thirdPartyEnabled\": false, \"passwordlessEnabled\": false, \"firstFactors\": [\"emailpassword\"]}"
+        }
+      }
+    },
+    {
+      "name": "associate a user with another tenant",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/multitenancy/tenant/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"5a92c04f-1b76-4d38-9e51-c8f0b273a469\"}"
+        }
+      }
+    },
+    {
+      "name": "associate the same user again",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/multitenancy/tenant/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"5a92c04f-1b76-4d38-9e51-c8f0b273a469\"}"
+        }
+      }
+    },
+    {
+      "name": "associate an unknown user (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/multitenancy/tenant/user",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"00000000-0000-0000-0000-000000000000\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in on the enterprise tenant after association (EMAIL_PASSWORD_NOT_ENABLED_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a tenant",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/multitenancy/tenant/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tenantId\": \"orbit-sandbox\"}"
+        }
+      }
+    },
+    {
+      "name": "delete the public tenant (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/multitenancy/tenant/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tenantId\": \"public\"}"
+        }
+      }
+    },
+    {
+      "name": "list users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/users?limit=3",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users filtered by recipe",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/users?limit=10&includeRecipeIds=thirdparty",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users on the enterprise tenant",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/appid-public/orbit-enterprise/users?limit=10",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "count users on the public tenant",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/users/count",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "count users across every tenant",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/users/count?includeAllTenants=true",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a user by id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/user/id?userId=0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown user by id (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/user/id?userId=00000000-0000-0000-0000-000000000000",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "make a recipe user primary",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/accountlinking/user/primary",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\"}"
+        }
+      }
+    },
+    {
+      "name": "make it primary again",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/accountlinking/user/primary",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\"}"
+        }
+      }
+    },
+    {
+      "name": "link a recipe user into a primary user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/accountlinking/user/link",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"e84c25b7-0a63-4f91-bd28-3c7016fa5d84\", \"primaryUserId\": \"b3f61d08-9e24-4a75-8c30-71d5e0a94b26\"}"
+        }
+      }
+    },
+    {
+      "name": "link into a user that is not primary (INPUT_USER_IS_NOT_A_PRIMARY_USER)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/accountlinking/user/link",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"5a92c04f-1b76-4d38-9e51-c8f0b273a469\", \"primaryUserId\": \"7c05f9e2-46b1-48da-9037-2ba8d1c6e053\"}"
+        }
+      }
+    },
+    {
+      "name": "read the linked user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/user/id?userId=b3f61d08-9e24-4a75-8c30-71d5e0a94b26",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read the absorbed user by its old id (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/user/id?userId=e84c25b7-0a63-4f91-bd28-3c7016fa5d84",
+        "header": [
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlink the recipe user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/accountlinking/user/unlink",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipeUserId\": \"e84c25b7-0a63-4f91-bd28-3c7016fa5d84\"}"
+        }
+      }
+    },
+    {
+      "name": "create a password reset token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/password/reset/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1\"}"
+        }
+      }
+    },
+    {
+      "name": "create a reset token for an unknown user (UNKNOWN_USER_ID_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/password/reset/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"00000000-0000-0000-0000-000000000000\"}"
+        }
+      }
+    },
+    {
+      "name": "consume a spent reset token (RESET_PASSWORD_INVALID_TOKEN_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/password/reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"token\", \"token\": \"st-pwreset-41c7e096b3d825af\", \"newPassword\": \"OrbitAmeliaNew2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "reset with an unsupported method (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/password/reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"link\", \"token\": \"st-pwreset-9f28c4e07b5a13d6\", \"newPassword\": \"OrbitJonasNew2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "consume a valid reset token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/user/password/reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"token\", \"token\": \"st-pwreset-9f28c4e07b5a13d6\", \"newPassword\": \"OrbitJonasNew2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in with the old password (WRONG_CREDENTIALS_ERROR)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign in with the new password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/recipe/signin",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonasNew2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/user/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"2f7a83c1-d504-4e69-b1a2-60e9c745f83b\"}"
+        }
+      }
+    },
+    {
+      "name": "delete the same user again",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/user/remove",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "api-key",
+            "value": "orbit-labs-supertokens-core-key"
+          },
+          {
+            "key": "cdi-version",
+            "value": "5.1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"2f7a83c1-d504-4e69-b1a2-60e9c745f83b\"}"
+        }
+      }
+    }
+  ]
+}

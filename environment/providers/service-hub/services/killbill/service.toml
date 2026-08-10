@@ -1,0 +1,51 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "killbill"
+name     = "Kill Bill"
+category = "payments"
+status   = "declared"
+version  = "v1"
+module   = "services.killbill.service:KillbillService"
+upstream = "https://killbill.github.io/slate/"
+summary  = """
+Multi-tenant subscription platform: catalog-driven plans, entitlement and billing on separate clocks, payments as containers of transactions, and control tags that gate behaviour."""
+tags = [
+  "multi-tenant",
+  "entitlement",
+  "catalog",
+  "transactions",
+  "control-tags",
+]
+
+[data]
+dir = "killbill"
+
+[auth]
+scheme      = "basic"
+roles       = [
+  "tenant",
+]
+description = """
+HTTP Basic for the user plus `X-Killbill-ApiKey` and `X-Killbill-ApiSecret` for the tenant; every mutation also needs `X-Killbill-CreatedBy`. Cross-tenant reads are 404, not 403."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/1.0/kb/accounts",
+  "/1.0/kb/bundles",
+  "/1.0/kb/subscriptions",
+  "/1.0/kb/invoices",
+  "/1.0/kb/payments",
+  "/1.0/kb/paymentMethods",
+  "/1.0/kb/catalog",
+  "/1.0/kb/tenants",
+]

@@ -308,12 +308,61 @@ def main() -> int:
 
     start_sh = app_dir / "start.sh"
     if not start_sh.is_file():
-        log("\nFAIL: the agent left no /app/start.sh, so the app cannot be redeployed.")
+        # WHY it is missing decides whether this is the agent's fault.
+        #
+        # An agent that ran to completion and never wrote start.sh ignored the
+        # contract -- that is a scored failure. An agent that CRASHED partway
+        # never reached the point of writing it, and billing that to the agent
+        # invents a capability judgement from an infrastructure fault. Both
+        # produced `no_start_script` before this check, so a 132-step OpenHands
+        # 500 was indistinguishable from an agent that simply did not bother
+        # (2026-08-07, both seen within an hour).
+        result = json.loads((trial / "result.json").read_text()) if (
+            trial / "result.json").exists() else {}
+        exc = (result.get("exception_info") or {}).get("exception_type")
+        exc_msg = str((result.get("exception_info") or {}).get("exception_message") or "")
+        # exit 137 = SIGKILL (usually the OOM killer), 143 = SIGTERM.
+        signal_hint = next((s for s in ("exit 137", "exit 143") if s in exc_msg), "")
+
+        # result.json is NOT sufficient on its own. OpenHands' wrapper exits 0 even
+        # when its own agent controller dies -- on 2026-08-07 an internal 500
+        # ("name 'unicode' is not defined", a Python 2 builtin in its error path)
+        # drove AgentState.RUNNING -> ERROR at 132 steps, and Harbor still recorded
+        # `exception_info: null` and "Exceptions: 0". At Harbor's level a crashed
+        # agent and a finished one look identical, so ask the agent's own log too.
+        if not exc:
+            for log_name in ("openhands.txt", "claude-code.txt"):
+                log_path = trial / "agent" / log_name
+                if log_path.exists():
+                    try:
+                        tail = log_path.read_text(errors="replace")[-200000:]
+                    except OSError:
+                        continue
+                    if "AgentState.ERROR" in tail:
+                        exc = "AgentStateError"
+                        exc_msg = next(
+                            (ln.strip() for ln in reversed(tail.splitlines())
+                             if "Error" in ln or "Exception" in ln), ""
+                        )[:200]
+                        break
+
+        if exc:
+            reason = ["agent_crashed_before_start_script"]
+            note = (f"the agent phase ended in {exc}"
+                    f"{' (' + signal_hint + ')' if signal_hint else ''}, so it never "
+                    f"reached the point of writing /app/start.sh. Not scored as an "
+                    f"agent failure -- the run did not complete.")
+            log(f"\nFLAGGED: no /app/start.sh, but the agent phase ended in {exc}.")
+            log("         Treating this as an incomplete run, not an agent failure.")
+        else:
+            reason = ["no_start_script"]
+            note = ("the agent phase completed but left no /app/start.sh, which the "
+                    "Deployment Contract requires. Nothing can be redeployed.")
+            log("\nFAIL: the agent completed but left no /app/start.sh.")
+
         (out_dir / "reward.json").write_text(json.dumps({"reward": 0.0}, indent=2) + "\n")
         (out_dir / "workflows.json").write_text(json.dumps(
-            {"summary": {"reward": 0.0, "invalid": ["no_start_script"],
-                         "note": "fresh-container eval requires /app/start.sh "
-                                 "(see the Deployment Contract in instruction.md)"}},
+            {"summary": {"reward": 0.0, "invalid": reason, "note": note}},
             indent=2) + "\n")
         shutil.rmtree(staging, ignore_errors=True)
         return 1
@@ -375,17 +424,35 @@ def main() -> int:
         deadline = time.time() + HEALTH_TIMEOUT_SEC
         healthy = False
         while time.time() < deadline:
+            # Gate on /api/health returning 200, not on "something answered".
+            # The old `|| curl /` fallback passed an app that was returning 503 on
+            # /api/health for the whole wait while its static frontend served fine
+            # (2026-08-07) -- 45 substeps were then graded against an app that had
+            # told us it was not ready.
             probe = run(["docker", "exec", cname, "sh", "-c",
-                         f"curl -fsS --max-time 5 http://localhost:{args.port}/api/health "
-                         f"|| curl -fsS --max-time 5 http://localhost:{args.port}/"])
-            if probe.returncode == 0:
+                         f"curl -s -o /dev/null -w '%{{http_code}}' --max-time 5 "
+                         f"http://localhost:{args.port}/api/health"])
+            health_code = (probe.stdout or "").strip()
+            if health_code == "200":
                 healthy = True
                 break
+            # Only a genuinely absent endpoint (404) justifies falling back to `/`.
+            # A 5xx is the app reporting its own failure.
+            if health_code == "404":
+                alt = run(["docker", "exec", cname, "sh", "-c",
+                           f"curl -fsS --max-time 5 http://localhost:{args.port}/"])
+                if alt.returncode == 0:
+                    log("      no /api/health (404); accepted GET / instead")
+                    healthy = True
+                    break
             time.sleep(3)
 
         if not healthy:
-            log("\nFAIL: the app never came up in a clean container.")
-            log("      The agent's app worked only in its own warm container.")
+            log(f"\nFAIL: the app never became healthy in a clean container.")
+            log(f"      /api/health last returned: {health_code or 'no response'}")
+            if health_code and health_code.startswith("5"):
+                log("      That is the app reporting its OWN failure -- it started but")
+                log("      could not reach something it needs (commonly the database).")
             (out_dir / "reward.json").write_text(json.dumps({"reward": 0.0}, indent=2) + "\n")
             (out_dir / "workflows.json").write_text(json.dumps(
                 {"summary": {"reward": 0.0, "invalid": [],

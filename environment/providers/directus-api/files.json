@@ -1,0 +1,62 @@
+[
+  {
+    "id": "3a7f92c1-6b04-4e58-9c31-8d70f2a5b6e9",
+    "storage": "local",
+    "filename_disk": "3a7f92c1-6b04-4e58-9c31-8d70f2a5b6e9.png",
+    "filename_download": "sign-in-latency-chart.png",
+    "title": "Sign-in latency chart",
+    "type": "image/png",
+    "folder": "8c14e07b-3d59-42fa-9016-b7e2c583d40a",
+    "uploaded_by": "1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+    "uploaded_on": "2026-04-28T10:04:00.000Z",
+    "filesize": "184320",
+    "width": "1600",
+    "height": "900",
+    "description": "p95 token issuance before and after the Redis cutover."
+  },
+  {
+    "id": "6b1c04e9-83d7-4f25-9a60-4e71b8c520f3",
+    "storage": "local",
+    "filename_disk": "6b1c04e9-83d7-4f25-9a60-4e71b8c520f3.png",
+    "filename_download": "amelia-ortega.png",
+    "title": "Amelia Ortega",
+    "type": "image/png",
+    "folder": "2f60a94d-1e83-4cb7-8d05-9a1c76e4b302",
+    "uploaded_by": "1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+    "uploaded_on": "2025-11-02T09:30:00.000Z",
+    "filesize": "18422",
+    "width": "512",
+    "height": "512",
+    "description": "Author avatar."
+  },
+  {
+    "id": "e97d2b40-5c81-4f36-a729-1b6e0d94c8f5",
+    "storage": "local",
+    "filename_disk": "orbit-brand-kit.zip",
+    "filename_download": "orbit-brand-kit.zip",
+    "title": "Orbit brand kit",
+    "type": "application/zip",
+    "folder": "",
+    "uploaded_by": "5c07e83b-1f42-4d69-b3a8-07e5d91c264f",
+    "uploaded_on": "2026-02-14T11:00:00.000Z",
+    "filesize": "5242880",
+    "width": "",
+    "height": "",
+    "description": "Logos, typography and colour tokens."
+  },
+  {
+    "id": "af5810c6-72b3-4e09-95d1-c0e3b74f2681",
+    "storage": "local",
+    "filename_disk": "af5810c6-72b3-4e09-95d1-c0e3b74f2681.pdf",
+    "filename_download": "soc2-type2-2026.pdf",
+    "title": "SOC 2 Type II report 2026",
+    "type": "application/pdf",
+    "folder": "",
+    "uploaded_by": "1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+    "uploaded_on": "2026-04-09T12:05:00.000Z",
+    "filesize": "1548290",
+    "width": "",
+    "height": "",
+    "description": "Shared with enterprise customers under NDA."
+  }
+]

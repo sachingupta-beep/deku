@@ -1,0 +1,67 @@
+[
+  {
+    "id": "file_signin_lag",
+    "bucketId": "app_uploads",
+    "name": "signin-lag-2026-05-26.png",
+    "permissions": "read(\"user:usr_priya_raman\");read(\"team:team_aurora\")",
+    "signature": "9d3f01a6c47b5e28",
+    "mimeType": "image/png",
+    "sizeOriginal": "184320",
+    "chunksTotal": "1",
+    "chunksUploaded": "1",
+    "createdAt": "2026-05-26T07:12:04.000+00:00",
+    "updatedAt": "2026-05-26T07:12:04.000+00:00"
+  },
+  {
+    "id": "file_dark_mode",
+    "bucketId": "app_uploads",
+    "name": "invoice-dark-mode.png",
+    "permissions": "read(\"user:usr_sofia_duarte\");read(\"team:team_lumen\")",
+    "signature": "41ba7c9e0d52f183",
+    "mimeType": "image/png",
+    "sizeOriginal": "251904",
+    "chunksTotal": "1",
+    "chunksUploaded": "1",
+    "createdAt": "2026-05-14T11:25:11.000+00:00",
+    "updatedAt": "2026-05-14T11:25:11.000+00:00"
+  },
+  {
+    "id": "file_offline_bug",
+    "bucketId": "app_uploads",
+    "name": "offline-queue-trace.jpg",
+    "permissions": "read(\"any\")",
+    "signature": "7c02de84f193ab40",
+    "mimeType": "image/jpeg",
+    "sizeOriginal": "97280",
+    "chunksTotal": "1",
+    "chunksUploaded": "1",
+    "createdAt": "2026-04-27T08:48:32.000+00:00",
+    "updatedAt": "2026-04-27T08:48:32.000+00:00"
+  },
+  {
+    "id": "file_orbit_ios_481",
+    "bucketId": "release_artifacts",
+    "name": "orbit-4.8.1.ipa",
+    "permissions": "read(\"team:team_helix\")",
+    "signature": "b58e1f70c3aa2d61",
+    "mimeType": "application/octet-stream",
+    "sizeOriginal": "78643200",
+    "chunksTotal": "15",
+    "chunksUploaded": "15",
+    "createdAt": "2026-05-21T17:34:00.000+00:00",
+    "updatedAt": "2026-05-21T17:41:00.000+00:00"
+  },
+  {
+    "id": "file_orbit_apk_481",
+    "bucketId": "release_artifacts",
+    "name": "orbit-4.8.1.apk",
+    "permissions": "read(\"team:team_helix\")",
+    "signature": "2f9c47a0be15c803",
+    "mimeType": "application/vnd.android.package-archive",
+    "sizeOriginal": "62914560",
+    "chunksTotal": "12",
+    "chunksUploaded": "12",
+    "createdAt": "2026-05-21T17:36:00.000+00:00",
+    "updatedAt": "2026-05-21T17:42:00.000+00:00"
+  }
+]

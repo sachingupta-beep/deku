@@ -1,0 +1,1022 @@
+{
+  "info": {
+    "name": "Kill Bill Mock API v0.24.10",
+    "description": "Test collection for the mock Kill Bill service. Base URL defaults to http://localhost:8128. In docker-compose, the service is reachable at http://killbill-api:8128.\n\nKill Bill is the enterprise end of this fleet -- a Java, multi-tenant subscription platform -- and five of its habits are modelled rather than smoothed away.\n\n**Every request carries its tenant in headers.** `X-Killbill-ApiKey` and `X-Killbill-ApiSecret` decide which data even exists: an account in one tenant is invisible from the other, and a missing or wrong pair is a 401. Writes additionally need `X-Killbill-CreatedBy`, because every change is audited against a person.\n\n**Creates answer 201 with a `Location` header and no body.** Updates and cancellations answer 204. Nothing is echoed back, so a caller follows the header or looks the object up by the `externalKey` it chose -- which is exactly what this collection does.\n\n**Entitlement and billing are two different timelines.** A subscription has a `startDate` (access) and a `billingStartDate` (money), and cancelling takes an `entitlementPolicy` *and* a `billingPolicy`, so service can stop today while billing runs to the end of the term.\n\n**A payment is a container of transactions** -- PURCHASE, AUTHORIZE, CAPTURE, REFUND -- so a failed attempt, its retry and a later refund all hang off one payment id.\n\n**Control tags change what the system does.** `AUTO_PAY_OFF` stops payment attempts; `OVERDUE_ENFORCEMENT_OFF` keeps an account out of the dunning ladder. They are data, and they are enforced.\n\nErrors carry Kill Bill's own numeric code alongside the HTTP status. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8128"},
+    {"key": "amelia", "value": "a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54"},
+    {"key": "acmeAccount", "value": "b2e4d8ea-5c3f-4d7b-8e96-4a8f2c1d3e65"},
+    {"key": "northwind", "value": "c3f5e9fb-6d40-4e8c-9fa7-5b903d2e4f76"},
+    {"key": "helios", "value": "d4a6fa0c-7e51-4f9d-80b8-6ca14e3f5087"},
+    {"key": "growthBundle", "value": "bd11f3c7-d94b-4e6a-8d85-3f7e1b0c2d54"},
+    {"key": "baseSub", "value": "s111f3c7-d94b-4e6a-8d85-3f7e1b0c2d54"},
+    {"key": "addOnSub", "value": "s222e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65"},
+    {"key": "cancelledSub", "value": "s333f5e9-fb6d-4e8c-9fa7-5b903d2e4f76"},
+    {"key": "trialSub", "value": "s444a6fa-0c7e-4f9d-80b8-6ca14e3f5087"},
+    {"key": "paidInvoice", "value": "i111f3c7-d94b-4e6a-8d85-3f7e1b0c2d54"},
+    {"key": "draftInvoice", "value": "i444a6fa-0c7e-4f9d-80b8-6ca14e3f5087"},
+    {"key": "settledPayment", "value": "p111f3c7-d94b-4e6a-8d85-3f7e1b0c2d54"},
+    {"key": "failedPayment", "value": "p222e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65"},
+    {"key": "sepaMethod", "value": "pm44a6fa-0c7e-4f9d-80b8-6ca14e3f5087"}
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "no tenant credentials at all (401 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/1.0/kb/accounts"}
+    },
+    {
+      "name": "the wrong secret (401 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "not-the-secret"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "a tenant that does not exist (401 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "nobody"},
+          {"key": "X-Killbill-ApiSecret", "value": "nothing"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "the orbit-labs tenant sees its three accounts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "the acme-reseller tenant sees a different one",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "acme-reseller"},
+          {"key": "X-Killbill-ApiSecret", "value": "acme-reseller-secret-5b07d21f"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "an orbit account is invisible to acme (404 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "acme-reseller"},
+          {"key": "X-Killbill-ApiSecret", "value": "acme-reseller-secret-5b07d21f"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}"
+      }
+    },
+    {
+      "name": "and an acme account is invisible to orbit (404 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{helios}}"
+      }
+    },
+    {
+      "name": "node and plugin information",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/nodesInfo"
+      }
+    },
+    {
+      "name": "the catalog: products, plans and phases",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/catalog"
+      }
+    },
+    {
+      "name": "just the base plans a customer can start on",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/catalog/availableBasePlans"
+      }
+    },
+    {
+      "name": "one account",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}"
+      }
+    },
+    {
+      "name": "look an account up by the key you chose",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts?externalKey=orbit-acme"
+      }
+    },
+    {
+      "name": "an account that does not exist (404 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "the bundle: one BASE and its ADD_ONs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/bundles"
+      }
+    },
+    {
+      "name": "the bundle on its own",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/bundles/{{growthBundle}}"
+      }
+    },
+    {
+      "name": "a subscription: entitlement and billing dates side by side",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{baseSub}}"
+      }
+    },
+    {
+      "name": "a trial subscription bills later than it starts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{trialSub}}"
+      }
+    },
+    {
+      "name": "an already-cancelled subscription",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{cancelledSub}}"
+      }
+    },
+    {
+      "name": "an unknown subscription (404 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "account invoices",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/invoices"
+      }
+    },
+    {
+      "name": "an invoice with its items",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/invoices/{{paidInvoice}}"
+      }
+    },
+    {
+      "name": "the same invoice rendered as HTML",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/invoices/{{paidInvoice}}/html"
+      }
+    },
+    {
+      "name": "an unknown invoice (404 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/invoices/00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "payments across the tenant",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/payments"
+      }
+    },
+    {
+      "name": "a payment holding two failed attempts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/payments/{{failedPayment}}"
+      }
+    },
+    {
+      "name": "a payment with an AUTHORIZE and a partial CAPTURE",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/payments/p333f5e9-fb6d-4e8c-9fa7-5b903d2e4f76"
+      }
+    },
+    {
+      "name": "an unknown payment (404 expected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/payments/00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "payment methods, with their plugin routing",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/paymentMethods"
+      }
+    },
+    {
+      "name": "one payment method",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/paymentMethods/{{sepaMethod}}"
+      }
+    },
+    {
+      "name": "the whole account in one read",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/timeline"
+      }
+    },
+    {
+      "name": "a write with no X-Killbill-CreatedBy (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"externalKey\": \"orbit-nobody\", \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "create an account (201 and a Location, no body)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"externalKey\": \"orbit-rohit\", \"name\": \"Rohit Bansal\", \"email\": \"rohit.bansal@orbit-labs.com\", \"currency\": \"EUR\", \"country\": \"ES\", \"timeZone\": \"Europe/Madrid\", \"billCycleDayLocal\": 7}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "find it again by the externalKey you chose",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts?externalKey=orbit-rohit"
+      }
+    },
+    {
+      "name": "the same externalKey twice (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"externalKey\": \"orbit-rohit\", \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "a currency the catalog does not price (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"externalKey\": \"orbit-jpy\", \"currency\": \"JPY\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts"
+      }
+    },
+    {
+      "name": "update an account (204, no body)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"timeZone\": \"Europe/Madrid\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}"
+      }
+    },
+    {
+      "name": "currency cannot be changed after the fact (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"currency\": \"USD\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}"
+      }
+    },
+    {
+      "name": "add an add-on the base plan offers",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"accountId\": \"a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54\", \"externalKey\": \"orbit-amelia-growth\", \"planName\": \"orbit-egress-monthly\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions"
+      }
+    },
+    {
+      "name": "the bundle now carries it",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/bundles/{{growthBundle}}"
+      }
+    },
+    {
+      "name": "an add-on the base plan does not offer (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"accountId\": \"b2e4d8ea-5c3f-4d7b-8e96-4a8f2c1d3e65\", \"externalKey\": \"orbit-acme-starter\", \"planName\": \"orbit-egress-monthly\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions"
+      }
+    },
+    {
+      "name": "an add-on with no bundle to attach to (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"accountId\": \"a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54\", \"externalKey\": \"no-such-bundle\", \"planName\": \"orbit-support-monthly\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions"
+      }
+    },
+    {
+      "name": "a plan the catalog does not have (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"accountId\": \"a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54\", \"planName\": \"orbit-platinum\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions"
+      }
+    },
+    {
+      "name": "a new BASE subscription opens its own bundle",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"accountId\": \"c3f5e9fb-6d40-4e8c-9fa7-5b903d2e4f76\", \"externalKey\": \"orbit-northwind-sandbox\", \"planName\": \"orbit-starter-monthly\", \"entitlementDate\": \"2026-06-01\", \"billingDate\": \"2026-06-15\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions"
+      }
+    },
+    {
+      "name": "change the plan on a live subscription (204, no body)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"planName\": \"orbit-scale-annual\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{baseSub}}"
+      }
+    },
+    {
+      "name": "a BASE cannot become an ADD_ON (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"planName\": \"orbit-support-monthly\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{baseSub}}"
+      }
+    },
+    {
+      "name": "changing a cancelled subscription (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"planName\": \"orbit-support-monthly\"}"},
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{cancelledSub}}"
+      }
+    },
+    {
+      "name": "an unknown cancellation policy (400 expected)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{addOnSub}}?entitlementPolicy=SOMEDAY&billingPolicy=END_OF_TERM"
+      }
+    },
+    {
+      "name": "cancel entitlement now, keep billing to the end of term",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{baseSub}}?entitlementPolicy=IMMEDIATE&billingPolicy=END_OF_TERM"
+      }
+    },
+    {
+      "name": "the two dates diverged, exactly as asked",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{baseSub}}"
+      }
+    },
+    {
+      "name": "cancel the add-on the other way round",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{addOnSub}}?entitlementPolicy=END_OF_TERM&billingPolicy=IMMEDIATE"
+      }
+    },
+    {
+      "name": "and it shows the mirror image",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{addOnSub}}"
+      }
+    },
+    {
+      "name": "cancelling twice (400 expected)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/subscriptions/{{baseSub}}"
+      }
+    },
+    {
+      "name": "commit the draft invoice (204, no body)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/invoices/{{draftInvoice}}/commitInvoice"
+      }
+    },
+    {
+      "name": "it has a number now, and the balance moved",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/invoices/{{draftInvoice}}"
+      }
+    },
+    {
+      "name": "committing it again (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/invoices/{{draftInvoice}}/commitInvoice"
+      }
+    },
+    {
+      "name": "raise an external charge (201 and a Location)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 7500, \"currency\": \"EUR\", \"description\": \"Onboarding workshop, half day\"}"},
+        "url": "{{baseUrl}}/1.0/kb/invoices/charges/{{amelia}}"
+      }
+    },
+    {
+      "name": "a charge in the wrong currency (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 100, \"currency\": \"USD\"}"},
+        "url": "{{baseUrl}}/1.0/kb/invoices/charges/{{amelia}}"
+      }
+    },
+    {
+      "name": "a charge with no amount (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"description\": \"free lunch\"}"},
+        "url": "{{baseUrl}}/1.0/kb/invoices/charges/{{amelia}}"
+      }
+    },
+    {
+      "name": "the control tags on the acme account",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/tags"
+      }
+    },
+    {
+      "name": "AUTO_PAY_OFF blocks the payment outright (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 4900}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/payments"
+      }
+    },
+    {
+      "name": "remove the tag (204, no body)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/tags?tagDef=AUTO_PAY_OFF"
+      }
+    },
+    {
+      "name": "now the attempt reaches the card, and it declines (402 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 4900, \"paymentExternalKey\": \"run-acme-retry\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/payments"
+      }
+    },
+    {
+      "name": "a good card is a 201 and a Location",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 5000, \"transactionType\": \"PURCHASE\", \"paymentExternalKey\": \"run-amelia-topup\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/payments"
+      }
+    },
+    {
+      "name": "an asynchronous plugin answers PENDING, still a 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 22100, \"paymentExternalKey\": \"run-northwind-ach\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{northwind}}/payments"
+      }
+    },
+    {
+      "name": "a plugin that times out (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 100, \"paymentMethodId\": \"pm44a6fa-0c7e-4f9d-80b8-6ca14e3f5087\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/payments"
+      }
+    },
+    {
+      "name": "a payment of nothing (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 0}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/payments"
+      }
+    },
+    {
+      "name": "an account with no usable method (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "acme-reseller"},
+          {"key": "X-Killbill-ApiSecret", "value": "acme-reseller-secret-5b07d21f"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 2900}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{helios}}/payments"
+      }
+    },
+    {
+      "name": "refund part of a settled payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 4900, \"transactionExternalKey\": \"run-amelia-refund\"}"},
+        "url": "{{baseUrl}}/1.0/kb/payments/{{settledPayment}}/refunds"
+      }
+    },
+    {
+      "name": "the refund is a transaction on the same payment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/payments/{{settledPayment}}"
+      }
+    },
+    {
+      "name": "refunding more than was settled (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 999999}"},
+        "url": "{{baseUrl}}/1.0/kb/payments/{{settledPayment}}/refunds"
+      }
+    },
+    {
+      "name": "refunding a payment that never settled (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 100}"},
+        "url": "{{baseUrl}}/1.0/kb/payments/{{failedPayment}}/refunds"
+      }
+    },
+    {
+      "name": "add control tags",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "[\"AUTO_PAY_OFF\", \"MANUAL_PAY\"]"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/tags"
+      }
+    },
+    {
+      "name": "both are on the account now",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/tags"
+      }
+    },
+    {
+      "name": "a tag definition that does not exist (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "[\"VIP_TREATMENT\"]"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/tags"
+      }
+    },
+    {
+      "name": "removing a tag the account never had (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/tags?tagDef=WRITTEN_OFF"
+      }
+    },
+    {
+      "name": "overdue: OVERDUE_ENFORCEMENT_OFF keeps it clear",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{northwind}}/overdueState"
+      }
+    },
+    {
+      "name": "overdue: a balance owed puts the account on the ladder",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{acmeAccount}}/overdueState"
+      }
+    },
+    {
+      "name": "add a payment method to the other tenant's account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "acme-reseller"},
+          {"key": "X-Killbill-ApiSecret", "value": "acme-reseller-secret-5b07d21f"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"externalKey\": \"helios-sepa\", \"pluginName\": \"killbill-orbit-payments\", \"pluginInfo\": {\"type\": \"sepa_debit\", \"last4\": \"9931\", \"behaviour\": \"ok\"}}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{helios}}/paymentMethods?isDefault=true"
+      }
+    },
+    {
+      "name": "it became the account default",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "acme-reseller"},
+          {"key": "X-Killbill-ApiSecret", "value": "acme-reseller-secret-5b07d21f"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{helios}}/paymentMethods"
+      }
+    },
+    {
+      "name": "and now that account can pay",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Killbill-ApiKey", "value": "acme-reseller"},
+          {"key": "X-Killbill-ApiSecret", "value": "acme-reseller-secret-5b07d21f"},
+          {"key": "X-Killbill-CreatedBy", "value": "collection-run"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount\": 2900, \"paymentExternalKey\": \"run-helios-pay\"}"},
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{helios}}/payments"
+      }
+    },
+    {
+      "name": "the timeline after everything",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Killbill-ApiKey", "value": "orbit-labs"},
+          {"key": "X-Killbill-ApiSecret", "value": "orbit-labs-secret-9f14c73e"}
+        ],
+        "url": "{{baseUrl}}/1.0/kb/accounts/{{amelia}}/timeline"
+      }
+    },
+    {
+      "name": "audit trail of this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/requests?limit=5"}
+    },
+    {
+      "name": "audit summary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/summary"}
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "refresh-usage",
+    "path": "/refresh-usage",
+    "runtime": "nodejs20",
+    "handler": "functions/refresh-usage.ts",
+    "enabled": "true",
+    "timeout_seconds": "30",
+    "last_invoked_at": "2026-05-26T06:00:00+00:00",
+    "invocation_count": "8412"
+  },
+  {
+    "name": "export-dashboard",
+    "path": "/export-dashboard",
+    "runtime": "nodejs20",
+    "handler": "functions/export-dashboard.ts",
+    "enabled": "true",
+    "timeout_seconds": "120",
+    "last_invoked_at": "2026-05-26T06:06:00+00:00",
+    "invocation_count": "1937"
+  },
+  {
+    "name": "rotate-api-keys",
+    "path": "/rotate-api-keys",
+    "runtime": "nodejs20",
+    "handler": "functions/rotate-api-keys.ts",
+    "enabled": "false",
+    "timeout_seconds": "15",
+    "last_invoked_at": "2026-02-01T03:00:00+00:00",
+    "invocation_count": "42"
+  }
+]

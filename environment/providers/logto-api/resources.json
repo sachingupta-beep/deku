@@ -1,0 +1,5 @@
+[
+  {"id": "management-api", "name": "Logto Management API", "indicator": "https://default.logto.app/api", "accessTokenTtl": "3600", "isDefault": "1"},
+  {"id": "res5statusapi", "name": "Orbit Status API", "indicator": "https://api.orbit-labs.com/status", "accessTokenTtl": "3600", "isDefault": "0"},
+  {"id": "res2billingap", "name": "Orbit Billing API", "indicator": "https://api.orbit-labs.com/billing", "accessTokenTtl": "1800", "isDefault": "0"}
+]

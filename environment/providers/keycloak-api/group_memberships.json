@@ -1,0 +1,8 @@
+[
+  {"id": "1", "realm": "orbit-labs", "userId": "a1c07e34-9b52-4f68-8d13-06e2fa945b7c", "groupId": "g1-platform00000001"},
+  {"id": "2", "realm": "orbit-labs", "userId": "a1c07e34-9b52-4f68-8d13-06e2fa945b7c", "groupId": "g2-platform-oncall01"},
+  {"id": "3", "realm": "orbit-labs", "userId": "5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28", "groupId": "g1-platform00000001"},
+  {"id": "4", "realm": "orbit-labs", "userId": "c72f4d80-6e19-4b35-a204-8f7b0e15c9d6", "groupId": "g1-platform00000001"},
+  {"id": "5", "realm": "orbit-labs", "userId": "3b60e5c1-7a94-42d8-9f01-2c86d47e0b53", "groupId": "g3-support000000001"},
+  {"id": "6", "realm": "orbit-partners", "userId": "6d14a9f3-0b58-4c76-83e2-1f9c40d75b86", "groupId": "g4-partners00000001"}
+]

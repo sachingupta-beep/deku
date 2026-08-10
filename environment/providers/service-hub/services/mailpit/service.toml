@@ -1,0 +1,49 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "mailpit"
+name     = "Mailpit"
+category = "email"
+status   = "declared"
+version  = "v1"
+module   = "services.mailpit.service:MailpitService"
+upstream = "https://mailpit.axllent.org/docs/api-v1/"
+summary  = """
+MailHog's successor: a real search query language (from:, to:, subject:, is:read, has:attachment), HTML/link/spam analyses and probability-based chaos."""
+tags = [
+  "search-syntax",
+  "tags",
+  "html-check",
+  "spam-check",
+  "chaos",
+]
+
+[data]
+dir = "mailpit"
+
+[auth]
+scheme      = "none"
+roles       = []
+description = """
+No authentication by default. Message state (read/unread, tags) is server-side and persists across calls, so tests can assert on it."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/api/v1/messages",
+  "/api/v1/search",
+  "/api/v1/message/{id}",
+  "/api/v1/message/{id}/html-check",
+  "/api/v1/message/{id}/link-check",
+  "/api/v1/message/{id}/sa-check",
+  "/api/v1/tags",
+  "/api/v1/chaos",
+]

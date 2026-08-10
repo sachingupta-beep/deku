@@ -1,0 +1,8 @@
+[
+  {"projectId": "281940113077371001", "key": "status.admin", "displayName": "Status Administrator", "group": "status", "creationDate": "2024-01-12T09:05:00Z"},
+  {"projectId": "281940113077371001", "key": "status.incident.write", "displayName": "Incident Author", "group": "status", "creationDate": "2024-01-12T09:05:00Z"},
+  {"projectId": "281940113077371001", "key": "status.read", "displayName": "Status Reader", "group": "status", "creationDate": "2024-01-12T09:05:00Z"},
+  {"projectId": "281940113077371002", "key": "billing.read", "displayName": "Billing Reader", "group": "billing", "creationDate": "2024-08-05T11:05:00Z"},
+  {"projectId": "281940113077371002", "key": "billing.write", "displayName": "Billing Author", "group": "billing", "creationDate": "2024-08-05T11:05:00Z"},
+  {"projectId": "281940113077371003", "key": "partner.read", "displayName": "Partner Reader", "group": "partner", "creationDate": "2025-12-01T09:20:00Z"}
+]

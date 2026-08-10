@@ -1,0 +1,5 @@
+[service]
+name = "inbucket-api"
+port = 8123
+env_var_name = "INBUCKET_API_URL"
+healthcheck_path = "/health"

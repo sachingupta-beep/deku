@@ -1,0 +1,5 @@
+{
+  "Sender": {"ErrorCode": 451, "Probability": 0},
+  "Recipient": {"ErrorCode": 451, "Probability": 0},
+  "Authentication": {"ErrorCode": 535, "Probability": 0}
+}

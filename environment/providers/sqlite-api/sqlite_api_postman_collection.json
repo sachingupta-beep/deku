@@ -1,0 +1,665 @@
+{
+  "info": {
+    "name": "SQLite Mock API v1",
+    "description": "Test collection for the mock SQLite HTTP service. Base URL defaults to http://localhost:8108. In docker-compose, the service is reachable at http://sqlite-api:8108. Statements are executed by a real SQLite engine. /api/v1/query is read-only, /api/v1/execute may write, and /api/v1/transaction runs a batch atomically. The X-API-Key header selects access: sqlite_ro_2b90d7fc1e6a4830 is read-only and refuses writes, sqlite_key_9f3c1a7e5b2d4086 (or any other token, or none) is read/write.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8108"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "health db",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/db"
+      }
+    },
+    {
+      "name": "query simple select",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, sku, name, stock_qty FROM parts ORDER BY sku\"}"
+        }
+      }
+    },
+    {
+      "name": "query join and aggregate",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT s.customer, COUNT(*) AS work_orders, SUM(w.minutes_spent) AS minutes FROM work_orders w JOIN sites s ON s.id = w.site_id GROUP BY s.customer ORDER BY work_orders DESC, s.customer\"}"
+        }
+      }
+    },
+    {
+      "name": "query with bound parameters",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, summary, minutes_spent FROM work_orders WHERE status = ? AND priority = ? ORDER BY id\", \"params\": [\"closed\", \"P1\"]}"
+        }
+      }
+    },
+    {
+      "name": "query with named parameters",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT sku, stock_qty, reorder_level FROM parts WHERE stock_qty < :threshold ORDER BY stock_qty\", \"params\": {\"threshold\": 10}}"
+        }
+      }
+    },
+    {
+      "name": "query a view",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM open_work_orders ORDER BY priority, id\"}"
+        }
+      }
+    },
+    {
+      "name": "query with a CTE",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"WITH part_cost AS (SELECT work_order_id, SUM(quantity * unit_cost_cents) AS cents FROM work_order_parts GROUP BY work_order_id) SELECT w.id, w.summary, part_cost.cents FROM work_orders w JOIN part_cost ON part_cost.work_order_id = w.id ORDER BY part_cost.cents DESC LIMIT 3\"}"
+        }
+      }
+    },
+    {
+      "name": "query with a window function",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, priority, minutes_spent, RANK() OVER (PARTITION BY priority ORDER BY minutes_spent DESC) AS rank_in_priority FROM work_orders WHERE status = 'closed' ORDER BY priority, rank_in_priority\"}"
+        }
+      }
+    },
+    {
+      "name": "query left join with null handling",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT t.name, COUNT(w.id) AS assigned FROM technicians t LEFT JOIN work_orders w ON w.technician_id = t.id GROUP BY t.id ORDER BY assigned DESC, t.name\"}"
+        }
+      }
+    },
+    {
+      "name": "query parts needing reorder",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT sku, name, stock_qty, reorder_level FROM parts WHERE stock_qty <= reorder_level ORDER BY stock_qty\"}"
+        }
+      }
+    },
+    {
+      "name": "query sync conflicts",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT device_id, COUNT(*) AS conflicts FROM sync_log WHERE conflict = 1 GROUP BY device_id\"}"
+        }
+      }
+    },
+    {
+      "name": "query with max_rows truncation",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id FROM work_orders ORDER BY id\", \"max_rows\": 3}"
+        }
+      }
+    },
+    {
+      "name": "query unknown table (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM invoices\"}"
+        }
+      }
+    },
+    {
+      "name": "query unknown column (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT nonexistent FROM parts\"}"
+        }
+      }
+    },
+    {
+      "name": "query syntax error (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELEC * FROM parts\"}"
+        }
+      }
+    },
+    {
+      "name": "query write on read endpoint (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM parts WHERE id = 1\"}"
+        }
+      }
+    },
+    {
+      "name": "execute insert",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO parts (sku, name, category, unit_cost_cents, stock_qty, reorder_level) VALUES (?, ?, ?, ?, ?, ?)\", \"params\": [\"VLV-777\", \"Bypass valve\", \"hydraulic\", 5600, 9, 4]}"
+        }
+      }
+    },
+    {
+      "name": "execute update",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"UPDATE work_orders SET status = 'closed', closed_at = '2026-05-26T09:30:00Z', minutes_spent = 210 WHERE id = 1003\"}"
+        }
+      }
+    },
+    {
+      "name": "execute delete with cascade",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM work_orders WHERE id = 1006\"}"
+        }
+      }
+    },
+    {
+      "name": "execute unique violation (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO parts (sku, name, category, unit_cost_cents) VALUES ('PMP-100', 'Duplicate pump', 'hydraulic', 1000)\"}"
+        }
+      }
+    },
+    {
+      "name": "execute foreign key violation (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO work_orders (site_id, status, priority, summary, opened_at) VALUES (999, 'open', 'P1', 'Orphan order', '2026-05-26T09:00:00Z')\"}"
+        }
+      }
+    },
+    {
+      "name": "execute check violation (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"UPDATE parts SET stock_qty = -5 WHERE sku = 'SNS-220'\"}"
+        }
+      }
+    },
+    {
+      "name": "execute not null violation (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO sites (name, region) VALUES ('No customer', 'EMEA')\"}"
+        }
+      }
+    },
+    {
+      "name": "execute with read-only key (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "sqlite_ro_2b90d7fc1e6a4830"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM sync_log WHERE id = 1\"}"
+        }
+      }
+    },
+    {
+      "name": "execute forbidden statement (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"ATTACH DATABASE '/etc/passwd' AS leak\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction commit",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"UPDATE parts SET stock_qty = stock_qty - ? WHERE sku = ?\", \"params\": [2, \"SNS-220\"]}, {\"sql\": \"INSERT INTO work_order_parts (work_order_id, part_id, quantity, unit_cost_cents) VALUES (1004, 2, 2, 4200)\"}, {\"sql\": \"SELECT sku, stock_qty FROM parts WHERE sku = 'SNS-220'\"}], \"atomic\": true}"
+        }
+      }
+    },
+    {
+      "name": "transaction rollback (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"UPDATE parts SET stock_qty = 999 WHERE sku = 'FLT-012'\"}, {\"sql\": \"INSERT INTO parts (sku, name, category, unit_cost_cents) VALUES ('PMP-100', 'Duplicate', 'hydraulic', 1)\"}], \"atomic\": true}"
+        }
+      }
+    },
+    {
+      "name": "verify rollback left stock unchanged",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT sku, stock_qty FROM parts WHERE sku = 'FLT-012'\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction non-atomic",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"INSERT INTO parts (sku, name, category, unit_cost_cents) VALUES ('PMP-100', 'Duplicate', 'hydraulic', 1)\"}, {\"sql\": \"SELECT COUNT(*) AS parts FROM parts\"}], \"atomic\": false}"
+        }
+      }
+    },
+    {
+      "name": "explain indexed lookup",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/explain",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM work_orders WHERE site_id = 3\"}"
+        }
+      }
+    },
+    {
+      "name": "explain full scan",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/explain",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM sites WHERE customer LIKE '%Robotics%'\"}"
+        }
+      }
+    },
+    {
+      "name": "explain join",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/explain",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT w.id, s.name FROM work_orders w JOIN sites s ON s.id = w.site_id WHERE w.status = 'open'\"}"
+        }
+      }
+    },
+    {
+      "name": "list tables",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables"
+      }
+    },
+    {
+      "name": "list tables without views",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables?include_views=false"
+      }
+    },
+    {
+      "name": "describe table",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/work_orders"
+      }
+    },
+    {
+      "name": "describe junction table",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/work_order_parts"
+      }
+    },
+    {
+      "name": "describe view",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/open_work_orders"
+      }
+    },
+    {
+      "name": "describe unknown table (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/invoices"
+      }
+    },
+    {
+      "name": "list indexes",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/indexes"
+      }
+    },
+    {
+      "name": "dump schema",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/schema"
+      }
+    },
+    {
+      "name": "database info",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/database"
+      }
+    },
+    {
+      "name": "pragma journal_mode",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/pragma/journal_mode"
+      }
+    },
+    {
+      "name": "pragma page_size",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/pragma/page_size"
+      }
+    },
+    {
+      "name": "pragma foreign_key_check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/pragma/foreign_key_check"
+      }
+    },
+    {
+      "name": "pragma table_list",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/pragma/table_list"
+      }
+    },
+    {
+      "name": "pragma unknown (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/pragma/not_a_pragma"
+      }
+    },
+    {
+      "name": "integrity check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/integrity-check"
+      }
+    }
+  ]
+}

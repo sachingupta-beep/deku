@@ -1,0 +1,90 @@
+[
+  {
+    "id": "1",
+    "sender": "billing@orbit-labs.com",
+    "recipients": "amelia.ortega@orbit-labs.com",
+    "cc": "",
+    "subject": "Your Orbit Labs order ORD-2026-4417 is confirmed",
+    "type": "multipart/mixed",
+    "created_at": "2026-05-28T09:14:12+00:00",
+    "text": "Hi Amelia,\n\nThanks for your order. ORD-2026-4417 is confirmed and the receipt\nis attached as a PDF.\n\nOrder total: 1932.00 EUR\nBilled to: Orbit Labs SL, Carrer de Balmes 191, Barcelona\n\n-- \nOrbit Labs Billing",
+    "html": "<html><body style=\"font-family: Helvetica, Arial, sans-serif;\"><h1>Order confirmed</h1><p>Hi Amelia,</p><p><strong>ORD-2026-4417</strong> is confirmed and the receipt is attached as a PDF.</p><p>Order total: <strong>1932.00 EUR</strong></p><p>&mdash; Orbit Labs Billing</p></body></html>"
+  },
+  {
+    "id": "2",
+    "sender": "billing@orbit-labs.com",
+    "recipients": "finance@orbit-labs.com;audit@orbit-labs.com",
+    "cc": "",
+    "subject": "Invoice INV-2026-0417 for Orbit Labs",
+    "type": "multipart/mixed",
+    "created_at": "2026-05-27T14:30:55+00:00",
+    "text": "Invoice INV-2026-0417\n\nPeriod: 2026-05-01 to 2026-05-31\nDue: 2026-06-14\nAmount: 1932.00 EUR\n\nThe line items are attached as a CSV.\n\n-- \nOrbit Labs Billing",
+    "html": ""
+  },
+  {
+    "id": "3",
+    "sender": "status@orbit-labs.com",
+    "recipients": "oncall@orbit-labs.com;helena.park@orbit-labs.com",
+    "cc": "helena.park@orbit-labs.com",
+    "subject": "[Orbit Status] Investigating elevated API latency (INC-4417)",
+    "type": "multipart/alternative",
+    "created_at": "2026-05-26T14:22:08+00:00",
+    "text": "Investigating - INC-4417\n\nWe are seeing elevated p99 latency on the public API in eu-west.\nWrites are unaffected. The ingest tier is being drained onto the\nstandby fleet now.\n\nStarted: 2026-05-26 14:05 UTC\nNext update: within 30 minutes",
+    "html": "<html><body><h3>Investigating &mdash; INC-4417</h3><p>Elevated p99 latency on the public API in <code>eu-west</code>. Writes are unaffected.</p><p><b>Started:</b> 2026-05-26 14:05 UTC</p></body></html>"
+  },
+  {
+    "id": "4",
+    "sender": "auth@orbit-labs.com",
+    "recipients": "jonas.pereira@orbit-labs.com",
+    "cc": "",
+    "subject": "Reset your Orbit Labs password",
+    "type": "text/plain",
+    "created_at": "2026-05-27T16:41:55+00:00",
+    "text": "Hi Jonas,\n\nSomeone asked to reset the password for your Orbit Labs account.\nEnter this recovery code to continue:\n\n  770412\n\nThe code expires in 15 minutes. If this was not you, ignore this mail\nand nothing will change.\n\n-- \nOrbit Labs Security",
+    "html": ""
+  },
+  {
+    "id": "5",
+    "sender": "noor.aziz@orbit-labs.com",
+    "recipients": "partners@acme-partner.example",
+    "cc": "",
+    "subject": "Welcome to the Orbit Labs partner programme",
+    "type": "multipart/related",
+    "created_at": "2026-05-25T10:05:41+00:00",
+    "text": "",
+    "html": "<html><body><img src=\"cid:partner-hero@orbit-labs.com\" alt=\"Orbit Labs partners\" width=\"600\"><h2>Welcome aboard</h2><p>Your sandbox tenant is ready and the API keys are in the partner console.</p><p><a href=\"https://orbit-labs.com/partners/start\">Get started</a></p></body></html>"
+  },
+  {
+    "id": "6",
+    "sender": "news@orbit-labs.com",
+    "recipients": "subscribers@orbit-labs.com",
+    "cc": "",
+    "subject": "Orbit Labs May digest: what shipped",
+    "type": "multipart/mixed",
+    "created_at": "2026-05-24T08:00:00+00:00",
+    "text": "Orbit Labs May digest\n\nWhat shipped this month:\n\n- Scheduled exports, now with a retry window\n- Regional failover for the ingest tier\n- A rewritten audit log\n\nThe week 21 uptime numbers are attached.\n\nRead the full notes: https://orbit-labs.com/changelog/2026-05",
+    "html": "<html><body style=\"font-family: Georgia, serif;\"><img src=\"cid:orbit-logo@orbit-labs.com\" alt=\"Orbit Labs\" width=\"120\"><h2>May digest</h2><ul><li>Scheduled exports, now with a retry window</li><li>Regional failover for the ingest tier</li><li>A rewritten audit log</li></ul><p>The week 21 uptime numbers are attached.</p></body></html>"
+  },
+  {
+    "id": "7",
+    "sender": "sync-bot@orbit-labs.com",
+    "recipients": "deploys@orbit-labs.com",
+    "cc": "",
+    "subject": "Deploy 2026.05.22-3 succeeded on production",
+    "type": "text/plain",
+    "created_at": "2026-05-22T20:45:17+00:00",
+    "text": "Deploy 2026.05.22-3 -> production: SUCCEEDED\n\nCommit:   4f2ac817 (Rohit Bansal)\nDuration: 6m 41s\nServices: api, ingest, worker\n\nPipeline: https://ci.orbit-labs.com/runs/8841",
+    "html": ""
+  },
+  {
+    "id": "8",
+    "sender": "",
+    "recipients": "status@orbit-labs.com",
+    "cc": "",
+    "subject": "Undelivered Mail Returned to Sender",
+    "type": "text/plain",
+    "created_at": "2026-05-21T18:12:59+00:00",
+    "text": "This is the mail system at host mx1.orbit-labs.com.\n\nI'm sorry to have to inform you that your message could not be\ndelivered to one or more recipients.\n\n<dmitri.volkov@orbit-labs.com>: host mx.orbit-labs.com said:\n    550 5.1.1 <dmitri.volkov@orbit-labs.com>: Recipient address rejected:\n    User unknown in local recipient table (in reply to RCPT TO command)",
+    "html": ""
+  }
+]

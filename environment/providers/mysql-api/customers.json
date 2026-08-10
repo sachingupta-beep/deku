@@ -1,0 +1,8 @@
+[
+  {"id": "1", "email": "billing@aurorabistro.com", "name": "Aurora Bistro LLC", "country": "PT", "vat_number": "PT501234567", "marketing_opt_in": "1", "created_at": "2025-03-04 10:22:00", "last_order_at": "2026-05-24 14:12:00"},
+  {"id": "2", "email": "ap@helixrobotics.io", "name": "Helix Robotics Inc", "country": "DE", "vat_number": "DE289765432", "marketing_opt_in": "0", "created_at": "2024-09-12 08:05:00", "last_order_at": "2026-05-26 06:40:00"},
+  {"id": "3", "email": "accounts@lumendesign.co", "name": "Lumen Design Studio", "country": "PT", "vat_number": "PT509876543", "marketing_opt_in": "1", "created_at": "2025-06-18 14:30:00", "last_order_at": "2026-04-30 10:00:00"},
+  {"id": "4", "email": "finance@pelagicfreight.com", "name": "Pelagic Freight Co", "country": "US", "vat_number": "", "marketing_opt_in": "0", "created_at": "2025-01-09 12:00:00", "last_order_at": "2026-02-19 14:20:00"},
+  {"id": "5", "email": "hello@verdantfarms.org", "name": "Verdant Farms", "country": "US", "vat_number": "", "marketing_opt_in": "1", "created_at": "2025-09-02 09:18:00", "last_order_at": "2026-05-12 16:40:00"},
+  {"id": "6", "email": "billing@quanta.ai", "name": "Quanta Analytics", "country": "GB", "vat_number": "GB412889763", "marketing_opt_in": "1", "created_at": "2024-11-27 15:50:00", "last_order_at": "2026-05-26 08:20:00"}
+]

@@ -1,0 +1,9 @@
+{
+  "Enabled": true,
+  "SMTPServer": "smtp.orbit-labs.com:587",
+  "ReturnPath": "bounces@orbit-labs.com",
+  "AllowedRecipients": "@(orbit-labs\\.com|acme-partner\\.example)$",
+  "BlockedRecipients": "^(audit|no-reply)@",
+  "OverrideFrom": "",
+  "PreserveMessageIDs": true
+}

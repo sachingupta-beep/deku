@@ -1,0 +1,778 @@
+{
+  "info": {
+    "name": "Orbit Payments Mock API 2026-04-01",
+    "description": "Test collection for the mock in-house payments service. Base URL defaults to http://localhost:8126. In docker-compose, the service is reachable at http://inhouse-payments-api:8126.\n\nThis is not a clone of a hosted processor. It is the shape a team ends up with when they build the ledger themselves, and four things follow.\n\n**Every movement of money is double-entry.** Captures, fees, refunds, disputes and payouts each post balanced legs across `gateway_clearing`, `merchant_revenue`, `processing_fees`, `disputed_funds` and `bank_settlement`. `/v1/ledger/trial_balance` proves debits equal credits per currency, and the available balance is *derived* from the ledger at read time rather than stored beside it.\n\n**Idempotency keys are mandatory on every write.** A POST without `Idempotency-Key` is a 400. Replaying a key returns the original response with `idempotent_replay: true`; reusing one with a different body is a 409. Only successes are recorded, so a declined card can be retried with the same key.\n\n**Payments are a state machine and it is enforced.** An illegal transition is a 409 that names the actions that *are* available. Partial captures and partial refunds carry running totals, so over-capture and over-refund are arithmetic.\n\n**The card decides the outcome.** Each stored payment method carries a behaviour, so declines, step-up authentication and capture-time failures are reproducible rather than random.\n\nAmounts are integers in the currency's minor unit and always travel with their currency. Errors are a typed envelope: `{\"error\": {\"type\", \"code\", \"message\", \"param\"}}`, and a declined card is **402** carrying the payment it created under `resource`. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8126"},
+    {"key": "amelia", "value": "cus_amelia_3f7e1b0c"},
+    {"key": "acme", "value": "cus_acme_5b07d21f"},
+    {"key": "helena", "value": "cus_helena_9f14c73e"},
+    {"key": "dmitri", "value": "cus_dmitri_2d47b9e0"},
+    {"key": "priya", "value": "cus_priya_c8e05a19"},
+    {"key": "annualPayment", "value": "pay_3f7e1b0c2d54"},
+    {"key": "seatsPayment", "value": "pay_5b07d21f8c64"},
+    {"key": "sandboxAuth", "value": "pay_4a8f2c1d3e65"},
+    {"key": "exportPayment", "value": "pay_0b2a4d6f8e13"},
+    {"key": "threeDsPayment", "value": "pay_9f14c73e0b2a"},
+    {"key": "egressPayment", "value": "pay_2d47b9e01f5c"},
+    {"key": "sandboxPayment", "value": "pay_c8e05a1976b3"},
+    {"key": "declinedPayment", "value": "pay_7a63f04c9e21"},
+    {"key": "canceledPayment", "value": "pay_1c84f0654a7d"},
+    {"key": "usdDispute", "value": "dp_6b19d5ec8f30"},
+    {"key": "eurDispute", "value": "dp_9e21b7304c15"},
+    {"key": "seedRefund", "value": "re_4f2ac8170b91"}
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "service configuration and fee schedule",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/service"}
+    },
+    {
+      "name": "the books balance before anything happens",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/trial_balance"}
+    },
+    {
+      "name": "the balance is derived from those entries",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/balance"}
+    },
+    {
+      "name": "list customers",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/customers"}
+    },
+    {
+      "name": "list delinquent customers",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/customers?status=delinquent"}
+    },
+    {
+      "name": "read one customer",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/customers/{{amelia}}"}
+    },
+    {
+      "name": "read an unknown customer (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/customers/cus_nobody"}
+    },
+    {
+      "name": "list payment methods",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payment_methods"}
+    },
+    {
+      "name": "payment methods for one customer",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payment_methods?customer={{acme}}"}
+    },
+    {
+      "name": "read one payment method and its behaviour",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payment_methods/pm_visa_0002"}
+    },
+    {
+      "name": "payment methods for an unknown customer (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payment_methods?customer=cus_nobody"}
+    },
+    {
+      "name": "read an unknown payment method (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payment_methods/pm_nope"}
+    },
+    {
+      "name": "list payments",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments?limit=5"}
+    },
+    {
+      "name": "filter payments by customer",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments?customer={{amelia}}"}
+    },
+    {
+      "name": "filter payments by status",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments?status=authorized"}
+    },
+    {
+      "name": "filter payments by currency",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments?currency=USD"}
+    },
+    {
+      "name": "an unknown status names the real ones (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments?status=banana"}
+    },
+    {
+      "name": "read a partially refunded payment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments/{{egressPayment}}"}
+    },
+    {
+      "name": "read a failed payment and its failure code",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments/{{declinedPayment}}"}
+    },
+    {
+      "name": "a terminal payment offers no next actions",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments/{{canceledPayment}}"}
+    },
+    {
+      "name": "read an unknown payment (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments/pay_nope"}
+    },
+    {
+      "name": "the ledger entries behind one payment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/entries?source={{annualPayment}}"}
+    },
+    {
+      "name": "every entry on the fees account",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/entries?account=processing_fees"}
+    },
+    {
+      "name": "entries in one currency",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/entries?currency=USD"}
+    },
+    {
+      "name": "an unknown ledger account (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/entries?account=petty_cash"}
+    },
+    {
+      "name": "list refunds",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/refunds"}
+    },
+    {
+      "name": "read one refund",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/refunds/{{seedRefund}}"}
+    },
+    {
+      "name": "read an unknown refund (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/refunds/re_nope"}
+    },
+    {
+      "name": "list disputes",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/disputes"}
+    },
+    {
+      "name": "read the USD dispute",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/disputes/{{usdDispute}}"}
+    },
+    {
+      "name": "read an unknown dispute (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/disputes/dp_nope"}
+    },
+    {
+      "name": "a write with no Idempotency-Key (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"amount_minor\": 5000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "charge a good card",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-amelia-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"payment_method\": \"pm_visa_4242\", \"amount_minor\": 5000, \"currency\": \"EUR\", \"description\": \"Scheduled export add-on\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "the same key replays the same payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-amelia-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"payment_method\": \"pm_visa_4242\", \"amount_minor\": 5000, \"currency\": \"EUR\", \"description\": \"Scheduled export add-on\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "the same key with a different body (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-amelia-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"payment_method\": \"pm_visa_4242\", \"amount_minor\": 6000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "a card that declines (402 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-declined-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_acme_5b07d21f\", \"payment_method\": \"pm_visa_0002\", \"amount_minor\": 1000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "a declined key can be reused, and declines again (402 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-declined-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_acme_5b07d21f\", \"payment_method\": \"pm_visa_0002\", \"amount_minor\": 1000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "an expired card (402 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-expired-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_helena_9f14c73e\", \"payment_method\": \"pm_visa_0119\", \"amount_minor\": 1000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "a delinquent customer (402 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-delinquent-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_dmitri_2d47b9e0\", \"payment_method\": \"pm_visa_0069\", \"amount_minor\": 1000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "a card that needs step-up authentication",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-3ds-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_helena_9f14c73e\", \"payment_method\": \"pm_visa_3220\", \"amount_minor\": 7000, \"currency\": \"EUR\", \"description\": \"Support add-on\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "a currency the customer does not settle in (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-currency-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"amount_minor\": 5000, \"currency\": \"USD\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "a currency the account cannot settle at all (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-currency-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"amount_minor\": 5000, \"currency\": \"JPY\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "below the minimum charge (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-tiny-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"amount_minor\": 10, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "a negative amount (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-negative-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"amount_minor\": -5000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "someone else's card (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-mismatch-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_amelia_3f7e1b0c\", \"payment_method\": \"pm_visa_3220\", \"amount_minor\": 5000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "charging an unknown customer (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-charge-nobody-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"customer\": \"cus_nobody\", \"amount_minor\": 5000, \"currency\": \"EUR\"}"},
+        "url": "{{baseUrl}}/v1/payments"
+      }
+    },
+    {
+      "name": "confirm the seeded step-up payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-confirm-3ds-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/{{threeDsPayment}}/confirm"
+      }
+    },
+    {
+      "name": "confirming again names the available actions (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-confirm-3ds-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/{{threeDsPayment}}/confirm"
+      }
+    },
+    {
+      "name": "confirming an unknown payment (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-confirm-nope-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/pay_nope/confirm"
+      }
+    },
+    {
+      "name": "capture part of an authorization",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-capture-seats-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount_minor\": 20000}"},
+        "url": "{{baseUrl}}/v1/payments/{{seatsPayment}}/capture"
+      }
+    },
+    {
+      "name": "the payment now shows what is still capturable",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments/{{seatsPayment}}"}
+    },
+    {
+      "name": "capturing more than remains (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-capture-seats-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"amount_minor\": 99999}"},
+        "url": "{{baseUrl}}/v1/payments/{{seatsPayment}}/capture"
+      }
+    },
+    {
+      "name": "capture the rest by omitting the amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-capture-seats-03"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/{{seatsPayment}}/capture"
+      }
+    },
+    {
+      "name": "capturing a captured payment (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-capture-seats-04"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/{{seatsPayment}}/capture"
+      }
+    },
+    {
+      "name": "a capture the processor refuses (402 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-capture-sandbox-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/{{sandboxAuth}}/capture"
+      }
+    },
+    {
+      "name": "the authorization survives the refused capture",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments/{{sandboxAuth}}"}
+    },
+    {
+      "name": "cancel it instead, releasing the authorization",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-cancel-sandbox-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/{{sandboxAuth}}/cancel"
+      }
+    },
+    {
+      "name": "cancelling a terminal payment (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-cancel-sandbox-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/v1/payments/{{sandboxAuth}}/cancel"
+      }
+    },
+    {
+      "name": "refund part of a capture",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-refund-egress-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"payment\": \"pay_2d47b9e01f5c\", \"amount_minor\": 5000, \"reason\": \"duplicate\"}"},
+        "url": "{{baseUrl}}/v1/refunds"
+      }
+    },
+    {
+      "name": "the running total moved",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payments/{{egressPayment}}"}
+    },
+    {
+      "name": "refunding more than remains (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-refund-egress-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"payment\": \"pay_2d47b9e01f5c\", \"amount_minor\": 99999}"},
+        "url": "{{baseUrl}}/v1/refunds"
+      }
+    },
+    {
+      "name": "an unknown refund reason (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-refund-egress-03"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"payment\": \"pay_2d47b9e01f5c\", \"amount_minor\": 100, \"reason\": \"vibes\"}"},
+        "url": "{{baseUrl}}/v1/refunds"
+      }
+    },
+    {
+      "name": "refunding a failed payment (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-refund-failed-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"payment\": \"pay_7a63f04c9e21\", \"amount_minor\": 100}"},
+        "url": "{{baseUrl}}/v1/refunds"
+      }
+    },
+    {
+      "name": "refunding an unknown payment (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-refund-nope-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"payment\": \"pay_nope\", \"amount_minor\": 100}"},
+        "url": "{{baseUrl}}/v1/refunds"
+      }
+    },
+    {
+      "name": "a disputed payment cannot be refunded (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-refund-disputed-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"payment\": \"pay_c8e05a1976b3\", \"amount_minor\": 5000}"},
+        "url": "{{baseUrl}}/v1/refunds"
+      }
+    },
+    {
+      "name": "evidence must not be empty (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-evidence-empty-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"evidence\": \"   \"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{usdDispute}}/evidence"
+      }
+    },
+    {
+      "name": "the other dispute's window has closed (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-evidence-late-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"evidence\": \"Signed delivery receipt attached.\"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{eurDispute}}/evidence"
+      }
+    },
+    {
+      "name": "submit evidence in time",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-evidence-usd-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"evidence\": \"Delivery signed for on 2026-05-02, tracking OL-4417; access logs show the tenant in use since 2026-05-03.\"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{usdDispute}}/evidence"
+      }
+    },
+    {
+      "name": "evidence cannot be resubmitted (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-evidence-usd-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"evidence\": \"Second attempt.\"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{usdDispute}}/evidence"
+      }
+    },
+    {
+      "name": "a resolution must be won or lost (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-close-bad-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"resolution\": \"maybe\"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{usdDispute}}/close"
+      }
+    },
+    {
+      "name": "close the USD dispute as won, returning the funds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-close-usd-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"resolution\": \"won\"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{usdDispute}}/close"
+      }
+    },
+    {
+      "name": "close the EUR dispute as lost, realising the chargeback",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-close-eur-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"resolution\": \"lost\"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{eurDispute}}/close"
+      }
+    },
+    {
+      "name": "closing a closed dispute (409 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-close-usd-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"resolution\": \"lost\"}"},
+        "url": "{{baseUrl}}/v1/disputes/{{usdDispute}}/close"
+      }
+    },
+    {
+      "name": "the ledger legs the two closures wrote",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/entries?source={{eurDispute}}"}
+    },
+    {
+      "name": "the payment can be refunded now the dispute is closed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-refund-usd-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"payment\": \"pay_c8e05a1976b3\", \"amount_minor\": 5000, \"reason\": \"requested_by_customer\"}"},
+        "url": "{{baseUrl}}/v1/refunds"
+      }
+    },
+    {
+      "name": "create a customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-customer-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"name\": \"Rohit Bansal\", \"email\": \"rohit.bansal@orbit-labs.com\", \"currency\": \"EUR\", \"country\": \"ES\"}"},
+        "url": "{{baseUrl}}/v1/customers"
+      }
+    },
+    {
+      "name": "a customer with no name (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-customer-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"email\": \"nobody@orbit-labs.com\"}"},
+        "url": "{{baseUrl}}/v1/customers"
+      }
+    },
+    {
+      "name": "a customer with a bad email (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-customer-03"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"name\": \"No Email\", \"email\": \"not-an-address\"}"},
+        "url": "{{baseUrl}}/v1/customers"
+      }
+    },
+    {
+      "name": "the balance after all of that",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/balance"}
+    },
+    {
+      "name": "a payout below the minimum (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-payout-01"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"currency\": \"EUR\", \"amount_minor\": 100}"},
+        "url": "{{baseUrl}}/v1/payouts"
+      }
+    },
+    {
+      "name": "a payout beyond the balance (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-payout-02"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"currency\": \"EUR\", \"amount_minor\": 99999999}"},
+        "url": "{{baseUrl}}/v1/payouts"
+      }
+    },
+    {
+      "name": "a payout in an unsupported currency (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-payout-03"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"currency\": \"JPY\", \"amount_minor\": 5000}"},
+        "url": "{{baseUrl}}/v1/payouts"
+      }
+    },
+    {
+      "name": "pay out to the bank",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Idempotency-Key", "value": "run-payout-04"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"currency\": \"EUR\", \"amount_minor\": 50000}"},
+        "url": "{{baseUrl}}/v1/payouts"
+      }
+    },
+    {
+      "name": "list payouts",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payouts"}
+    },
+    {
+      "name": "read an unknown payout (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/payouts/po_nope"}
+    },
+    {
+      "name": "the balance fell by exactly the payout",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/balance"}
+    },
+    {
+      "name": "the books still balance after every mutation",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/trial_balance"}
+    },
+    {
+      "name": "every entry the payout wrote",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/ledger/entries?account=bank_settlement"}
+    },
+    {
+      "name": "the event log for this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/events?limit=10"}
+    },
+    {
+      "name": "events for one payment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/events?object={{seatsPayment}}"}
+    },
+    {
+      "name": "events of one type",
+      "request": {"method": "GET", "url": "{{baseUrl}}/v1/events?type=payment.captured"}
+    },
+    {
+      "name": "audit trail of this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/requests?limit=5"}
+    },
+    {
+      "name": "audit summary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/summary"}
+    }
+  ]
+}

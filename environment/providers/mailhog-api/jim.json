@@ -1,0 +1,11 @@
+{
+  "enabled": false,
+  "DisconnectChance": 0.005,
+  "AcceptChance": 0.99,
+  "LinkSpeedAffected": 0.1,
+  "LinkSpeedMin": 1024,
+  "LinkSpeedMax": 10240,
+  "RejectSenderChance": 0.05,
+  "RejectRecipientChance": 0.05,
+  "RejectAuthChance": 0.05
+}

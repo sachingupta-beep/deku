@@ -1,0 +1,57 @@
+{
+  "gotrue_version": "v2.158.1",
+  "name": "GoTrue",
+  "description": "GoTrue is a user registration and authentication API",
+  "site_url": "https://app.orbit-labs.com",
+  "jwt": {
+    "issuer": "https://orbitlabsselfhost01.supabase.co/auth/v1",
+    "algorithm": "HS256",
+    "exp_seconds": 3600,
+    "aud": "authenticated"
+  },
+  "external": {
+    "email": true,
+    "phone": true,
+    "anonymous_users": true,
+    "github": true,
+    "google": true,
+    "gitlab": false,
+    "apple": false,
+    "azure": false,
+    "saml": false
+  },
+  "disable_signup": false,
+  "mailer_autoconfirm": false,
+  "phone_autoconfirm": false,
+  "sms_provider": "twilio",
+  "mfa_enabled": true,
+  "saml_enabled": false,
+  "security": {
+    "refresh_token_rotation_enabled": true,
+    "refresh_token_reuse_interval_seconds": 10,
+    "manual_linking_enabled": true,
+    "max_frequency_seconds": 60,
+    "otp_length": 6,
+    "otp_expiry_seconds": 3600
+  },
+  "rate_limits": {
+    "token_refresh_per_hour": 1800,
+    "sign_in_sign_ups_per_hour": 30,
+    "token_verifications_per_hour": 30,
+    "email_sent_per_hour": 30
+  },
+  "keys": {
+    "anon": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost",
+    "service_role": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost"
+  },
+  "seed_credentials": {
+    "note": "Passwords are verified as sha256(password_salt + password); the hash is never returned by the API.",
+    "accounts": [
+      {"email": "amelia.ortega@orbit-labs.com", "password": "OrbitSupabase2026!", "note": "verified TOTP factor enrolled"},
+      {"email": "jonas.pereira@orbit-labs.com", "password": "OrbitJonas2026!", "note": "unverified TOTP factor pending"},
+      {"email": "rohit.bansal@orbit-labs.com", "password": "OrbitRohit2026!", "note": "email not confirmed"},
+      {"email": "noor.aziz@orbit-labs.com", "password": "OrbitNoor2026!", "note": "banned until 2027-01-01"},
+      {"email": "helena.park@orbit-labs.com", "password": null, "note": "GitHub identity only; password grant is refused"}
+    ]
+  }
+}

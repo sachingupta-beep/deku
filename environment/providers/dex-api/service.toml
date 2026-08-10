@@ -1,0 +1,5 @@
+[service]
+name = "dex-api"
+port = 8120
+env_var_name = "DEX_API_URL"
+healthcheck_path = "/health"

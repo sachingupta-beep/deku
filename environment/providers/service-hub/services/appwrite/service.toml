@@ -1,0 +1,52 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "appwrite"
+name     = "Appwrite"
+category = "backend"
+status   = "declared"
+version  = "v1"
+module   = "services.appwrite.service:AppwriteService"
+upstream = "https://appwrite.io/docs/references/cloud/server-rest"
+summary  = """
+Databases with collection attributes and Query() filters, storage buckets, functions and executions, users and teams -- all under Appwrite's project-scoped headers."""
+tags = [
+  "databases",
+  "documents",
+  "storage",
+  "functions",
+  "teams",
+]
+
+[data]
+dir = "appwrite"
+
+[auth]
+scheme      = "apikey"
+roles       = [
+  "guest",
+  "user",
+  "admin",
+]
+description = """
+`X-Appwrite-Project` selects the project and `X-Appwrite-Key` the server key; `X-Appwrite-JWT` stands in for a session. Missing project header is a 401 with Appwrite's `general_unauthorized_scope` code."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/v1/databases",
+  "/v1/storage",
+  "/v1/functions",
+  "/v1/users",
+  "/v1/teams",
+  "/v1/account",
+  "/v1/health",
+]

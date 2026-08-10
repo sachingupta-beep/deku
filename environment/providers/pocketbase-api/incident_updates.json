@@ -1,0 +1,82 @@
+[
+  {
+    "id": "update000000001",
+    "incident": "incident0000001",
+    "author": "usrjonas0000002",
+    "status": "investigating",
+    "body": "We are seeing elevated p95 latency on token refresh. Investigating lock contention in the session write path.",
+    "posted": "2026-05-26 05:55:00.000Z",
+    "created": "2026-05-26 05:55:00.000Z",
+    "updated": "2026-05-26 05:55:00.000Z"
+  },
+  {
+    "id": "update000000002",
+    "incident": "incident0000001",
+    "author": "usrjonas0000002",
+    "status": "identified",
+    "body": "Root cause is the dual-writer queue backing up behind a slow replica. Draining the queue now.",
+    "posted": "2026-05-26 06:40:00.000Z",
+    "created": "2026-05-26 06:40:00.000Z",
+    "updated": "2026-05-26 06:40:00.000Z"
+  },
+  {
+    "id": "update000000003",
+    "incident": "incident0000001",
+    "author": "usramelia000001",
+    "status": "monitoring",
+    "body": "Queue depth is back under 200. Latency is recovering; monitoring for one more hour before we close this out.",
+    "posted": "2026-05-26 07:41:00.000Z",
+    "created": "2026-05-26 07:41:00.000Z",
+    "updated": "2026-05-26 07:41:00.000Z"
+  },
+  {
+    "id": "update000000004",
+    "incident": "incident0000002",
+    "author": "usrhelena000003",
+    "status": "identified",
+    "body": "Maintenance window is open. Replicas cycle one at a time; no write downtime expected.",
+    "posted": "2026-05-24 22:00:00.000Z",
+    "created": "2026-05-24 22:00:00.000Z",
+    "updated": "2026-05-24 22:00:00.000Z"
+  },
+  {
+    "id": "update000000005",
+    "incident": "incident0000003",
+    "author": "usrjonas0000002",
+    "status": "resolved",
+    "body": "Backlog cleared at 01:05Z. All April invoices have been delivered.",
+    "posted": "2026-05-01 01:05:00.000Z",
+    "created": "2026-05-01 01:05:00.000Z",
+    "updated": "2026-05-01 01:05:00.000Z"
+  },
+  {
+    "id": "update000000006",
+    "incident": "incident0000004",
+    "author": "usrhelena000003",
+    "status": "resolved",
+    "body": "Rolled back the ingress config and re-ran the deploy pipeline with the config-drift check enabled.",
+    "posted": "2026-03-14 09:13:00.000Z",
+    "created": "2026-03-14 09:13:00.000Z",
+    "updated": "2026-03-14 09:13:00.000Z"
+  },
+  {
+    "id": "update000000007",
+    "incident": "incident0000005",
+    "author": "usrjonas0000002",
+    "status": "resolved",
+    "body": "Failover completed. Affected users were signed out once and could sign back in immediately.",
+    "posted": "2026-02-19 15:02:00.000Z",
+    "created": "2026-02-19 15:02:00.000Z",
+    "updated": "2026-02-19 15:02:00.000Z"
+  },
+  {
+    "id": "update000000008",
+    "incident": "incident0000006",
+    "author": "usrnoor00000005",
+    "status": "resolved",
+    "body": "Index rebuild finished and search results are current again.",
+    "posted": "2026-01-08 13:04:00.000Z",
+    "created": "2026-01-08 13:04:00.000Z",
+    "updated": "2026-01-08 13:04:00.000Z"
+  }
+]

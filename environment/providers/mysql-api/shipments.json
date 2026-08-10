@@ -1,0 +1,5 @@
+[
+  {"id": "1", "order_id": "5001", "carrier": "DHL", "tracking_number": "JD0002088412", "status": "in_transit", "shipped_at": "2026-05-21 11:00:00", "delivered_at": ""},
+  {"id": "2", "order_id": "5003", "carrier": "CTT", "tracking_number": "DD448120391PT", "status": "delivered", "shipped_at": "2026-05-24 17:30:00", "delivered_at": "2026-05-25 10:12:00"},
+  {"id": "3", "order_id": "5007", "carrier": "FedEx", "tracking_number": "774120884213", "status": "returned", "shipped_at": "2026-02-20 09:00:00", "delivered_at": "2026-02-22 14:40:00"}
+]

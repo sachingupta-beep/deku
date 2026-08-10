@@ -1,0 +1,4 @@
+[
+  {"id": "org5platform1", "name": "Orbit Platform", "description": "The team that runs status.orbit-labs.com", "isMfaRequired": "1", "customData": "tier=internal;region=us-west", "createdAt": "1704880800000"},
+  {"id": "org6acmepart1", "name": "Acme Partner", "description": "External partner with read-only status access", "isMfaRequired": "0", "customData": "tier=partner;region=eu-central", "createdAt": "1764547200000"}
+]

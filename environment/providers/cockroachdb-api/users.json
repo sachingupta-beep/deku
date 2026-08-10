@@ -1,0 +1,7 @@
+[
+  {"username": "root", "options": "CREATEROLE", "member_of": "admin", "login": "1", "privileges": "ALL"},
+  {"username": "orbit_app", "options": "", "member_of": "", "login": "1", "privileges": "SELECT;INSERT;UPDATE;DELETE"},
+  {"username": "orbit_readonly", "options": "", "member_of": "", "login": "1", "privileges": "SELECT"},
+  {"username": "orbit_fleet_admin", "options": "CREATEDB", "member_of": "admin", "login": "1", "privileges": "ALL"},
+  {"username": "orbit_changefeed", "options": "NOLOGIN", "member_of": "", "login": "0", "privileges": "SELECT;CHANGEFEED"}
+]

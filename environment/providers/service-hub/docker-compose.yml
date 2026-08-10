@@ -1,0 +1,42 @@
+# One service block, because there is one container.
+#
+#   docker compose up -d
+#   curl localhost:8080/hub/services
+#
+# Compare with the fleet this replaces: 27 blocks, 27 images, 27 uvicorn
+# processes, 27 ports to allocate and keep straight.
+
+services:
+  service-hub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: service-hub:v1
+    container_name: service-hub
+    ports:
+      - "8080:8080"
+    environment:
+      # Fully lazy by default: nothing is imported until it is called.
+      HUB_LOG_LEVEL: INFO
+
+      # Pre-warm the services a task will use, so the agent's first call does not
+      # pay the import cost. Comma-separated slugs.
+      # HUB_EAGER_SERVICES: "supabase,keycloak,mailpit"
+
+      # Unload a service after N idle seconds. 0 (default) keeps whatever loaded.
+      # Worth setting on a long batch run where tasks touch different services.
+      # HUB_IDLE_TTL: "300"
+
+      # HUB_AUDIT: "1"          # record agent traffic at /audit/requests
+      # HUB_EXPOSE_DOCS: "1"    # /docs and /<slug>/docs
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2).status == 200 else 1)"
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped

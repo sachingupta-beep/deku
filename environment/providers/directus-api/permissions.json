@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "role": "0a5e93f7-6c18-4d2b-b840-3f7e1c96a204",
+    "collection": "posts",
+    "action": "read",
+    "permissions": "{\"status\":{\"_eq\":\"published\"}}",
+    "fields": "id,status,title,slug,summary,body,category,author,image,publish_date,reading_minutes,tags,hits"
+  },
+  {
+    "id": "2",
+    "role": "0a5e93f7-6c18-4d2b-b840-3f7e1c96a204",
+    "collection": "categories",
+    "action": "read",
+    "permissions": "{}",
+    "fields": "*"
+  },
+  {
+    "id": "3",
+    "role": "0a5e93f7-6c18-4d2b-b840-3f7e1c96a204",
+    "collection": "job_openings",
+    "action": "read",
+    "permissions": "{\"status\":{\"_eq\":\"open\"}}",
+    "fields": "*"
+  },
+  {
+    "id": "4",
+    "role": "c41d7a68-2b95-4e30-8f71-6a2d9c05e713",
+    "collection": "posts",
+    "action": "read",
+    "permissions": "{}",
+    "fields": "*"
+  },
+  {
+    "id": "5",
+    "role": "c41d7a68-2b95-4e30-8f71-6a2d9c05e713",
+    "collection": "posts",
+    "action": "create",
+    "permissions": "{}",
+    "fields": "*"
+  },
+  {
+    "id": "6",
+    "role": "c41d7a68-2b95-4e30-8f71-6a2d9c05e713",
+    "collection": "posts",
+    "action": "update",
+    "permissions": "{\"status\":{\"_neq\":\"archived\"}}",
+    "fields": "*"
+  },
+  {
+    "id": "7",
+    "role": "c41d7a68-2b95-4e30-8f71-6a2d9c05e713",
+    "collection": "categories",
+    "action": "read",
+    "permissions": "{}",
+    "fields": "*"
+  },
+  {
+    "id": "8",
+    "role": "c41d7a68-2b95-4e30-8f71-6a2d9c05e713",
+    "collection": "job_openings",
+    "action": "read",
+    "permissions": "{}",
+    "fields": "*"
+  },
+  {
+    "id": "9",
+    "role": "c41d7a68-2b95-4e30-8f71-6a2d9c05e713",
+    "collection": "directus_files",
+    "action": "read",
+    "permissions": "{}",
+    "fields": "*"
+  }
+]

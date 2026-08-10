@@ -1,0 +1,9 @@
+[
+  {"id": "1", "name": "Aurora Bistro - Baixa", "customer": "Aurora Bistro LLC", "address": "Rua Augusta 114, Lisbon", "region": "EMEA", "latitude": "38.7101", "longitude": "-9.1373", "timezone": "Europe/Lisbon"},
+  {"id": "2", "name": "Aurora Bistro - Cais", "customer": "Aurora Bistro LLC", "address": "Cais do Sodre 8, Lisbon", "region": "EMEA", "latitude": "38.7057", "longitude": "-9.1449", "timezone": "Europe/Lisbon"},
+  {"id": "3", "name": "Helix Robotics - Plant 2", "customer": "Helix Robotics Inc", "address": "Werkstrasse 40, Stuttgart", "region": "EMEA", "latitude": "48.7758", "longitude": "9.1829", "timezone": "Europe/Berlin"},
+  {"id": "4", "name": "Helix Robotics - Depot", "customer": "Helix Robotics Inc", "address": "Hafenweg 12, Hamburg", "region": "EMEA", "latitude": "53.5511", "longitude": "9.9937", "timezone": "Europe/Berlin"},
+  {"id": "5", "name": "Lumen Design Studio", "customer": "Lumen Design Studio", "address": "Rua da Boavista 71, Porto", "region": "EMEA", "latitude": "41.1496", "longitude": "-8.6109", "timezone": "Europe/Lisbon"},
+  {"id": "6", "name": "Verdant Farms - North Shed", "customer": "Verdant Farms", "address": "County Road 9, Fresno CA", "region": "AMER", "latitude": "36.7378", "longitude": "-119.7871", "timezone": "America/Los_Angeles"},
+  {"id": "7", "name": "Pelagic Freight - Terminal 4", "customer": "Pelagic Freight Co", "address": "Pier 40, Oakland CA", "region": "AMER", "latitude": "37.8044", "longitude": "-122.2712", "timezone": "America/Los_Angeles"}
+]

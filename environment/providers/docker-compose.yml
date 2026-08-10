@@ -1,0 +1,492 @@
+# One independent container per mock service. Each builds from this directory so
+# the shared plane (_mutable_store / tracking_middleware / admin_plane) is in
+# context, and each is reachable from the others at http://<name>-api:<port>.
+#
+#   docker compose up -d supabase-api
+#   curl http://localhost:8102/health
+services:
+  supabase-api:
+    build:
+      context: .
+      dockerfile: supabase-api/Dockerfile
+    image: mocks-supabase-api:v1
+    container_name: supabase-api
+    ports:
+      - "8102:8102"
+    environment:
+      SUPABASE_API_URL: http://supabase-api:8102
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8102/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  pocketbase-api:
+    build:
+      context: .
+      dockerfile: pocketbase-api/Dockerfile
+    image: mocks-pocketbase-api:v1
+    container_name: pocketbase-api
+    ports:
+      - "8103:8103"
+    environment:
+      POCKETBASE_API_URL: http://pocketbase-api:8103
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8103/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  appwrite-api:
+    build:
+      context: .
+      dockerfile: appwrite-api/Dockerfile
+    image: mocks-appwrite-api:v1
+    container_name: appwrite-api
+    ports:
+      - "8104:8104"
+    environment:
+      APPWRITE_API_URL: http://appwrite-api:8104
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8104/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  directus-api:
+    build:
+      context: .
+      dockerfile: directus-api/Dockerfile
+    image: mocks-directus-api:v1
+    container_name: directus-api
+    ports:
+      - "8105:8105"
+    environment:
+      DIRECTUS_API_URL: http://directus-api:8105
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8105/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  nhost-api:
+    build:
+      context: .
+      dockerfile: nhost-api/Dockerfile
+    image: mocks-nhost-api:v1
+    container_name: nhost-api
+    ports:
+      - "8106:8106"
+    environment:
+      NHOST_API_URL: http://nhost-api:8106
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8106/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  postgres-backend-api:
+    build:
+      context: .
+      dockerfile: postgres-backend-api/Dockerfile
+    image: mocks-postgres-backend-api:v1
+    container_name: postgres-backend-api
+    ports:
+      - "8107:8107"
+    environment:
+      POSTGRES_BACKEND_API_URL: http://postgres-backend-api:8107
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8107/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  sqlite-api:
+    build:
+      context: .
+      dockerfile: sqlite-api/Dockerfile
+    image: mocks-sqlite-api:v1
+    container_name: sqlite-api
+    ports:
+      - "8108:8108"
+    environment:
+      SQLITE_API_URL: http://sqlite-api:8108
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8108/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  postgresql-api:
+    build:
+      context: .
+      dockerfile: postgresql-api/Dockerfile
+    image: mocks-postgresql-api:v1
+    container_name: postgresql-api
+    ports:
+      - "8109:8109"
+    environment:
+      POSTGRESQL_API_URL: http://postgresql-api:8109
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8109/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  mysql-api:
+    build:
+      context: .
+      dockerfile: mysql-api/Dockerfile
+    image: mocks-mysql-api:v1
+    container_name: mysql-api
+    ports:
+      - "8110:8110"
+    environment:
+      MYSQL_API_URL: http://mysql-api:8110
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8110/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  mariadb-api:
+    build:
+      context: .
+      dockerfile: mariadb-api/Dockerfile
+    image: mocks-mariadb-api:v1
+    container_name: mariadb-api
+    ports:
+      - "8111:8111"
+    environment:
+      MARIADB_API_URL: http://mariadb-api:8111
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8111/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  cockroachdb-api:
+    build:
+      context: .
+      dockerfile: cockroachdb-api/Dockerfile
+    image: mocks-cockroachdb-api:v1
+    container_name: cockroachdb-api
+    ports:
+      - "8112:8112"
+    environment:
+      COCKROACHDB_API_URL: http://cockroachdb-api:8112
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8112/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  supabase-auth-api:
+    build:
+      context: .
+      dockerfile: supabase-auth-api/Dockerfile
+    image: mocks-supabase-auth-api:v1
+    container_name: supabase-auth-api
+    ports:
+      - "8113:8113"
+    environment:
+      SUPABASE_AUTH_API_URL: http://supabase-auth-api:8113
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8113/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  pocketbase-auth-api:
+    build:
+      context: .
+      dockerfile: pocketbase-auth-api/Dockerfile
+    image: mocks-pocketbase-auth-api:v1
+    container_name: pocketbase-auth-api
+    ports:
+      - "8114:8114"
+    environment:
+      POCKETBASE_AUTH_API_URL: http://pocketbase-auth-api:8114
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8114/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  supertokens-api:
+    build:
+      context: .
+      dockerfile: supertokens-api/Dockerfile
+    image: mocks-supertokens-api:v1
+    container_name: supertokens-api
+    ports:
+      - "8115:8115"
+    environment:
+      SUPERTOKENS_API_URL: http://supertokens-api:8115
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8115/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  logto-api:
+    build:
+      context: .
+      dockerfile: logto-api/Dockerfile
+    image: mocks-logto-api:v1
+    container_name: logto-api
+    ports:
+      - "8116:8116"
+    environment:
+      LOGTO_API_URL: http://logto-api:8116
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8116/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  keycloak-api:
+    build:
+      context: .
+      dockerfile: keycloak-api/Dockerfile
+    image: mocks-keycloak-api:v1
+    container_name: keycloak-api
+    ports:
+      - "8117:8117"
+    environment:
+      KEYCLOAK_API_URL: http://keycloak-api:8117
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8117/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  zitadel-api:
+    build:
+      context: .
+      dockerfile: zitadel-api/Dockerfile
+    image: mocks-zitadel-api:v1
+    container_name: zitadel-api
+    ports:
+      - "8118:8118"
+    environment:
+      ZITADEL_API_URL: http://zitadel-api:8118
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8118/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  ory-kratos-api:
+    build:
+      context: .
+      dockerfile: ory-kratos-api/Dockerfile
+    image: mocks-ory-kratos-api:v1
+    container_name: ory-kratos-api
+    ports:
+      - "8119:8119"
+    environment:
+      ORY_KRATOS_API_URL: http://ory-kratos-api:8119
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8119/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  dex-api:
+    build:
+      context: .
+      dockerfile: dex-api/Dockerfile
+    image: mocks-dex-api:v1
+    container_name: dex-api
+    ports:
+      - "8120:8120"
+    environment:
+      DEX_API_URL: http://dex-api:8120
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8120/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  mailhog-api:
+    build:
+      context: .
+      dockerfile: mailhog-api/Dockerfile
+    image: mocks-mailhog-api:v1
+    container_name: mailhog-api
+    ports:
+      - "8121:8121"
+    environment:
+      MAILHOG_API_URL: http://mailhog-api:8121
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8121/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  mailpit-api:
+    build:
+      context: .
+      dockerfile: mailpit-api/Dockerfile
+    image: mocks-mailpit-api:v1
+    container_name: mailpit-api
+    ports:
+      - "8122:8122"
+    environment:
+      MAILPIT_API_URL: http://mailpit-api:8122
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8122/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  inbucket-api:
+    build:
+      context: .
+      dockerfile: inbucket-api/Dockerfile
+    image: mocks-inbucket-api:v1
+    container_name: inbucket-api
+    ports:
+      - "8123:8123"
+    environment:
+      INBUCKET_API_URL: http://inbucket-api:8123
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8123/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  smtp4dev-api:
+    build:
+      context: .
+      dockerfile: smtp4dev-api/Dockerfile
+    image: mocks-smtp4dev-api:v1
+    container_name: smtp4dev-api
+    ports:
+      - "8124:8124"
+    environment:
+      SMTP4DEV_API_URL: http://smtp4dev-api:8124
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8124/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  mailcatcher-api:
+    build:
+      context: .
+      dockerfile: mailcatcher-api/Dockerfile
+    image: mocks-mailcatcher-api:v1
+    container_name: mailcatcher-api
+    ports:
+      - "8125:8125"
+    environment:
+      MAILCATCHER_API_URL: http://mailcatcher-api:8125
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8125/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  inhouse-payments-api:
+    build:
+      context: .
+      dockerfile: inhouse-payments-api/Dockerfile
+    image: mocks-inhouse-payments-api:v1
+    container_name: inhouse-payments-api
+    ports:
+      - "8126:8126"
+    environment:
+      INHOUSE_PAYMENTS_API_URL: http://inhouse-payments-api:8126
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8126/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  lago-api:
+    build:
+      context: .
+      dockerfile: lago-api/Dockerfile
+    image: mocks-lago-api:v1
+    container_name: lago-api
+    ports:
+      - "8127:8127"
+    environment:
+      LAGO_API_URL: http://lago-api:8127
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8127/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  killbill-api:
+    build:
+      context: .
+      dockerfile: killbill-api/Dockerfile
+    image: mocks-killbill-api:v1
+    container_name: killbill-api
+    ports:
+      - "8128:8128"
+    environment:
+      KILLBILL_API_URL: http://killbill-api:8128
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8128/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped

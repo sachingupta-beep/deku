@@ -1,0 +1,5 @@
+[service]
+name = "mysql-api"
+port = 8110
+env_var_name = "MYSQL_API_URL"
+healthcheck_path = "/health"

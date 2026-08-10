@@ -1,0 +1,1972 @@
+{
+  "info": {
+    "name": "Keycloak Mock API v26.0.5",
+    "description": "Test collection for the mock Keycloak service. Base URL defaults to http://localhost:8117. In docker-compose, the service is reachable at http://keycloak-api:8117.\n\nEverything is scoped to a **realm**, and nothing crosses the boundary. `/realms/{realm}/protocol/openid-connect/...` is what a client talks to; `/admin/realms/{realm}/...` is the Admin REST API.\n\nThe direct grant (`grant_type=password`) is Keycloak's first-class login, and it fails in four different ways, each with the message Keycloak really returns: a wrong password (401 'Invalid user credentials'), a disabled account (400 'Account disabled'), pending required actions (400 'Account is not fully set up') and a brute-force lock (401, deliberately identical to a wrong password).\n\nTwo realms are seeded: `orbit-labs` and `orbit-partners`. Tokens: the master admin token `kc-at-master-admin-cli-8f0c31d47a92` administers any realm; `kc-at-amelia-ui-6b40d2a97f15` holds realm-admin in orbit-labs; `kc-at-jonas-ui-2f83b0e6c194` holds only `view-users`, inherited through the `/platform` group's composite role. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8117"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "realm public info",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-labs"
+      }
+    },
+    {
+      "name": "realm public info for an unknown realm (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-nope"
+      }
+    },
+    {
+      "name": "openid configuration",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-labs/.well-known/openid-configuration"
+      }
+    },
+    {
+      "name": "openid configuration for the partner realm",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-partners/.well-known/openid-configuration"
+      }
+    },
+    {
+      "name": "jwks",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/certs"
+      }
+    },
+    {
+      "name": "direct grant by username",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"amelia\", \"password\": \"OrbitKeycloak2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant by email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant on a confidential client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-admin-cli\", \"client_secret\": \"kc-secret-admin-cli-9f14c73e0b2a\", \"username\": \"amelia\", \"password\": \"OrbitKeycloak2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant in the partner realm",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-partners/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"partner-portal\", \"client_secret\": \"kc-secret-partner-portal-1c84f065\", \"username\": \"priya\", \"password\": \"OrbitPriya2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant with a wrong password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"amelia\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant for a disabled account (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"noor\", \"password\": \"OrbitNoor2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant with pending required actions (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"rohit\", \"password\": \"OrbitRohit2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant for a brute-force-locked account (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"dmitri\", \"password\": \"OrbitDmitri2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant for a federated account with no local credential (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"helena\", \"password\": \"OrbitHelena2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant for a user in another realm (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"priya\", \"password\": \"OrbitPriya2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant without the client secret (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-admin-cli\", \"username\": \"amelia\", \"password\": \"OrbitKeycloak2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant on a client that has it disabled (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-backup-service\", \"client_secret\": \"kc-secret-backup-service-5b07d21f\", \"username\": \"amelia\", \"password\": \"OrbitKeycloak2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant for an unknown client (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"not-a-client\", \"username\": \"amelia\", \"password\": \"OrbitKeycloak2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "unsupported grant type (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"authorization_code\", \"client_id\": \"orbit-status-ui\"}"
+        }
+      }
+    },
+    {
+      "name": "client credentials for a service account",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"orbit-backup-service\", \"client_secret\": \"kc-secret-backup-service-5b07d21f\"}"
+        }
+      }
+    },
+    {
+      "name": "client credentials on a client without service accounts (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"client_credentials\", \"client_id\": \"orbit-admin-cli\", \"client_secret\": \"kc-secret-admin-cli-9f14c73e0b2a\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with a token issued for another client (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-status-ui\", \"refresh_token\": \"kc-rt-jonas-cli-c81d6a0371b0\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh a session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-admin-cli\", \"client_secret\": \"kc-secret-admin-cli-9f14c73e0b2a\", \"refresh_token\": \"kc-rt-jonas-cli-c81d6a0371b0\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with an unknown token (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"refresh_token\", \"client_id\": \"orbit-status-ui\", \"refresh_token\": \"kc-rt-never-issued\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect an active token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token/introspect",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"kc-at-amelia-ui-6b40d2a97f15\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect an expired token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token/introspect",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"kc-at-amelia-cli-revoked-0e47c95b\"}"
+        }
+      }
+    },
+    {
+      "name": "introspect a token from another realm",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-partners/protocol/openid-connect/token/introspect",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"kc-at-amelia-ui-6b40d2a97f15\"}"
+        }
+      }
+    },
+    {
+      "name": "userinfo",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/userinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-amelia-ui-6b40d2a97f15"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userinfo without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/userinfo"
+      }
+    },
+    {
+      "name": "userinfo with a token from another realm (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-partners/protocol/openid-connect/userinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-amelia-ui-6b40d2a97f15"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userinfo with an expired token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/userinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-amelia-cli-revoked-0e47c95b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "server info",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/serverinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "server info without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/serverinfo"
+      }
+    },
+    {
+      "name": "server info with an expired token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/serverinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-amelia-cli-revoked-0e47c95b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list realms",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a realm with a realm-scoped token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-amelia-ui-6b40d2a97f15"
+          }
+        ]
+      }
+    },
+    {
+      "name": "administer another realm with a realm-scoped token (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-partners/users",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-amelia-ui-6b40d2a97f15"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users as a view-users holder",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users?max=3",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-jonas-ui-2f83b0e6c194"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a user without manage-users (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-jonas-ui-2f83b0e6c194"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"denied\"}"
+        }
+      }
+    },
+    {
+      "name": "update the realm without manage-realm (403 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-jonas-ui-2f83b0e6c194"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"failureFactor\": 99}"
+        }
+      }
+    },
+    {
+      "name": "list users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users?first=0&max=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list users briefly",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users?max=5&briefRepresentation=true",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users?search=park",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list disabled users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users?enabled=false",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "count users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/count",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown user (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/00000000-0000-0000-0000-000000000000",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a user through the wrong realm (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-partners/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"iris\", \"email\": \"iris.tanaka@orbit-labs.com\", \"firstName\": \"Iris\", \"lastName\": \"Tanaka\", \"enabled\": true, \"credentials\": [{\"type\": \"password\", \"value\": \"StellarNebula2026\"}], \"attributes\": {\"department\": [\"support\"], \"seatId\": [\"SEAT-410\"]}}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a taken username (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"amelia\"}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a taken email (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"amelia-two\", \"email\": \"amelia.ortega@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a short password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"shorty\", \"credentials\": [{\"type\": \"password\", \"value\": \"Short1\"}]}"
+        }
+      }
+    },
+    {
+      "name": "create a user with a password missing a digit (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"nodigits\", \"credentials\": [{\"type\": \"password\", \"value\": \"NoDigitsAtAllHere\"}]}"
+        }
+      }
+    },
+    {
+      "name": "create a user without a username (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"x@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "update a user",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"firstName\": \"Rohit K.\", \"emailVerified\": true}"
+        }
+      }
+    },
+    {
+      "name": "update a user to a taken email (409 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "clear a user's required actions",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"requiredActions\": []}"
+        }
+      }
+    },
+    {
+      "name": "direct grant after the required actions are cleared",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"rohit\", \"password\": \"OrbitRohit2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "reset a password",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53/reset-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"password\", \"value\": \"NebulaOrbit2026\", \"temporary\": false}"
+        }
+      }
+    },
+    {
+      "name": "reset a password that fails the realm policy (400 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53/reset-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"password\", \"value\": \"aaaa\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant with the old password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"rohit\", \"password\": \"OrbitRohit2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "direct grant with the new password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"rohit\", \"password\": \"NebulaOrbit2026\"}"
+        }
+      }
+    },
+    {
+      "name": "set a temporary password",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53/reset-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"password\", \"value\": \"TemporaryOrbit2026\", \"temporary\": true}"
+        }
+      }
+    },
+    {
+      "name": "direct grant after a temporary password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"rohit\", \"password\": \"TemporaryOrbit2026\"}"
+        }
+      }
+    },
+    {
+      "name": "send required actions",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/execute-actions-email",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"VERIFY_EMAIL\", \"CONFIGURE_TOTP\"]"
+        }
+      }
+    },
+    {
+      "name": "send an action the realm does not enable (400 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/execute-actions-email",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"DELETE_ACCOUNT\"]"
+        }
+      }
+    },
+    {
+      "name": "direct role mappings",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c/role-mappings",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "effective role mappings",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c/role-mappings/effective",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "effective role mappings for a group member",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/role-mappings/effective",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "client role mappings",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c/role-mappings/clients/f6b23c91-08de-4a75-b3c0-97e15d24a608",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "grant a realm role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/role-mappings/realm",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"name\": \"status-viewer\"}]"
+        }
+      }
+    },
+    {
+      "name": "grant an unknown realm role (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/role-mappings/realm",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"name\": \"not-a-role\"}]"
+        }
+      }
+    },
+    {
+      "name": "grant a client role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/role-mappings/clients/f6b23c91-08de-4a75-b3c0-97e15d24a608",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"name\": \"view-users\"}]"
+        }
+      }
+    },
+    {
+      "name": "revoke a realm role",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/role-mappings/realm",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"name\": \"status-viewer\"}]"
+        }
+      }
+    },
+    {
+      "name": "list realm roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a realm role",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles/platform-operator",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "expand a composite role",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles/platform-operator/composites",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "expand a non-composite role",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles/status-viewer/composites",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown realm role (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles/not-a-role",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a realm role",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"auditor\", \"description\": \"Read-only auditor\"}"
+        }
+      }
+    },
+    {
+      "name": "create a realm role with a taken name (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"status-viewer\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a realm role",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/roles/auditor",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list groups",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a group",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups/g1-platform00000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown group (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups/g-not-a-group",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "group members",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups/g1-platform00000001/members",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "group role mappings",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups/g2-platform-oncall01/role-mappings",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a user's groups",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c/groups",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "join a group",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/groups/g3-support000000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "effective roles after joining",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/role-mappings/effective",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "leave a group",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/groups/g3-support000000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "leave a group again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6/groups/g3-support000000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a subgroup",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups/g1-platform00000001/children",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"sre\", \"realmRoles\": [\"incident-responder\"]}"
+        }
+      }
+    },
+    {
+      "name": "create a top-level group",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"contractors\", \"realmRoles\": [\"status-viewer\"]}"
+        }
+      }
+    },
+    {
+      "name": "create a group with a taken path (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"platform\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a group that still has subgroups (400 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups/g1-platform00000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete a group",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/groups/g3-support000000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list clients",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "find a client by clientId",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients?clientId=orbit-admin-cli",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get a client",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients/b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown client (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients/not-a-client-uuid",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read a confidential client's secret",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients/d80c5f13-27ba-4e69-91d4-6a03e7b28c50/client-secret",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read a public client's secret (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients/b41d7e02-96c8-4f35-a80b-2e6f931c5d47/client-secret",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list a client's roles",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients/f6b23c91-08de-4a75-b3c0-97e15d24a608/roles",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list a client's user sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/clients/b41d7e02-96c8-4f35-a80b-2e6f931c5d47/user-sessions",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list identity providers",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/identity-provider/instances",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an identity provider",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/identity-provider/instances/github-oidc",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get an unknown identity provider (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/identity-provider/instances/not-a-provider",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list required actions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/authentication/required-actions",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list required actions in the partner realm",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-partners/authentication/required-actions",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "brute force status for a locked user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/attack-detection/brute-force/users/d4a86f20-5c31-49b7-b0e8-73f1a2c65d94",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "brute force status for a clean user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/attack-detection/brute-force/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "clear the brute force lock",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/attack-detection/brute-force/users/d4a86f20-5c31-49b7-b0e8-73f1a2c65d94",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "direct grant after the lock is cleared",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"dmitri\", \"password\": \"OrbitDmitri2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "a user's sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/sessions",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a user's offline sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/offline-sessions",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list events",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/events?max=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list login errors",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/events?type=LOGIN_ERROR",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list events for one user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/events?user=a1c07e34-9b52-4f68-8d13-06e2fa945b7c",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list admin events",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/admin-events?max=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list admin events by resource type",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/admin-events?resourceTypes=USER",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "log a user out of every session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/logout",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "the logged-out session's token is dead (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/userinfo",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-jonas-ui-2f83b0e6c194"
+          }
+        ]
+      }
+    },
+    {
+      "name": "disable a user",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/a1c07e34-9b52-4f68-8d13-06e2fa945b7c",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"enabled\": false}"
+        }
+      }
+    },
+    {
+      "name": "direct grant for the just-disabled user (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/realms/orbit-labs/protocol/openid-connect/token",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"grant_type\": \"password\", \"client_id\": \"orbit-status-ui\", \"username\": \"amelia\", \"password\": \"OrbitKeycloak2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "delete a user",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/8f21c0b6-3d75-4e92-8a60-b45e19c7d203",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete the same user again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs/users/8f21c0b6-3d75-4e92-8a60-b45e19c7d203",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ]
+      }
+    },
+    {
+      "name": "update the realm",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/realms/orbit-labs",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer kc-at-master-admin-cli-8f0c31d47a92"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"failureFactor\": 8, \"displayName\": \"Orbit Labs (mock)\"}"
+        }
+      }
+    }
+  ]
+}

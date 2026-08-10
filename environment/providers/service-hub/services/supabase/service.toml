@@ -1,0 +1,55 @@
+# Service Hub manifest -- the only file read at hub startup.
+# Parsing this must stay cheap: no imports, no seed reads. See hub/manifest.py.
+
+[service]
+slug     = "supabase"
+name     = "Supabase (self-host)"
+category = "backend"
+status   = "implemented"
+version  = "v1"
+module   = "services.supabase.service:SupabaseService"
+upstream = "https://supabase.com/docs/reference/api"
+summary  = """
+Self-hosted Supabase data plane: PostgREST at /rest/v1 with horizontal filtering, \
+resource embedding and RLS; Storage buckets and objects; Edge Functions; Realtime \
+channels and broadcast; and the project read model. GoTrue is the separate \
+`supabase-auth` service."""
+tags = ["postgrest", "storage", "edge-functions", "realtime", "rls", "postgres"]
+
+[data]
+dir   = "supabase"
+seeds = [
+  "profiles.json",
+  "projects.json",
+  "documents.json",
+  "comments.json",
+  "buckets.json",
+  "objects.json",
+  "functions.json",
+  "channels.json",
+  "settings.json",
+]
+
+[auth]
+scheme      = "apikey"
+roles       = ["anon", "authenticated", "service_role"]
+description = """
+The `apikey` header (or `Authorization: Bearer <token>`) selects the Postgres \
+role that row-level security is evaluated against. Absent or the project anon \
+key -> `anon` (public rows, no writes); the service key -> `service_role` \
+(bypasses every policy, the only role that may DELETE); any other non-empty \
+token -> `authenticated`. Keys are in GET /supabase/v1/projects/{ref}."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/rest/v1",
+  "/rest/v1/rpc",
+  "/storage/v1/bucket",
+  "/storage/v1/object",
+  "/functions/v1",
+  "/realtime/v1",
+  "/v1/projects",
+]

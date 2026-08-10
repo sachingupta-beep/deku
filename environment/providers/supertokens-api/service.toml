@@ -1,0 +1,5 @@
+[service]
+name = "supertokens-api"
+port = 8115
+env_var_name = "SUPERTOKENS_API_URL"
+healthcheck_path = "/health"

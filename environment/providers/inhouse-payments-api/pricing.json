@@ -1,0 +1,13 @@
+{
+  "fees": {
+    "EUR": {"percent_bps": 140, "fixed_minor": 25},
+    "GBP": {"percent_bps": 150, "fixed_minor": 20},
+    "USD": {"percent_bps": 290, "fixed_minor": 30},
+    "default": {"percent_bps": 290, "fixed_minor": 30}
+  },
+  "supported_currencies": ["EUR", "GBP", "USD"],
+  "minimum_charge_minor": {"EUR": 50, "GBP": 30, "USD": 50},
+  "dispute_fee_minor": {"EUR": 1500, "GBP": 1500, "USD": 1500},
+  "payout_schedule": "manual",
+  "payout_minimum_minor": {"EUR": 1000, "GBP": 1000, "USD": 1000}
+}

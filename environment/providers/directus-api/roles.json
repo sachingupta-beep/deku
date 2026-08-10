@@ -1,0 +1,26 @@
+[
+  {
+    "id": "8f2c1b40-5e93-4a17-9d26-71c0e84b3f52",
+    "name": "Administrator",
+    "icon": "verified",
+    "description": "Full access to all data and settings.",
+    "admin_access": "true",
+    "app_access": "true"
+  },
+  {
+    "id": "c41d7a68-2b95-4e30-8f71-6a2d9c05e713",
+    "name": "Editor",
+    "icon": "edit_note",
+    "description": "Writes and publishes marketing content.",
+    "admin_access": "false",
+    "app_access": "true"
+  },
+  {
+    "id": "0a5e93f7-6c18-4d2b-b840-3f7e1c96a204",
+    "name": "Public",
+    "icon": "public",
+    "description": "Unauthenticated visitors of the marketing site.",
+    "admin_access": "false",
+    "app_access": "false"
+  }
+]

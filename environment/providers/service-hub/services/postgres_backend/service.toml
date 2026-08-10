@@ -1,0 +1,50 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "postgres-backend"
+name     = "Plain PostgreSQL Backend"
+category = "backend"
+status   = "declared"
+version  = "v1"
+module   = "services.postgres_backend.service:PostgresBackendService"
+upstream = "https://www.postgresql.org/docs/current/"
+summary  = """
+A hand-rolled REST layer over PostgreSQL -- the no-framework baseline: explicit table routes, explicit SQL, explicit transactions."""
+tags = [
+  "postgres",
+  "sql",
+  "rest",
+  "transactions",
+  "migrations",
+]
+
+[data]
+dir = "postgres-backend"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "reader",
+  "writer",
+  "owner",
+]
+description = """
+`Authorization: Bearer <token>` maps onto a database role. Unlike the BaaS services there is no policy engine: permissions are grants on tables, and a denied write returns SQLSTATE 42501."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/api/v1/tables",
+  "/api/v1/rows",
+  "/api/v1/query",
+  "/api/v1/transactions",
+  "/api/v1/migrations",
+]

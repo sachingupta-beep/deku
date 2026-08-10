@@ -1,0 +1,53 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "logto"
+name     = "Logto"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.logto.service:LogtoService"
+upstream = "https://openapi.logto.io/"
+summary  = """
+OIDC provider plus a Management API: users, applications, RBAC roles and scopes, organizations and social connectors."""
+tags = [
+  "oidc",
+  "rbac",
+  "organizations",
+  "m2m",
+  "connectors",
+]
+
+[data]
+dir = "logto"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "user",
+  "admin",
+  "m2m",
+]
+description = """
+`Authorization: Bearer <token>` against the Management API; machine-to-machine tokens come from /oidc/token with client credentials."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/api/users",
+  "/api/applications",
+  "/api/roles",
+  "/api/scopes",
+  "/api/organizations",
+  "/api/connectors",
+  "/oidc/token",
+  "/oidc/.well-known/openid-configuration",
+]

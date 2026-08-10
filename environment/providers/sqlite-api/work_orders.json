@@ -1,0 +1,12 @@
+[
+  {"id": "1001", "site_id": "3", "technician_id": "1", "status": "closed", "priority": "P1", "summary": "Coolant pump seized on line 2", "opened_at": "2026-05-18T07:20:00Z", "closed_at": "2026-05-18T13:45:00Z", "minutes_spent": "385", "billable": "1"},
+  {"id": "1002", "site_id": "3", "technician_id": "2", "status": "closed", "priority": "P3", "summary": "Quarterly filter replacement", "opened_at": "2026-05-19T09:00:00Z", "closed_at": "2026-05-19T10:30:00Z", "minutes_spent": "90", "billable": "1"},
+  {"id": "1003", "site_id": "1", "technician_id": "3", "status": "in_progress", "priority": "P2", "summary": "Chiller temperature drifting above setpoint", "opened_at": "2026-05-25T14:10:00Z", "closed_at": "", "minutes_spent": "125", "billable": "1"},
+  {"id": "1004", "site_id": "4", "technician_id": "1", "status": "open", "priority": "P1", "summary": "CAN bus faults on conveyor 7", "opened_at": "2026-05-26T06:05:00Z", "closed_at": "", "minutes_spent": "0", "billable": "1"},
+  {"id": "1005", "site_id": "6", "technician_id": "4", "status": "closed", "priority": "P2", "summary": "Irrigation controller power supply failure", "opened_at": "2026-05-12T16:40:00Z", "closed_at": "2026-05-13T11:15:00Z", "minutes_spent": "260", "billable": "1"},
+  {"id": "1006", "site_id": "2", "technician_id": "3", "status": "cancelled", "priority": "P4", "summary": "Duplicate ticket, merged into 1003", "opened_at": "2026-05-25T14:30:00Z", "closed_at": "2026-05-25T14:35:00Z", "minutes_spent": "5", "billable": "0"},
+  {"id": "1007", "site_id": "7", "technician_id": "4", "status": "open", "priority": "P3", "summary": "Annual safety inspection due", "opened_at": "2026-05-24T08:00:00Z", "closed_at": "", "minutes_spent": "0", "billable": "0"},
+  {"id": "1008", "site_id": "5", "technician_id": "1", "status": "closed", "priority": "P3", "summary": "Replace drive belt on print finisher", "opened_at": "2026-04-30T10:00:00Z", "closed_at": "2026-04-30T12:20:00Z", "minutes_spent": "140", "billable": "1"},
+  {"id": "1009", "site_id": "3", "technician_id": "2", "status": "closed", "priority": "P2", "summary": "Sensor recalibration after firmware update", "opened_at": "2026-04-22T13:00:00Z", "closed_at": "2026-04-22T15:40:00Z", "minutes_spent": "160", "billable": "1"},
+  {"id": "1010", "site_id": "1", "technician_id": "3", "status": "on_hold", "priority": "P3", "summary": "Awaiting CAN harness stock before rework", "opened_at": "2026-05-20T11:00:00Z", "closed_at": "", "minutes_spent": "45", "billable": "1"}
+]

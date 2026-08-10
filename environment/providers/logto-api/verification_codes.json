@@ -1,0 +1,4 @@
+[
+  {"id": "vrc0rohit0001", "type": "Register", "email": "rohit.bansal@orbit-labs.com", "phone": "", "code": "483102", "consumed": "0", "expiresAt": "1812182400000", "createdAt": "1780646400000"},
+  {"id": "vrc1noor00001", "type": "ForgotPassword", "email": "noor.aziz@orbit-labs.com", "phone": "", "code": "770415", "consumed": "1", "expiresAt": "1812182400000", "createdAt": "1780560000000"}
+]

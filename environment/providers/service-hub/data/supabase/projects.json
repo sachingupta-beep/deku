@@ -1,0 +1,62 @@
+[
+  {
+    "id": "101",
+    "owner_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901",
+    "name": "Auth Service",
+    "slug": "auth-service",
+    "description": "Session storage migration and refresh-token rotation work.",
+    "visibility": "private",
+    "status": "active",
+    "star_count": "42",
+    "created_at": "2024-04-12T10:00:00+00:00",
+    "updated_at": "2026-05-22T11:00:00+00:00"
+  },
+  {
+    "id": "102",
+    "owner_id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445",
+    "name": "Billing Platform",
+    "slug": "billing-platform",
+    "description": "Invoicing, dunning and revenue reporting.",
+    "visibility": "private",
+    "status": "active",
+    "star_count": "28",
+    "created_at": "2024-06-01T10:00:00+00:00",
+    "updated_at": "2026-05-19T15:00:00+00:00"
+  },
+  {
+    "id": "103",
+    "owner_id": "a41f7c88-5be9-42d7-9c03-77e2f8b41d16",
+    "name": "Web App",
+    "slug": "web-app",
+    "description": "Customer-facing Next.js application.",
+    "visibility": "public",
+    "status": "active",
+    "star_count": "18",
+    "created_at": "2024-03-20T10:00:00+00:00",
+    "updated_at": "2026-05-26T08:00:00+00:00"
+  },
+  {
+    "id": "104",
+    "owner_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901",
+    "name": "Engineering Docs",
+    "slug": "engineering-docs",
+    "description": "Public handbook and architecture decision records.",
+    "visibility": "public",
+    "status": "active",
+    "star_count": "310",
+    "created_at": "2024-09-15T10:00:00+00:00",
+    "updated_at": "2026-05-10T14:00:00+00:00"
+  },
+  {
+    "id": "105",
+    "owner_id": "d05b3f61-9c27-4e8a-b134-6a8d0e52f7c3",
+    "name": "Legacy Importer",
+    "slug": "legacy-importer",
+    "description": "One-off CSV importer retired after the 2025 migration.",
+    "visibility": "private",
+    "status": "archived",
+    "star_count": "2",
+    "created_at": "2024-11-04T09:30:00+00:00",
+    "updated_at": "2025-08-01T12:00:00+00:00"
+  }
+]

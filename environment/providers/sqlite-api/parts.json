@@ -1,0 +1,9 @@
+[
+  {"id": "1", "sku": "PMP-100", "name": "Coolant pump", "category": "hydraulic", "unit_cost_cents": "18400", "stock_qty": "12", "reorder_level": "4"},
+  {"id": "2", "sku": "SNS-220", "name": "Temperature sensor", "category": "electronic", "unit_cost_cents": "4200", "stock_qty": "48", "reorder_level": "20"},
+  {"id": "3", "sku": "BLT-045", "name": "Drive belt 45cm", "category": "mechanical", "unit_cost_cents": "1900", "stock_qty": "3", "reorder_level": "10"},
+  {"id": "4", "sku": "PSU-500", "name": "500W power supply", "category": "electronic", "unit_cost_cents": "23900", "stock_qty": "7", "reorder_level": "3"},
+  {"id": "5", "sku": "FLT-012", "name": "Air filter cartridge", "category": "consumable", "unit_cost_cents": "890", "stock_qty": "120", "reorder_level": "40"},
+  {"id": "6", "sku": "CBL-900", "name": "CAN bus harness", "category": "electronic", "unit_cost_cents": "6700", "stock_qty": "0", "reorder_level": "6"},
+  {"id": "7", "sku": "GSK-330", "name": "Gasket set", "category": "mechanical", "unit_cost_cents": "2450", "stock_qty": "26", "reorder_level": "12"}
+]

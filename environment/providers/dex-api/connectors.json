@@ -1,0 +1,6 @@
+[
+  {"id": "local", "type": "local", "name": "Email", "enabled": "1", "supportsPasswordGrant": "1", "supportsRefresh": "1", "config": "", "note": "Dex's only local identity store: the static passwords"},
+  {"id": "ldap", "type": "ldap", "name": "Orbit LDAP", "enabled": "1", "supportsPasswordGrant": "1", "supportsRefresh": "1", "config": "host=ldap.orbit-labs.com:636;bindDN=cn=dex,ou=service,dc=orbit-labs,dc=com;userSearch.baseDN=ou=people,dc=orbit-labs,dc=com;userSearch.username=uid;groupSearch.baseDN=ou=groups,dc=orbit-labs,dc=com", "note": "password grant works; identities are not stored locally"},
+  {"id": "github", "type": "github", "name": "GitHub", "enabled": "1", "supportsPasswordGrant": "0", "supportsRefresh": "1", "config": "clientID=Iv1.orbit-labs-dex;orgs=orbit-labs;teamNameField=slug;loadAllGroups=true", "note": "browser flow only; the password grant is refused"},
+  {"id": "orbit-saml", "type": "saml", "name": "Acme SAML", "enabled": "0", "supportsPasswordGrant": "0", "supportsRefresh": "0", "config": "ssoURL=https://idp.acme-partner.com/saml/sso;entityIssuer=https://dex.orbit-labs.com/dex/callback", "note": "disabled in this deployment"}
+]

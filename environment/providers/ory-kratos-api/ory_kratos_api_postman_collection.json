@@ -1,0 +1,1383 @@
+{
+  "info": {
+    "name": "Ory Kratos Mock API v1.3.1",
+    "description": "Test collection for the mock Ory Kratos service. Base URL defaults to http://localhost:8119. In docker-compose, the service is reachable at http://ory-kratos-api:8119.\n\nKratos has no login endpoint. It has **self-service flows**, and they are first-class resources: create one with `GET /self-service/login/api`, then submit against its id with `POST /self-service/login?flow=<id>`. A failed submission is not an error body -- it is 400 with the whole flow re-rendered and messages attached to the offending `ui.nodes`, which is what a client draws. Numbered message ids carry the meaning: 4000001 required, 4000002 too short, 4000006 invalid credentials, 4000007 identifier exists, 4000038 not in enum.\n\nTraits are validated against the identity's JSON Schema. Two schemas are seeded with different required fields, so the same registration payload succeeds against `default` and fails against `partner`.\n\nSeeded flows can be quoted literally: login f1a0c7e2-5b93-4d68-8017-2e6f931c5d47 (api), d80c5f13-27ba-4e69-91d4-6a03e7b28c50 (browser, csrf csrf-a71e0c93d45b8f26), 2a97e0b8-4d16-43cf-8572-b1e0c9d64f35 (aal2 step-up), f6b23c91-08de-4a75-b3c0-97e15d24a608 (expired). Session tokens: ory_st_amelia_4c19f7e0b83d (aal2), ory_st_jonas_91e5c7d40a26, ory_st_helena_d502a8f371c6 (oidc), ory_st_priya_1d75a0e934bc, ory_st_amelia_revoked_3a6d80e5 (revoked). Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8119"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "health alive",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/alive"
+      }
+    },
+    {
+      "name": "health ready",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/ready"
+      }
+    },
+    {
+      "name": "version",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/version"
+      }
+    },
+    {
+      "name": "list identity schemas",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/schemas"
+      }
+    },
+    {
+      "name": "get the default identity schema",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/schemas/default"
+      }
+    },
+    {
+      "name": "get the partner identity schema",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/schemas/partner"
+      }
+    },
+    {
+      "name": "get an unknown schema (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/schemas/nope"
+      }
+    },
+    {
+      "name": "create an api login flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/api"
+      }
+    },
+    {
+      "name": "create a browser login flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/browser"
+      }
+    },
+    {
+      "name": "create an aal2 login flow without a session (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/api?aal=aal2"
+      }
+    },
+    {
+      "name": "create an aal2 login flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/api?aal=aal2",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_jonas_91e5c7d40a26"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a refresh login flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/api?refresh=true",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_jonas_91e5c7d40a26"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a registration flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/registration/api"
+      }
+    },
+    {
+      "name": "create a recovery flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/recovery/api"
+      }
+    },
+    {
+      "name": "create a verification flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/verification/api"
+      }
+    },
+    {
+      "name": "create a settings flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/settings/api",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_jonas_91e5c7d40a26"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create a settings flow without a session (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/settings/api"
+      }
+    },
+    {
+      "name": "create a flow for an unknown client type (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/desktop"
+      }
+    },
+    {
+      "name": "fetch a login flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/flows?id=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47"
+      }
+    },
+    {
+      "name": "fetch a browser login flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/flows?id=d80c5f13-27ba-4e69-91d4-6a03e7b28c50"
+      }
+    },
+    {
+      "name": "fetch a registration flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/registration/flows?id=b41d7e02-96c8-4f35-a80b-2e6f931c5d47"
+      }
+    },
+    {
+      "name": "fetch a settings flow",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/settings/flows?id=1d9f4a02-7b36-4c81-a5e0-92f7c103b846"
+      }
+    },
+    {
+      "name": "fetch an expired flow (410 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/flows?id=f6b23c91-08de-4a75-b3c0-97e15d24a608"
+      }
+    },
+    {
+      "name": "fetch an unknown flow (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/login/flows?id=00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "fetch a flow of the wrong type (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/self-service/registration/flows?id=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47"
+      }
+    },
+    {
+      "name": "submit login without fields (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\"}"
+        }
+      }
+    },
+    {
+      "name": "submit login with a wrong password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"jonas.pereira@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "submit login with an unknown identifier (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"nobody@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "submit login for an identity with no password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"helena.park@orbit-labs.com\", \"password\": \"OrbitHelena2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "submit login for an inactive identity (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"noor.aziz@orbit-labs.com\", \"password\": \"OrbitNoor2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "submit login",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "submit a browser login without the csrf token (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=d80c5f13-27ba-4e69-91d4-6a03e7b28c50",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "submit a browser login with the csrf token",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=d80c5f13-27ba-4e69-91d4-6a03e7b28c50",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"csrf_token\": \"csrf-a71e0c93d45b8f26\", \"method\": \"password\", \"identifier\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "submit login by oidc",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"oidc\", \"provider\": \"github\", \"subject\": \"2210448\"}"
+        }
+      }
+    },
+    {
+      "name": "submit login by oidc for an unlinked subject (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f1a0c7e2-5b93-4d68-8017-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"oidc\", \"provider\": \"github\", \"subject\": \"999999\"}"
+        }
+      }
+    },
+    {
+      "name": "submit the aal2 step-up with a wrong code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=2a97e0b8-4d16-43cf-8572-b1e0c9d64f35",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"totp\", \"totp_code\": \"000000\"}"
+        }
+      }
+    },
+    {
+      "name": "submit the aal2 step-up with a backup code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=2a97e0b8-4d16-43cf-8572-b1e0c9d64f35",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"lookup_secret\", \"lookup_secret\": \"91cd2f7a\"}"
+        }
+      }
+    },
+    {
+      "name": "submit the aal2 step-up with a totp code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=2a97e0b8-4d16-43cf-8572-b1e0c9d64f35",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"totp\", \"totp_code\": \"482913\"}"
+        }
+      }
+    },
+    {
+      "name": "submit against an expired flow (410 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=f6b23c91-08de-4a75-b3c0-97e15d24a608",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "submit against an unknown flow (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/login?flow=00000000-0000-0000-0000-000000000000",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"identifier\": \"x\", \"password\": \"y\"}"
+        }
+      }
+    },
+    {
+      "name": "register with a missing name (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"incomplete@orbit-labs.com\"}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "register with a malformed email (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"not-an-email\", \"name\": {\"first\": \"Iris\", \"last\": \"Tanaka\"}}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "register with a role outside the enum (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"wizard@orbit-labs.com\", \"name\": {\"first\": \"Iris\", \"last\": \"Tanaka\"}, \"role\": \"wizard\"}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "register with a seat id that fails the pattern (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"badseat@orbit-labs.com\", \"name\": {\"first\": \"Iris\", \"last\": \"Tanaka\"}, \"seat_id\": \"DESK-1\"}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "register with a trait the schema does not allow (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"extra@orbit-labs.com\", \"name\": {\"first\": \"Iris\", \"last\": \"Tanaka\"}, \"favourite_colour\": \"blue\"}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "register the same payload against the partner schema (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"schema_id\": \"partner\", \"traits\": {\"email\": \"iris.tanaka@orbit-labs.com\", \"name\": {\"first\": \"Iris\", \"last\": \"Tanaka\"}}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "register with a short password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"shortpw@orbit-labs.com\", \"name\": {\"first\": \"Iris\", \"last\": \"Tanaka\"}}, \"password\": \"short\"}"
+        }
+      }
+    },
+    {
+      "name": "register with an email that already exists (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"amelia.ortega@orbit-labs.com\", \"name\": {\"first\": \"Amelia\", \"last\": \"Ortega\"}}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "register",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/registration?flow=b41d7e02-96c8-4f35-a80b-2e6f931c5d47",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"iris.tanaka@orbit-labs.com\", \"name\": {\"first\": \"Iris\", \"last\": \"Tanaka\"}, \"role\": \"support\", \"seat_id\": \"SEAT-410\"}, \"password\": \"StellarIris2026\"}"
+        }
+      }
+    },
+    {
+      "name": "start recovery for a known address",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/recovery?flow=9e05a73f-1c48-4b26-a09d-58f2c6e34b17",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "submit a wrong recovery code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/recovery?flow=9e05a73f-1c48-4b26-a09d-58f2c6e34b17",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"000000\"}"
+        }
+      }
+    },
+    {
+      "name": "submit an already-spent recovery code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/recovery?flow=9e05a73f-1c48-4b26-a09d-58f2c6e34b17",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"605144\"}"
+        }
+      }
+    },
+    {
+      "name": "submit the seeded recovery code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/recovery?flow=9e05a73f-1c48-4b26-a09d-58f2c6e34b17",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"770412\"}"
+        }
+      }
+    },
+    {
+      "name": "check rohit is still unverified",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53"
+      }
+    },
+    {
+      "name": "submit a wrong verification code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/verification?flow=7c4e1b8a-0d33-4f95-b201-8e6a3c17d940",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"000000\"}"
+        }
+      }
+    },
+    {
+      "name": "submit the seeded verification code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/verification?flow=7c4e1b8a-0d33-4f95-b201-8e6a3c17d940",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\": \"482913\"}"
+        }
+      }
+    },
+    {
+      "name": "check rohit is now verified",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities/3b60e5c1-7a94-42d8-9f01-2c86d47e0b53"
+      }
+    },
+    {
+      "name": "submit settings with someone else's session (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/settings?flow=1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_amelia_4c19f7e0b83d"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"profile\", \"traits\": {\"email\": \"jonas.pereira@orbit-labs.com\", \"name\": {\"first\": \"Jonas\", \"last\": \"Pereira\"}}}"
+        }
+      }
+    },
+    {
+      "name": "submit settings without a session (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/settings?flow=1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"profile\", \"traits\": {\"email\": \"jonas.pereira@orbit-labs.com\", \"name\": {\"first\": \"Jonas\", \"last\": \"Pereira\"}}}"
+        }
+      }
+    },
+    {
+      "name": "submit settings with traits that fail the schema (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/settings?flow=1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_jonas_91e5c7d40a26"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"profile\", \"traits\": {\"email\": \"jonas.pereira@orbit-labs.com\", \"name\": {\"first\": \"Jonas\"}}}"
+        }
+      }
+    },
+    {
+      "name": "submit settings changing the email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/settings?flow=1d9f4a02-7b36-4c81-a5e0-92f7c103b846",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_jonas_91e5c7d40a26"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"profile\", \"traits\": {\"email\": \"jonas.pereira@orbit-labs.io\", \"name\": {\"first\": \"Jonas\", \"last\": \"Pereira\"}, \"role\": \"engineer\", \"seat_id\": \"SEAT-207\"}}"
+        }
+      }
+    },
+    {
+      "name": "submit settings with a short password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/self-service/settings?flow=5c07e83b-1f42-4d69-b3a8-07e5d91c264f",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_amelia_4c19f7e0b83d"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"method\": \"password\", \"password\": \"short\"}"
+        }
+      }
+    },
+    {
+      "name": "whoami",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/sessions/whoami",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_amelia_4c19f7e0b83d"
+          }
+        ]
+      }
+    },
+    {
+      "name": "whoami without a token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/sessions/whoami"
+      }
+    },
+    {
+      "name": "whoami with a revoked token (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/sessions/whoami",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_amelia_revoked_3a6d80e5"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list my sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/sessions",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_amelia_4c19f7e0b83d"
+          }
+        ]
+      }
+    },
+    {
+      "name": "revoke one of my sessions (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/sessions/3e58a1d6-7c04-42bf-9d13-8b0f6e2a57c9",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_amelia_4c19f7e0b83d"
+          }
+        ]
+      }
+    },
+    {
+      "name": "revoke every other session of mine",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/sessions",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "ory_st_amelia_4c19f7e0b83d"
+          }
+        ]
+      }
+    },
+    {
+      "name": "log out",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/self-service/logout/api",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"session_token\": \"ory_st_priya_1d75a0e934bc\"}"
+        }
+      }
+    },
+    {
+      "name": "log out again (401 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/self-service/logout/api",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"session_token\": \"ory_st_priya_1d75a0e934bc\"}"
+        }
+      }
+    },
+    {
+      "name": "list identities",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities?page_size=5"
+      }
+    },
+    {
+      "name": "list identities by credential identifier",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities?credentials_identifier=helena.park@orbit-labs.com"
+      }
+    },
+    {
+      "name": "get an identity",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities/9f1c07e3-4b52-4d68-8a13-06e2fa945b7c"
+      }
+    },
+    {
+      "name": "get an identity with its credentials",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities/9f1c07e3-4b52-4d68-8a13-06e2fa945b7c?include_credential=password,totp,lookup_secret"
+      }
+    },
+    {
+      "name": "get an unknown identity (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities/00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "create an identity",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/identities",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"schema_id\": \"default\", \"traits\": {\"email\": \"ops.bot@orbit-labs.com\", \"name\": {\"first\": \"Ops\", \"last\": \"Bot\"}, \"role\": \"service\"}, \"metadata_admin\": {\"costCenter\": \"CC-100\"}, \"verifiable_addresses_verified\": true, \"credentials\": {\"password\": {\"config\": {\"password\": \"NebulaOps2026\"}}}}"
+        }
+      }
+    },
+    {
+      "name": "create an identity with traits that fail the schema (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/identities",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"not-an-email\"}}"
+        }
+      }
+    },
+    {
+      "name": "create an identity on an unknown schema (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/identities",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"schema_id\": \"nope\", \"traits\": {\"email\": \"x@orbit-labs.com\", \"name\": {\"first\": \"X\", \"last\": \"Y\"}}}"
+        }
+      }
+    },
+    {
+      "name": "create an identity that already exists (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/identities",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"traits\": {\"email\": \"amelia.ortega@orbit-labs.com\", \"name\": {\"first\": \"Amelia\", \"last\": \"Ortega\"}}}"
+        }
+      }
+    },
+    {
+      "name": "replace an identity",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/identities/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"schema_id\": \"default\", \"state\": \"active\", \"traits\": {\"email\": \"helena.park@orbit-labs.com\", \"name\": {\"first\": \"Helena\", \"last\": \"Park\"}, \"role\": \"owner\", \"seat_id\": \"SEAT-251\"}, \"metadata_admin\": {\"costCenter\": \"CC-100\"}}"
+        }
+      }
+    },
+    {
+      "name": "replace an identity with an invalid state (400 expected)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/admin/identities/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"state\": \"paused\", \"traits\": {\"email\": \"helena.park@orbit-labs.com\", \"name\": {\"first\": \"Helena\", \"last\": \"Park\"}}}"
+        }
+      }
+    },
+    {
+      "name": "patch an identity",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/identities/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"op\": \"replace\", \"path\": \"/traits/role\", \"value\": \"engineer\"}, {\"op\": \"replace\", \"path\": \"/metadata_admin\", \"value\": {\"costCenter\": \"CC-999\", \"reviewedAt\": \"2026-08-06\"}}]"
+        }
+      }
+    },
+    {
+      "name": "patch an unsupported path (400 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/identities/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"op\": \"replace\", \"path\": \"/id\", \"value\": \"hijacked\"}]"
+        }
+      }
+    },
+    {
+      "name": "patch with an unsupported operation (400 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/identities/c72f4d80-6e19-4b35-a204-8f7b0e15c9d6",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"op\": \"move\", \"from\": \"/traits/role\", \"path\": \"/traits/company\"}]"
+        }
+      }
+    },
+    {
+      "name": "patch an identity into the inactive state",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/identities/0c5b73e9-8f16-4a24-95d7-6b0e2c81f435",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"op\": \"replace\", \"path\": \"/state\", \"value\": \"inactive\"}]"
+        }
+      }
+    },
+    {
+      "name": "patch an invalid state (400 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/identities/0c5b73e9-8f16-4a24-95d7-6b0e2c81f435",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"op\": \"replace\", \"path\": \"/state\", \"value\": \"paused\"}]"
+        }
+      }
+    },
+    {
+      "name": "patch an unknown identity (404 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/identities/00000000-0000-0000-0000-000000000000",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\"op\": \"replace\", \"path\": \"/traits/role\", \"value\": \"support\"}]"
+        }
+      }
+    },
+    {
+      "name": "list an identity's sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/sessions"
+      }
+    },
+    {
+      "name": "list an identity's active sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/identities/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/sessions?active=true"
+      }
+    },
+    {
+      "name": "revoke an identity's sessions",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/identities/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/sessions"
+      }
+    },
+    {
+      "name": "revoke them again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/identities/5e93b1a7-2c48-4d06-b7f5-91e0c34d6a28/sessions"
+      }
+    },
+    {
+      "name": "remove a totp credential",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/identities/9f1c07e3-4b52-4d68-8a13-06e2fa945b7c/credentials/totp"
+      }
+    },
+    {
+      "name": "remove it again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/identities/9f1c07e3-4b52-4d68-8a13-06e2fa945b7c/credentials/totp"
+      }
+    },
+    {
+      "name": "remove a password credential (400 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/identities/9f1c07e3-4b52-4d68-8a13-06e2fa945b7c/credentials/password"
+      }
+    },
+    {
+      "name": "list all sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/sessions?page_size=5"
+      }
+    },
+    {
+      "name": "list active sessions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/sessions?active=true&page_size=5"
+      }
+    },
+    {
+      "name": "get a session",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/sessions/3e58a1d6-7c04-42bf-9d13-8b0f6e2a57c9"
+      }
+    },
+    {
+      "name": "get an unknown session (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/sessions/00000000-0000-0000-0000-000000000000"
+      }
+    },
+    {
+      "name": "extend a session",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/sessions/3e58a1d6-7c04-42bf-9d13-8b0f6e2a57c9/extend"
+      }
+    },
+    {
+      "name": "extend an inactive session (400 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/admin/sessions/e94c7a30-5df1-4b62-8047-3c1e9f60a284/extend"
+      }
+    },
+    {
+      "name": "disable a session",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/sessions/3e58a1d6-7c04-42bf-9d13-8b0f6e2a57c9"
+      }
+    },
+    {
+      "name": "create a recovery code",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/recovery/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity_id\": \"c72f4d80-6e19-4b35-a204-8f7b0e15c9d6\", \"expires_in_seconds\": 900}"
+        }
+      }
+    },
+    {
+      "name": "create a recovery link",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/recovery/link",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity_id\": \"c72f4d80-6e19-4b35-a204-8f7b0e15c9d6\"}"
+        }
+      }
+    },
+    {
+      "name": "create a recovery code for an unknown identity (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/admin/recovery/code",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity_id\": \"00000000-0000-0000-0000-000000000000\"}"
+        }
+      }
+    },
+    {
+      "name": "list courier messages",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/courier/messages?page_size=5"
+      }
+    },
+    {
+      "name": "list sent courier messages",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/courier/messages?status=sent&page_size=5"
+      }
+    },
+    {
+      "name": "list courier messages for one recipient",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/courier/messages?recipient=rohit.bansal@orbit-labs.com"
+      }
+    },
+    {
+      "name": "get a courier message",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/courier/messages/msg-rohit-verify01"
+      }
+    },
+    {
+      "name": "get an unknown courier message (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/admin/courier/messages/msg-does-not-exist"
+      }
+    },
+    {
+      "name": "delete an identity",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/identities/8f21c0b6-3d75-4e92-8a60-b45e19c7d203"
+      }
+    },
+    {
+      "name": "delete the same identity again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/admin/identities/8f21c0b6-3d75-4e92-8a60-b45e19c7d203"
+      }
+    }
+  ]
+}

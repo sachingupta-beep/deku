@@ -1,0 +1,5 @@
+[service]
+name = "mailhog-api"
+port = 8121
+env_var_name = "MAILHOG_API_URL"
+healthcheck_path = "/health"

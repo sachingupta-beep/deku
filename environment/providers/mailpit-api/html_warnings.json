@@ -1,0 +1,86 @@
+[
+  {
+    "_pk": "Ek6MbNcVxZaSdFgHjKlPq4#css-display-flex",
+    "messageId": "Ek6MbNcVxZaSdFgHjKlPq4",
+    "slug": "css-display-flex",
+    "title": "display: flex",
+    "description": "The flex layout mode is not honoured by the Word rendering engine, which collapses the container to a block.",
+    "category": "css",
+    "tags": "css;layout",
+    "found": "1",
+    "unsupportedOn": "Outlook|windows|2019;Outlook|macos|16.78",
+    "partialOn": ""
+  },
+  {
+    "_pk": "Ek6MbNcVxZaSdFgHjKlPq4#css-gap",
+    "messageId": "Ek6MbNcVxZaSdFgHjKlPq4",
+    "slug": "css-gap",
+    "title": "gap",
+    "description": "The gap property is ignored outside a supported flex or grid container, leaving elements flush against each other.",
+    "category": "css",
+    "tags": "css;layout",
+    "found": "1",
+    "unsupportedOn": "Outlook|windows|2019;Outlook|macos|16.78;Yahoo! Mail|desktop-webmail|",
+    "partialOn": ""
+  },
+  {
+    "_pk": "Ek6MbNcVxZaSdFgHjKlPq4#css-border-radius",
+    "messageId": "Ek6MbNcVxZaSdFgHjKlPq4",
+    "slug": "css-border-radius",
+    "title": "border-radius",
+    "description": "Rounded corners fall back to square ones; use a VML rounded rectangle if the shape matters.",
+    "category": "css",
+    "tags": "css;decoration",
+    "found": "2",
+    "unsupportedOn": "Outlook|windows|2019",
+    "partialOn": ""
+  },
+  {
+    "_pk": "Ek6MbNcVxZaSdFgHjKlPq4#css-background-image-linear-gradient",
+    "messageId": "Ek6MbNcVxZaSdFgHjKlPq4",
+    "slug": "css-background-image-linear-gradient",
+    "title": "linear-gradient()",
+    "description": "The gradient is dropped entirely; always set a solid background-color first so the panel is not left transparent.",
+    "category": "css",
+    "tags": "css;background",
+    "found": "1",
+    "unsupportedOn": "Outlook|windows|2019",
+    "partialOn": "Outlook|macos|16.78"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#html-font",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "slug": "html-font",
+    "title": "<font> element",
+    "description": "The font element is deprecated in HTML5 and is rewritten or dropped by some webmail sanitisers.",
+    "category": "html",
+    "tags": "html;deprecated",
+    "found": "4",
+    "unsupportedOn": "",
+    "partialOn": "Gmail|desktop-webmail|;Gmail|android|"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#html-body-bgcolor",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "slug": "html-body-bgcolor",
+    "title": "bgcolor attribute on <body>",
+    "description": "Webmail clients that strip the body element lose the background colour with it; wrap the mail in a full-width table instead.",
+    "category": "html",
+    "tags": "html;background",
+    "found": "1",
+    "unsupportedOn": "Gmail|desktop-webmail|;Gmail|android|;Yahoo! Mail|desktop-webmail|",
+    "partialOn": ""
+  },
+  {
+    "_pk": "Ct5NrXbGmVpLdWyQzKfJh7#css-font-family-system-ui",
+    "messageId": "Ct5NrXbGmVpLdWyQzKfJh7",
+    "slug": "css-font-family-system-ui",
+    "title": "-apple-system font stack",
+    "description": "The system font keyword is not recognised and the declaration falls through to the next family in the stack.",
+    "category": "css",
+    "tags": "css;typography",
+    "found": "1",
+    "unsupportedOn": "Outlook|windows|2019",
+    "partialOn": ""
+  }
+]

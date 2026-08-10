@@ -1,0 +1,5 @@
+[service]
+name = "pocketbase-api"
+port = 8103
+env_var_name = "POCKETBASE_API_URL"
+healthcheck_path = "/health"

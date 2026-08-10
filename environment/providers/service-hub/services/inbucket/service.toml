@@ -1,0 +1,45 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "inbucket"
+name     = "Inbucket"
+category = "email"
+status   = "declared"
+version  = "v1"
+module   = "services.inbucket.service:InbucketService"
+upstream = "https://github.com/inbucket/inbucket/wiki/REST-API"
+summary  = """
+Disposable-mailbox catcher: the mailbox name is *derived* from the address (subaddress stripping, case folding), and mailboxes evict oldest-first at a cap."""
+tags = [
+  "mailboxes",
+  "subaddressing",
+  "eviction",
+  "monitor",
+]
+
+[data]
+dir = "inbucket"
+
+[auth]
+scheme      = "none"
+roles       = []
+description = """
+No authentication. There is no global inbox either: every read is scoped to a mailbox derived from the recipient address."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/api/v1/mailboxes",
+  "/api/v1/mailbox/{name}",
+  "/api/v1/mailbox/{name}/{id}",
+  "/api/v1/mailbox/{name}/{id}/source",
+  "/api/v1/monitor/messages",
+]

@@ -1,0 +1,7 @@
+[
+  {"fingerprint_id": "3f1c9b528a444f6e", "query": "SELECT * FROM devices WHERE crdb_region = $1 AND status = $2", "count": "8841200", "service_lat_avg_ms": "1.842", "service_lat_p99_ms": "14.220", "rows_avg": "412.0", "retries": "0", "full_scan": "0", "distributed": "1", "implicit_txn": "1"},
+  {"fingerprint_id": "6b2d4e1077c34a9b", "query": "UPSERT INTO device_events (id, device_id, kind, severity, detail, occurred_at) VALUES ($1, $2, $3, $4, $5, $6)", "count": "41208841", "service_lat_avg_ms": "2.104", "service_lat_p99_ms": "22.880", "rows_avg": "1.0", "retries": "1284", "full_scan": "0", "distributed": "0", "implicit_txn": "1"},
+  {"fingerprint_id": "a41f7c885be942d7", "query": "UPDATE devices SET last_seen_at = now(), status = $1 WHERE id = $2", "count": "18204881", "service_lat_avg_ms": "3.410", "service_lat_p99_ms": "88.120", "rows_avg": "1.0", "retries": "8412", "full_scan": "0", "distributed": "0", "implicit_txn": "0"},
+  {"fingerprint_id": "c72e5a941d384b6f", "query": "SELECT count(*) FROM device_events WHERE occurred_at > $1", "count": "412088", "service_lat_avg_ms": "184.220", "service_lat_p99_ms": "1842.400", "rows_avg": "1.0", "retries": "0", "full_scan": "1", "distributed": "1", "implicit_txn": "1"},
+  {"fingerprint_id": "d05b3f619c274e8a", "query": "SELECT * FROM rollouts WHERE status = $1", "count": "88214", "service_lat_avg_ms": "0.912", "service_lat_p99_ms": "4.120", "rows_avg": "2.0", "retries": "0", "full_scan": "1", "distributed": "0", "implicit_txn": "1"}
+]

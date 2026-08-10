@@ -1,0 +1,58 @@
+[
+  {
+    "id": "flag_offline_queue",
+    "collectionId": "feature_flags",
+    "databaseId": "orbit_app",
+    "permissions": "read(\"any\")",
+    "key": "offline_queue",
+    "description": "Queue writes locally and replay them when connectivity returns.",
+    "enabled": "true",
+    "rolloutPercent": "100",
+    "platforms": "ios;android",
+    "owner": "helena.park@orbit-labs.com",
+    "createdAt": "2025-11-04T10:00:00.000+00:00",
+    "updatedAt": "2026-05-20T13:40:00.000+00:00"
+  },
+  {
+    "id": "flag_new_invoice_ui",
+    "collectionId": "feature_flags",
+    "databaseId": "orbit_app",
+    "permissions": "read(\"any\")",
+    "key": "new_invoice_ui",
+    "description": "Redesigned invoice screen with higher contrast in dark mode.",
+    "enabled": "true",
+    "rolloutPercent": "25",
+    "platforms": "ios;android;web",
+    "owner": "jonas.pereira@orbit-labs.com",
+    "createdAt": "2026-04-18T09:30:00.000+00:00",
+    "updatedAt": "2026-05-22T16:10:00.000+00:00"
+  },
+  {
+    "id": "flag_passkey_login",
+    "collectionId": "feature_flags",
+    "databaseId": "orbit_app",
+    "permissions": "read(\"any\")",
+    "key": "passkey_login",
+    "description": "WebAuthn passkeys as an alternative to password sign-in.",
+    "enabled": "false",
+    "rolloutPercent": "0",
+    "platforms": "ios;web",
+    "owner": "amelia.ortega@orbit-labs.com",
+    "createdAt": "2026-02-02T11:15:00.000+00:00",
+    "updatedAt": "2026-05-06T08:00:00.000+00:00"
+  },
+  {
+    "id": "flag_weekly_export",
+    "collectionId": "feature_flags",
+    "databaseId": "orbit_app",
+    "permissions": "read(\"any\")",
+    "key": "weekly_export",
+    "description": "Scheduled weekly CSV export delivered by email.",
+    "enabled": "true",
+    "rolloutPercent": "10",
+    "platforms": "web",
+    "owner": "jonas.pereira@orbit-labs.com",
+    "createdAt": "2026-05-11T14:00:00.000+00:00",
+    "updatedAt": "2026-05-24T10:45:00.000+00:00"
+  }
+]

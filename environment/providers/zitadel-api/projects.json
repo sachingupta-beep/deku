@@ -1,0 +1,5 @@
+[
+  {"id": "281940113077371001", "resourceOwner": "280310551611113987", "name": "Orbit Status Platform", "state": "PROJECT_STATE_ACTIVE", "projectRoleAssertion": "1", "projectRoleCheck": "1", "hasProjectCheck": "1", "privateLabelingSetting": "PRIVATE_LABELING_SETTING_ENFORCE_PROJECT_RESOURCE_OWNER_POLICY", "sequence": "412", "creationDate": "2024-01-12T09:00:00Z", "changeDate": "2026-04-18T10:30:00Z"},
+  {"id": "281940113077371002", "resourceOwner": "280310551611113987", "name": "Orbit Billing", "state": "PROJECT_STATE_ACTIVE", "projectRoleAssertion": "1", "projectRoleCheck": "0", "hasProjectCheck": "0", "privateLabelingSetting": "PRIVATE_LABELING_SETTING_UNSPECIFIED", "sequence": "173", "creationDate": "2024-08-05T11:00:00Z", "changeDate": "2026-02-27T09:15:00Z"},
+  {"id": "281940113077371003", "resourceOwner": "280310551611113988", "name": "Partner Portal", "state": "PROJECT_STATE_ACTIVE", "projectRoleAssertion": "1", "projectRoleCheck": "1", "hasProjectCheck": "1", "privateLabelingSetting": "PRIVATE_LABELING_SETTING_UNSPECIFIED", "sequence": "64", "creationDate": "2025-12-01T09:15:00Z", "changeDate": "2026-05-20T11:00:00Z"}
+]

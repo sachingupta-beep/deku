@@ -1,0 +1,25 @@
+{
+  "name": "orbit_field.db",
+  "path": "/var/lib/orbit/field/orbit_field.db",
+  "sqlite_version": "3.45.3",
+  "service_version": "1.4.2",
+  "page_size": 4096,
+  "page_count": 512,
+  "freelist_count": 7,
+  "encoding": "UTF-8",
+  "journal_mode": "wal",
+  "synchronous": "NORMAL",
+  "foreign_keys": 1,
+  "auto_vacuum": "INCREMENTAL",
+  "busy_timeout": 5000,
+  "cache_size": -2000,
+  "temp_store": "MEMORY",
+  "user_version": 14,
+  "application_id": 1198813761,
+  "wal": {"checkpoint_mode": "PASSIVE", "autocheckpoint_pages": 1000, "wal_size_bytes": 163840},
+  "last_backup_at": "2026-05-26T02:00:00Z",
+  "auth": {
+    "api_key": "sqlite_key_9f3c1a7e5b2d4086",
+    "readonly_key": "sqlite_ro_2b90d7fc1e6a4830"
+  }
+}

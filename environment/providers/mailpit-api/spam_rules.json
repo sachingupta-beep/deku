@@ -1,0 +1,128 @@
+[
+  {
+    "_pk": "iAfZuC9x4Pq2wKvNhLmRtY#DKIM_VALID",
+    "messageId": "iAfZuC9x4Pq2wKvNhLmRtY",
+    "name": "DKIM_VALID",
+    "score": "-0.1",
+    "description": "Message has at least one valid DKIM or DK signature"
+  },
+  {
+    "_pk": "iAfZuC9x4Pq2wKvNhLmRtY#DKIM_VALID_AU",
+    "messageId": "iAfZuC9x4Pq2wKvNhLmRtY",
+    "name": "DKIM_VALID_AU",
+    "score": "-0.1",
+    "description": "Message has a valid DKIM or DK signature from author's domain"
+  },
+  {
+    "_pk": "iAfZuC9x4Pq2wKvNhLmRtY#SPF_PASS",
+    "messageId": "iAfZuC9x4Pq2wKvNhLmRtY",
+    "name": "SPF_PASS",
+    "score": "-0.001",
+    "description": "SPF: sender matches SPF record"
+  },
+  {
+    "_pk": "iAfZuC9x4Pq2wKvNhLmRtY#HTML_MESSAGE",
+    "messageId": "iAfZuC9x4Pq2wKvNhLmRtY",
+    "name": "HTML_MESSAGE",
+    "score": "0.001",
+    "description": "HTML included in message"
+  },
+  {
+    "_pk": "Lm4TgVhNpZxCwQdRsFuKb8#MAILING_LIST_MULTI",
+    "messageId": "Lm4TgVhNpZxCwQdRsFuKb8",
+    "name": "MAILING_LIST_MULTI",
+    "score": "-1.0",
+    "description": "Multiple indicators imply a widely-seen list manager"
+  },
+  {
+    "_pk": "Lm4TgVhNpZxCwQdRsFuKb8#DKIM_VALID",
+    "messageId": "Lm4TgVhNpZxCwQdRsFuKb8",
+    "name": "DKIM_VALID",
+    "score": "-0.1",
+    "description": "Message has at least one valid DKIM or DK signature"
+  },
+  {
+    "_pk": "Lm4TgVhNpZxCwQdRsFuKb8#HTML_MESSAGE",
+    "messageId": "Lm4TgVhNpZxCwQdRsFuKb8",
+    "name": "HTML_MESSAGE",
+    "score": "0.001",
+    "description": "HTML included in message"
+  },
+  {
+    "_pk": "Lm4TgVhNpZxCwQdRsFuKb8#T_REMOTE_IMAGE",
+    "messageId": "Lm4TgVhNpZxCwQdRsFuKb8",
+    "name": "T_REMOTE_IMAGE",
+    "score": "0.01",
+    "description": "Message contains an external image"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#SUBJ_ALL_CAPS",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "SUBJ_ALL_CAPS",
+    "score": "1.506",
+    "description": "Subject is all capitals"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#RDNS_NONE",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "RDNS_NONE",
+    "score": "1.274",
+    "description": "Delivered to internal network by a host with no rDNS"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#URG_BIZ",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "URG_BIZ",
+    "score": "1.181",
+    "description": "Contains urgent matter"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#MONEY_PERCENT",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "MONEY_PERCENT",
+    "score": "1.104",
+    "description": "Lots of money and a percentage"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#SPF_SOFTFAIL",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "SPF_SOFTFAIL",
+    "score": "0.972",
+    "description": "SPF: sender does not match SPF record (softfail)"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#DKIM_ADSP_NXDOMAIN",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "DKIM_ADSP_NXDOMAIN",
+    "score": "0.8",
+    "description": "No valid author signature and domain not in DNS"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#HTML_FONT_SIZE_HUGE",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "HTML_FONT_SIZE_HUGE",
+    "score": "0.001",
+    "description": "HTML font size is huge"
+  },
+  {
+    "_pk": "Yb9PxJqWnMkTvRzHcAeDs2#HTML_MESSAGE",
+    "messageId": "Yb9PxJqWnMkTvRzHcAeDs2",
+    "name": "HTML_MESSAGE",
+    "score": "0.001",
+    "description": "HTML included in message"
+  },
+  {
+    "_pk": "Gp8WqErTyUiOpAsDfGhZx5#BOUNCE_MESSAGE",
+    "messageId": "Gp8WqErTyUiOpAsDfGhZx5",
+    "name": "BOUNCE_MESSAGE",
+    "score": "0.1",
+    "description": "MTA bounce message"
+  },
+  {
+    "_pk": "Gp8WqErTyUiOpAsDfGhZx5#NO_RELAYS",
+    "messageId": "Gp8WqErTyUiOpAsDfGhZx5",
+    "name": "NO_RELAYS",
+    "score": "-0.001",
+    "description": "Informational: message was not relayed via SMTP"
+  }
+]

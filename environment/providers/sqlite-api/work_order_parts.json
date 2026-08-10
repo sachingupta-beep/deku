@@ -1,0 +1,11 @@
+[
+  {"id": "1", "work_order_id": "1001", "part_id": "1", "quantity": "1", "unit_cost_cents": "18400"},
+  {"id": "2", "work_order_id": "1001", "part_id": "7", "quantity": "2", "unit_cost_cents": "2450"},
+  {"id": "3", "work_order_id": "1002", "part_id": "5", "quantity": "6", "unit_cost_cents": "890"},
+  {"id": "4", "work_order_id": "1003", "part_id": "2", "quantity": "1", "unit_cost_cents": "4200"},
+  {"id": "5", "work_order_id": "1005", "part_id": "4", "quantity": "1", "unit_cost_cents": "23900"},
+  {"id": "6", "work_order_id": "1005", "part_id": "2", "quantity": "2", "unit_cost_cents": "4200"},
+  {"id": "7", "work_order_id": "1008", "part_id": "3", "quantity": "1", "unit_cost_cents": "1900"},
+  {"id": "8", "work_order_id": "1009", "part_id": "2", "quantity": "4", "unit_cost_cents": "4200"},
+  {"id": "9", "work_order_id": "1001", "part_id": "5", "quantity": "2", "unit_cost_cents": "890"}
+]

@@ -1,0 +1,654 @@
+{
+  "info": {
+    "name": "Mailpit Mock API v1.21.3",
+    "description": "Test collection for the mock Mailpit service. Base URL defaults to http://localhost:8122. In docker-compose, the service is reachable at http://mailpit-api:8122.\n\nMailpit is MailHog's successor and is deliberately not a reskin of it. Four things drive the API:\n\n**A real search query language.** `query=from:billing is:unread -tag:receipt \"order total\"` -- prefixed terms (`from:`, `to:`, `cc:`, `bcc:`, `reply-to:`, `addressed:`, `subject:`, `message-id:`, `tag:`, `before:`, `after:`), `is:`/`has:` flags, quoted phrases and negation with `-` or `!`, all ANDed.\n\n**A message has state.** Read/unread is tracked and mutable, and `GET /api/v1/message/{id}` marks a message read as a side effect. Tags are first-class: settable, renameable, deletable, searchable.\n\n**Mailpit analyses what it captured.** `html-check` scores the HTML against a client matrix, `link-check` reports what each link answered, `sa-check` returns SpamAssassin rule hits.\n\n**Chaos is error codes, not behaviours.** Each trigger -- Sender, Recipient, Authentication -- carries an SMTP error code and a whole percentage. The roll is seeded from the address, so the same address always meets the same fate.\n\nNote the singular/plural split: `/api/v1/messages` is the list, `/api/v1/message/{id}` is the read. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8122"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {"method": "GET", "url": "{{baseUrl}}/health"}
+    },
+    {
+      "name": "livez probe",
+      "request": {"method": "GET", "url": "{{baseUrl}}/livez"}
+    },
+    {
+      "name": "readyz probe",
+      "request": {"method": "GET", "url": "{{baseUrl}}/readyz"}
+    },
+    {
+      "name": "service info (messages, unread, tags, runtime stats)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/info"}
+    },
+    {
+      "name": "web UI config (carries the relay rules)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/webui"}
+    },
+    {
+      "name": "list messages (summaries, newest first)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/messages?start=0&limit=4"}
+    },
+    {
+      "name": "page through the list",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/messages?start=4&limit=4"}
+    },
+    {
+      "name": "search: is:unread (4 of 9)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=is%3Aunread"}
+    },
+    {
+      "name": "search: is:read (5 of 9)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=is%3Aread"}
+    },
+    {
+      "name": "read a message (this marks it read)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/iAfZuC9x4Pq2wKvNhLmRtY"}
+    },
+    {
+      "name": "search: is:unread again (now 3 -- reading changed the state)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=is%3Aunread"}
+    },
+    {
+      "name": "search: from:billing",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=from%3Abilling"}
+    },
+    {
+      "name": "search: to:finance",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=to%3Afinance"}
+    },
+    {
+      "name": "search: cc: matches a carbon copy only",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=cc%3Ahelena.park%40orbit-labs.com"}
+    },
+    {
+      "name": "search: bcc: reaches the blind copy",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=bcc%3Aaudit%40orbit-labs.com"}
+    },
+    {
+      "name": "search: reply-to:",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=reply-to%3Asupport%40orbit-labs.com"}
+    },
+    {
+      "name": "search: addressed: spans from, to, cc and bcc",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=addressed%3Ahelena.park%40orbit-labs.com"}
+    },
+    {
+      "name": "search: subject:",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=subject%3Ainvoice"}
+    },
+    {
+      "name": "search: message-id:",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=message-id%3A20260522204517"}
+    },
+    {
+      "name": "search: tag:billing",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=tag%3Abilling"}
+    },
+    {
+      "name": "search: is:tagged",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=is%3Atagged"}
+    },
+    {
+      "name": "search: is:untagged (the promo and the bounce)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=is%3Auntagged"}
+    },
+    {
+      "name": "search: has:attachment (inline images do not count)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=has%3Aattachment"}
+    },
+    {
+      "name": "search: a quoted phrase reaches into the body",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=%22elevated%20api%20latency%22"}
+    },
+    {
+      "name": "search: a bare word matches everything indexed",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=INC-4417"}
+    },
+    {
+      "name": "search: date bounds with before: and after:",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=after%3A2026-05-25%20before%3A2026-05-28"}
+    },
+    {
+      "name": "search: negation with a leading dash",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=orbit%20-tag%3Aops"}
+    },
+    {
+      "name": "search: negation with a leading bang",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=%21is%3Aread"}
+    },
+    {
+      "name": "search: terms are ANDed together",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=tag%3Abilling%20has%3Aattachment%20is%3Aread"}
+    },
+    {
+      "name": "search: paginates like the list",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=orbit&start=2&limit=2"}
+    },
+    {
+      "name": "search: unknown prefix (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=sender%3Abob"}
+    },
+    {
+      "name": "search: unknown is: value (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=is%3Abanana"}
+    },
+    {
+      "name": "search: before: needs a date (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=before%3Ayesterday"}
+    },
+    {
+      "name": "search: empty query (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query="}
+    },
+    {
+      "name": "read the multipart invoice",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1"}
+    },
+    {
+      "name": "read the newsletter (List-Unsubscribe is parsed out)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Lm4TgVhNpZxCwQdRsFuKb8"}
+    },
+    {
+      "name": "read an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/NotAMessageIdAtAll000"}
+    },
+    {
+      "name": "raw source",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Rn7KdWpXsE3zQjBvUyTaHc/raw"}
+    },
+    {
+      "name": "raw source of an unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/NotAMessageIdAtAll000/raw"}
+    },
+    {
+      "name": "headers",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1/headers"}
+    },
+    {
+      "name": "download the CSV attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1/part/2"}
+    },
+    {
+      "name": "download the PDF attachment",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/iAfZuC9x4Pq2wKvNhLmRtY/part/2"}
+    },
+    {
+      "name": "download the inline logo",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Lm4TgVhNpZxCwQdRsFuKb8/part/2"}
+    },
+    {
+      "name": "thumbnail an image part",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Lm4TgVhNpZxCwQdRsFuKb8/part/2/thumbnail"}
+    },
+    {
+      "name": "thumbnail a CSV part (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1/part/2/thumbnail"}
+    },
+    {
+      "name": "download a part that is not there (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1/part/9"}
+    },
+    {
+      "name": "html-check: the welcome mail fails four tests",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Ek6MbNcVxZaSdFgHjKlPq4/html-check"}
+    },
+    {
+      "name": "html-check: the order mail is clean (100% supported)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/iAfZuC9x4Pq2wKvNhLmRtY/html-check"}
+    },
+    {
+      "name": "html-check: deprecated markup in the promo",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Yb9PxJqWnMkTvRzHcAeDs2/html-check"}
+    },
+    {
+      "name": "html-check: a text-only message (400 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Rn7KdWpXsE3zQjBvUyTaHc/html-check"}
+    },
+    {
+      "name": "html-check: unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/NotAMessageIdAtAll000/html-check"}
+    },
+    {
+      "name": "link-check: two of the newsletter's four links fail",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Lm4TgVhNpZxCwQdRsFuKb8/link-check"}
+    },
+    {
+      "name": "link-check: a redirect, unfollowed",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Ek6MbNcVxZaSdFgHjKlPq4/link-check"}
+    },
+    {
+      "name": "link-check: the same redirect, followed",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Ek6MbNcVxZaSdFgHjKlPq4/link-check?follow=true"}
+    },
+    {
+      "name": "link-check: a message with no links",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Hs2JnBvCxZlKmQwErTyUi9/link-check"}
+    },
+    {
+      "name": "link-check: unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/NotAMessageIdAtAll000/link-check"}
+    },
+    {
+      "name": "sa-check: the promo scores 6.839 and is spam",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Yb9PxJqWnMkTvRzHcAeDs2/sa-check"}
+    },
+    {
+      "name": "sa-check: the order mail scores negative",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/iAfZuC9x4Pq2wKvNhLmRtY/sa-check"}
+    },
+    {
+      "name": "sa-check: no rules hit at all",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Ek6MbNcVxZaSdFgHjKlPq4/sa-check"}
+    },
+    {
+      "name": "sa-check: unknown message (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/NotAMessageIdAtAll000/sa-check"}
+    },
+    {
+      "name": "mark two messages unread",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [\"Ct5NrXbGmVpLdWyQzKfJh7\", \"Hs2JnBvCxZlKmQwErTyUi9\"], \"Read\": false}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "search: is:unread reflects the update",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=is%3Aunread"}
+    },
+    {
+      "name": "mark everything read (empty IDs means all)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [], \"Read\": true}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "mark read with a non-boolean (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [], \"Read\": \"yes\"}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "mark read without Read (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": []}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "mark an unknown message read (404 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [\"NotAMessageIdAtAll000\"], \"Read\": true}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "list tags",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/tags"}
+    },
+    {
+      "name": "set tags on the bounce",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [\"Gp8WqErTyUiOpAsDfGhZx5\"], \"Tags\": [\"bounce\", \"ops\"]}"},
+        "url": "{{baseUrl}}/api/v1/tags"
+      }
+    },
+    {
+      "name": "search: the new tag is immediately searchable",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/search?query=tag%3Abounce"}
+    },
+    {
+      "name": "set tags with no IDs (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [], \"Tags\": [\"nowhere\"]}"},
+        "url": "{{baseUrl}}/api/v1/tags"
+      }
+    },
+    {
+      "name": "set an invalid tag (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [\"Gp8WqErTyUiOpAsDfGhZx5\"], \"Tags\": [\"not/valid\"]}"},
+        "url": "{{baseUrl}}/api/v1/tags"
+      }
+    },
+    {
+      "name": "tag an unknown message (404 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [\"NotAMessageIdAtAll000\"], \"Tags\": [\"ops\"]}"},
+        "url": "{{baseUrl}}/api/v1/tags"
+      }
+    },
+    {
+      "name": "rename a tag everywhere it appears",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Name\": \"receipts\"}"},
+        "url": "{{baseUrl}}/api/v1/tags/receipt"
+      }
+    },
+    {
+      "name": "rename a tag that does not exist (404 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Name\": \"whatever\"}"},
+        "url": "{{baseUrl}}/api/v1/tags/nosuchtag"
+      }
+    },
+    {
+      "name": "rename a tag with no Name (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/api/v1/tags/receipts"
+      }
+    },
+    {
+      "name": "delete a tag from every message",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/tags/receipts"}
+    },
+    {
+      "name": "delete a tag that does not exist (404 expected)",
+      "request": {"method": "DELETE", "url": "{{baseUrl}}/api/v1/tags/receipts"}
+    },
+    {
+      "name": "list tags after the edits",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/tags"}
+    },
+    {
+      "name": "release to a permitted recipient",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"To\": [\"amelia.ortega@orbit-labs.com\"]}"},
+        "url": "{{baseUrl}}/api/v1/message/iAfZuC9x4Pq2wKvNhLmRtY/release"
+      }
+    },
+    {
+      "name": "release to two recipients at once",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"To\": [\"rohit.bansal@orbit-labs.com\", \"partners@acme-partner.example\"]}"},
+        "url": "{{baseUrl}}/api/v1/message/Ct5NrXbGmVpLdWyQzKfJh7/release"
+      }
+    },
+    {
+      "name": "release to a blocked recipient (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"To\": [\"audit@orbit-labs.com\"]}"},
+        "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1/release"
+      }
+    },
+    {
+      "name": "release outside the allowed domains (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"To\": [\"someone@elsewhere.example\"]}"},
+        "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1/release"
+      }
+    },
+    {
+      "name": "release with no recipients (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"To\": []}"},
+        "url": "{{baseUrl}}/api/v1/message/Da3ZkFpQwSxEvRtYuIoLm1/release"
+      }
+    },
+    {
+      "name": "release an unknown message (404 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"To\": [\"amelia.ortega@orbit-labs.com\"]}"},
+        "url": "{{baseUrl}}/api/v1/message/NotAMessageIdAtAll000/release"
+      }
+    },
+    {
+      "name": "send a message through the API",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"noor.aziz@orbit-labs.com\", \"Name\": \"Noor Aziz\"}, \"To\": [{\"Email\": \"dmitri.volkov@orbit-labs.com\"}], \"Subject\": \"Sandbox tenant is ready\", \"Text\": \"Your partner sandbox is live; keys are in the console.\", \"Tags\": [\"partners\"]}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "send with an attachment",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"billing@orbit-labs.com\"}, \"To\": [{\"Email\": \"finance@orbit-labs.com\"}], \"Subject\": \"Statement 2026-05\", \"Text\": \"Statement attached.\", \"HTML\": \"<p>Statement attached.</p>\", \"Attachments\": [{\"Filename\": \"statement.csv\", \"ContentType\": \"text/csv\", \"Content\": \"bW9udGgsdG90YWwKMjAyNi0wNSwxOTMyLjAwCg==\"}]}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "send with no sender (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Subject\": \"orphan\", \"To\": [{\"Email\": \"amelia.ortega@orbit-labs.com\"}]}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "send with no recipient (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"noor.aziz@orbit-labs.com\"}, \"Subject\": \"nowhere to go\"}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "send to a malformed address (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"noor.aziz@orbit-labs.com\"}, \"To\": [{\"Email\": \"not-an-address\"}], \"Subject\": \"bad recipient\"}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "chaos is configured but idle",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/chaos"}
+    },
+    {
+      "name": "arm the Recipient trigger at 50%",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Recipient\": {\"ErrorCode\": 451, \"Probability\": 50}}"},
+        "url": "{{baseUrl}}/api/v1/chaos"
+      }
+    },
+    {
+      "name": "send to priya, roll 2, refused (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"noor.aziz@orbit-labs.com\"}, \"To\": [{\"Email\": \"priya.raman@orbit-labs.com\"}], \"Subject\": \"Chaos: recipient rolled 2\"}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "send to helena, roll 68, accepted at the same setting",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"noor.aziz@orbit-labs.com\"}, \"To\": [{\"Email\": \"helena.park@orbit-labs.com\"}], \"Subject\": \"Chaos: recipient rolled 68\"}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "arm the Sender trigger at 30% with a 550",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Sender\": {\"ErrorCode\": 550, \"Probability\": 30}, \"Recipient\": {\"Probability\": 0}}"},
+        "url": "{{baseUrl}}/api/v1/chaos"
+      }
+    },
+    {
+      "name": "send from rohit, roll 16, sender refused with 550 (400 expected)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"rohit.bansal@orbit-labs.com\"}, \"To\": [{\"Email\": \"deploys@orbit-labs.com\"}], \"Subject\": \"Chaos: sender rolled 16\"}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "send from noor, roll 75, sender accepted",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"From\": {\"Email\": \"noor.aziz@orbit-labs.com\"}, \"To\": [{\"Email\": \"deploys@orbit-labs.com\"}], \"Subject\": \"Chaos: sender rolled 75\"}"},
+        "url": "{{baseUrl}}/api/v1/send"
+      }
+    },
+    {
+      "name": "chaos with a probability out of range (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Recipient\": {\"Probability\": 150}}"},
+        "url": "{{baseUrl}}/api/v1/chaos"
+      }
+    },
+    {
+      "name": "chaos with a fractional probability (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Recipient\": {\"Probability\": 0.5}}"},
+        "url": "{{baseUrl}}/api/v1/chaos"
+      }
+    },
+    {
+      "name": "chaos with a non-SMTP error code (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Sender\": {\"ErrorCode\": 200}}"},
+        "url": "{{baseUrl}}/api/v1/chaos"
+      }
+    },
+    {
+      "name": "chaos with an unknown trigger (400 expected)",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Greeting\": {\"Probability\": 10}}"},
+        "url": "{{baseUrl}}/api/v1/chaos"
+      }
+    },
+    {
+      "name": "stand chaos down",
+      "request": {
+        "method": "PUT",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"Sender\": {\"Probability\": 0}, \"Recipient\": {\"Probability\": 0}, \"Authentication\": {\"Probability\": 0}}"},
+        "url": "{{baseUrl}}/api/v1/chaos"
+      }
+    },
+    {
+      "name": "info shows the accepted and rejected counters",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/info"}
+    },
+    {
+      "name": "delete everything a query matches",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/search?query=tag%3Amarketing"
+      }
+    },
+    {
+      "name": "delete by query with a bad prefix (400 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/search?query=folder%3Ainbox"
+      }
+    },
+    {
+      "name": "delete two messages by id",
+      "request": {
+        "method": "DELETE",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [\"Gp8WqErTyUiOpAsDfGhZx5\", \"Hs2JnBvCxZlKmQwErTyUi9\"]}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "delete an unknown id (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"IDs\": [\"NotAMessageIdAtAll000\"]}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "the deleted message is gone (404 expected)",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/message/Gp8WqErTyUiOpAsDfGhZx5"}
+    },
+    {
+      "name": "info records the deletions",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/info"}
+    },
+    {
+      "name": "empty the mailbox",
+      "request": {
+        "method": "DELETE",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{baseUrl}}/api/v1/messages"
+      }
+    },
+    {
+      "name": "the list is empty and every tag went with it",
+      "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/messages"}
+    },
+    {
+      "name": "audit trail of this run",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/requests?limit=5"}
+    },
+    {
+      "name": "audit summary",
+      "request": {"method": "GET", "url": "{{baseUrl}}/audit/summary"}
+    }
+  ]
+}

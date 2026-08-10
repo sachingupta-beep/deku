@@ -1,0 +1,818 @@
+{
+  "info": {
+    "name": "MariaDB Mock API 10.11",
+    "description": "Test collection for the mock MariaDB HTTP service. Base URL defaults to http://localhost:8111. In docker-compose, the service is reachable at http://mariadb-api:8111. Statements are executed by a real SQL engine. MariaDB-specific behaviour modelled here: sequences (NEXT VALUE FOR, NEXTVAL, LASTVAL, SETVAL), RETURNING on INSERT and DELETE but not UPDATE, and the non-transactional Aria engine backing page_views, whose writes survive a rolled-back transaction. The X-MariaDB-User header selects the account: root (all privileges), forum_app (default), forum_mod, forum_analytics (SELECT on page_views, threads, categories only), forum_import (locked).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8111"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "health db",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/db"
+      }
+    },
+    {
+      "name": "version",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/version"
+      }
+    },
+    {
+      "name": "server status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/status"
+      }
+    },
+    {
+      "name": "query select",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, username, role, reputation FROM forum_users WHERE banned = 0 ORDER BY reputation DESC\"}"
+        }
+      }
+    },
+    {
+      "name": "query join and aggregate",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT c.name AS category, COUNT(*) AS threads, SUM(t.views) AS views FROM threads t JOIN categories c ON c.id = t.category_id GROUP BY c.id ORDER BY views DESC\"}"
+        }
+      }
+    },
+    {
+      "name": "query with CONCAT and DATE_FORMAT",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT CONCAT(display_name, ' <', username, '>') AS who, DATE_FORMAT(joined_at, '%d/%m/%Y') AS joined FROM forum_users ORDER BY id\"}"
+        }
+      }
+    },
+    {
+      "name": "query accepted answers",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT t.title, u.display_name AS answered_by, p.score FROM posts p JOIN threads t ON t.id = p.thread_id JOIN forum_users u ON u.id = p.author_id WHERE p.accepted = 1 ORDER BY p.score DESC\"}"
+        }
+      }
+    },
+    {
+      "name": "query a view",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM thread_activity ORDER BY last_post_at DESC\"}"
+        }
+      }
+    },
+    {
+      "name": "query with placeholders",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT id, title, views FROM threads WHERE status = ? AND views > ? ORDER BY views DESC\", \"params\": [\"answered\", 1000]}"
+        }
+      }
+    },
+    {
+      "name": "query article revision history",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT a.slug, r.version, u.username AS editor, r.summary FROM article_revisions r JOIN kb_articles a ON a.id = r.article_id JOIN forum_users u ON u.id = r.editor_id WHERE a.slug = 'gateway-first-boot' ORDER BY r.version\"}"
+        }
+      }
+    },
+    {
+      "name": "query with backticks and LIMIT offset,count",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT `id`, `path`, `views` FROM `page_views` ORDER BY `views` DESC LIMIT 1, 3\"}"
+        }
+      }
+    },
+    {
+      "name": "query unknown table (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM tickets\"}"
+        }
+      }
+    },
+    {
+      "name": "query syntax error (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELEC * FROM threads\"}"
+        }
+      }
+    },
+    {
+      "name": "query write on read endpoint (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM posts WHERE id = 1\"}"
+        }
+      }
+    },
+    {
+      "name": "list sequences",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/sequences"
+      }
+    },
+    {
+      "name": "sequence NEXT VALUE FOR",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT NEXT VALUE FOR thread_number_seq AS next_thread\"}"
+        }
+      }
+    },
+    {
+      "name": "sequence NEXTVAL and LASTVAL",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT NEXTVAL(kb_version_seq) AS allocated, LASTVAL(kb_version_seq) AS last\"}"
+        }
+      }
+    },
+    {
+      "name": "sequence in an INSERT",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO threads (id, category_id, author_id, title, slug, status, views, reply_count, pinned, created_at, last_post_at) VALUES (NEXT VALUE FOR thread_number_seq, 3, 4, 'Webhook retries after 429', 'webhook-retries-after-429', 'open', 0, 0, 0, '2026-05-26 09:10:00', '2026-05-26 09:10:00') RETURNING id, title\"}"
+        }
+      }
+    },
+    {
+      "name": "sequence next via endpoint",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/sequences/moderation_case_seq/next"
+      }
+    },
+    {
+      "name": "sequence unknown (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT NEXT VALUE FOR ticket_seq AS n\"}"
+        }
+      }
+    },
+    {
+      "name": "insert with RETURNING",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO categories (id, slug, name, description, sort_order, locked) VALUES (6, 'showcase', 'Showcase', 'Built with Orbit', 5, 0) RETURNING id, slug, name\"}"
+        }
+      }
+    },
+    {
+      "name": "delete with RETURNING",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM page_views WHERE id = 8 RETURNING id, path, views\"}"
+        }
+      }
+    },
+    {
+      "name": "update with RETURNING (400 expected - unsupported in MariaDB)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"UPDATE categories SET locked = 1 WHERE id = 6 RETURNING id, locked\"}"
+        }
+      }
+    },
+    {
+      "name": "execute update",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"UPDATE threads SET status = 'answered', reply_count = reply_count + 1 WHERE id = 5002\"}"
+        }
+      }
+    },
+    {
+      "name": "execute delete cascading to posts",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM threads WHERE id = 5006\"}"
+        }
+      }
+    },
+    {
+      "name": "execute duplicate entry (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO forum_users (id, username, email, display_name, role, reputation, joined_at, banned) VALUES (99, 'helena_park', 'dup@example.com', 'Dup', 'member', 0, '2026-05-26 09:00:00', 0)\"}"
+        }
+      }
+    },
+    {
+      "name": "execute foreign key failure (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"INSERT INTO posts (id, thread_id, author_id, body, score, accepted, created_at) VALUES (99, 9999, 1, 'Orphan post', 0, 0, '2026-05-26 09:00:00')\"}"
+        }
+      }
+    },
+    {
+      "name": "execute check constraint violation (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"UPDATE forum_users SET role = 'admin' WHERE id = 3\"}"
+        }
+      }
+    },
+    {
+      "name": "execute as analytics account (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MariaDB-User",
+            "value": "forum_analytics"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"DELETE FROM page_views WHERE id = 1\"}"
+        }
+      }
+    },
+    {
+      "name": "execute as locked account (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MariaDB-User",
+            "value": "forum_import"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT 1\"}"
+        }
+      }
+    },
+    {
+      "name": "execute forbidden statement (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/execute",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"ATTACH DATABASE '/etc/passwd' AS leak\"}"
+        }
+      }
+    },
+    {
+      "name": "query as analytics account (granted table)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MariaDB-User",
+            "value": "forum_analytics"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT viewed_on, SUM(views) AS views FROM page_views GROUP BY viewed_on ORDER BY viewed_on\"}"
+        }
+      }
+    },
+    {
+      "name": "query posts as analytics account (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-MariaDB-User",
+            "value": "forum_analytics"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM posts\"}"
+        }
+      }
+    },
+    {
+      "name": "read counters before the transaction",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT (SELECT views FROM threads WHERE id = 5001) AS innodb_views, (SELECT views FROM page_views WHERE id = 1) AS aria_views\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction rollback keeps the Aria write (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"UPDATE threads SET views = views + 100 WHERE id = 5001\"}, {\"sql\": \"UPDATE page_views SET views = views + 100 WHERE id = 1\"}, {\"sql\": \"INSERT INTO categories (id, slug, name, sort_order, locked) VALUES (1, 'dup', 'Dup', 1, 0)\"}], \"isolation_level\": \"REPEATABLE READ\"}"
+        }
+      }
+    },
+    {
+      "name": "read counters after the rollback (InnoDB reverted, Aria kept)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT (SELECT views FROM threads WHERE id = 5001) AS innodb_views, (SELECT views FROM page_views WHERE id = 1) AS aria_views\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction commit",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"UPDATE kb_articles SET version = NEXT VALUE FOR kb_version_seq, updated_at = '2026-05-26 09:20:00' WHERE slug = 'api-rate-limits'\"}, {\"sql\": \"SELECT slug, version FROM kb_articles WHERE slug = 'api-rate-limits'\"}], \"isolation_level\": \"SERIALIZABLE\"}"
+        }
+      }
+    },
+    {
+      "name": "transaction bad isolation level (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/transaction",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"statements\": [{\"sql\": \"SELECT 1\"}], \"isolation_level\": \"SNAPSHOT\"}"
+        }
+      }
+    },
+    {
+      "name": "explain",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/explain",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM threads WHERE category_id = 3\"}"
+        }
+      }
+    },
+    {
+      "name": "analyze (measured rows)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/explain",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sql\": \"SELECT * FROM posts WHERE thread_id = 5001\", \"analyze\": true}"
+        }
+      }
+    },
+    {
+      "name": "list databases",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/databases"
+      }
+    },
+    {
+      "name": "list tables",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables"
+      }
+    },
+    {
+      "name": "describe innodb table",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/threads"
+      }
+    },
+    {
+      "name": "describe aria table",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/page_views"
+      }
+    },
+    {
+      "name": "describe view",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/thread_activity"
+      }
+    },
+    {
+      "name": "describe unknown table (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/tickets"
+      }
+    },
+    {
+      "name": "show index",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/tables/article_revisions/indexes"
+      }
+    },
+    {
+      "name": "show variables",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/variables"
+      }
+    },
+    {
+      "name": "show variables like aria",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/variables?like=aria%"
+      }
+    },
+    {
+      "name": "show status counters like aria",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/status/counters?like=Aria%"
+      }
+    },
+    {
+      "name": "show engines",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/engines"
+      }
+    },
+    {
+      "name": "show replication as root",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/replication",
+        "header": [
+          {
+            "key": "X-MariaDB-User",
+            "value": "root"
+          }
+        ]
+      }
+    },
+    {
+      "name": "show replication as app account (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/replication"
+      }
+    },
+    {
+      "name": "list accounts as root",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/accounts",
+        "header": [
+          {
+            "key": "X-MariaDB-User",
+            "value": "root"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list accounts as app account (own row)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/accounts"
+      }
+    },
+    {
+      "name": "show grants for self",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/grants"
+      }
+    },
+    {
+      "name": "show grants for another account as root",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/grants?user=forum_analytics",
+        "header": [
+          {
+            "key": "X-MariaDB-User",
+            "value": "root"
+          }
+        ]
+      }
+    },
+    {
+      "name": "show grants for unknown account (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/grants?user=nobody",
+        "header": [
+          {
+            "key": "X-MariaDB-User",
+            "value": "root"
+          }
+        ]
+      }
+    }
+  ]
+}

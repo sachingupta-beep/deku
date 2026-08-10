@@ -1,0 +1,5 @@
+[service]
+name = "logto-api"
+port = 8116
+env_var_name = "LOGTO_API_URL"
+healthcheck_path = "/health"

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "evt_0001",
+    "type": "payment.captured",
+    "object_type": "payment",
+    "object": "pay_3f7e1b0c2d54",
+    "summary": "Captured 193200 EUR from cus_amelia_3f7e1b0c",
+    "created": "2026-05-28T09:14:15Z"
+  },
+  {
+    "id": "evt_0002",
+    "type": "payment.authorized",
+    "object_type": "payment",
+    "object": "pay_5b07d21f8c64",
+    "summary": "Authorized 48000 EUR, awaiting capture",
+    "created": "2026-05-27T14:30:56Z"
+  },
+  {
+    "id": "evt_0003",
+    "type": "payment.requires_confirmation",
+    "object_type": "payment",
+    "object": "pay_9f14c73e0b2a",
+    "summary": "Issuer requested step-up authentication",
+    "created": "2026-05-26T14:22:08Z"
+  },
+  {
+    "id": "evt_0004",
+    "type": "refund.succeeded",
+    "object_type": "refund",
+    "object": "re_4f2ac8170b91",
+    "summary": "Refunded 10000 EUR of pay_2d47b9e01f5c",
+    "created": "2026-05-26T10:17:33Z"
+  },
+  {
+    "id": "evt_0005",
+    "type": "payment.failed",
+    "object_type": "payment",
+    "object": "pay_7a63f04c9e21",
+    "summary": "Declined: insufficient_funds",
+    "created": "2026-05-23T18:12:59Z"
+  },
+  {
+    "id": "evt_0006",
+    "type": "payment.canceled",
+    "object_type": "payment",
+    "object": "pay_1c84f0654a7d",
+    "summary": "Authorization released without capture",
+    "created": "2026-05-22T20:45:31Z"
+  },
+  {
+    "id": "evt_0007",
+    "type": "dispute.opened",
+    "object_type": "dispute",
+    "object": "dp_6b19d5ec8f30",
+    "summary": "Dispute opened for 25000 USD, reason product_not_received",
+    "created": "2026-05-29T07:04:22Z"
+  }
+]

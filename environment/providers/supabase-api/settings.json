@@ -1,0 +1,30 @@
+{
+  "ref": "orbitlabsselfhost01",
+  "name": "orbit-labs-selfhost",
+  "organization": "Orbit Labs",
+  "region": "self-hosted",
+  "status": "ACTIVE_HEALTHY",
+  "self_hosted": true,
+  "created_at": "2024-04-12T09:55:00+00:00",
+  "db": {
+    "host": "supabase-db",
+    "port": 5432,
+    "name": "postgres",
+    "version": "15.6",
+    "schemas": ["public", "storage", "auth", "realtime"]
+  },
+  "services": {
+    "rest": {"name": "postgrest", "version": "v12.2.0", "healthy": true},
+    "storage": {"name": "storage-api", "version": "v1.11.13", "healthy": true},
+    "realtime": {"name": "realtime", "version": "v2.30.23", "healthy": true},
+    "functions": {"name": "edge-runtime", "version": "v1.58.2", "healthy": true},
+    "auth": {"name": "gotrue", "version": "v2.158.1", "healthy": true}
+  },
+  "api": {
+    "url": "http://localhost:8102",
+    "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.orbit-labs-selfhost",
+    "service_role_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.service_role.orbit-labs-selfhost",
+    "default_schema": "public",
+    "max_rows": 1000
+  }
+}

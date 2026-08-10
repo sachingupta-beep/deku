@@ -1,0 +1,26 @@
+[
+  {
+    "id": "__pbDBOptimize__",
+    "expression": "0 0 * * *"
+  },
+  {
+    "id": "__pbMFACleanup__",
+    "expression": "0 * * * *"
+  },
+  {
+    "id": "__pbOTPCleanup__",
+    "expression": "0 * * * *"
+  },
+  {
+    "id": "__pbLogsCleanup__",
+    "expression": "0 */6 * * *"
+  },
+  {
+    "id": "__pbAutoBackup__",
+    "expression": "0 2 * * *"
+  },
+  {
+    "id": "digestStatusEmail",
+    "expression": "0 8 * * 1"
+  }
+]

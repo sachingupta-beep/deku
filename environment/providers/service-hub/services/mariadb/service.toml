@@ -1,0 +1,51 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "mariadb"
+name     = "MariaDB"
+category = "database"
+status   = "declared"
+version  = "v1"
+module   = "services.mariadb.service:MariadbService"
+upstream = "https://mariadb.com/kb/en/documentation/"
+summary  = """
+MariaDB dialect: MySQL-compatible where it is compatible, and deliberately divergent where it is not (sequences, RETURNING, storage engines)."""
+tags = [
+  "sql",
+  "sequences",
+  "returning",
+  "engines",
+]
+
+[data]
+dir = "mariadb"
+
+[auth]
+scheme      = "basic"
+roles       = [
+  "readonly",
+  "readwrite",
+  "root",
+]
+description = """
+HTTP Basic maps onto a MariaDB user. Shares MySQL's error numbering but diverges where MariaDB does -- which is the point of having both."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/query",
+  "/execute",
+  "/databases",
+  "/tables",
+  "/status",
+  "/variables",
+  "/engines",
+]

@@ -1,0 +1,15 @@
+[
+  {"id": "1", "api_key_id": "1", "scope": "read"},
+  {"id": "2", "api_key_id": "1", "scope": "write"},
+  {"id": "3", "api_key_id": "2", "scope": "read"},
+  {"id": "4", "api_key_id": "3", "scope": "read"},
+  {"id": "5", "api_key_id": "3", "scope": "write"},
+  {"id": "6", "api_key_id": "3", "scope": "admin"},
+  {"id": "7", "api_key_id": "4", "scope": "read"},
+  {"id": "8", "api_key_id": "5", "scope": "read"},
+  {"id": "9", "api_key_id": "5", "scope": "write"},
+  {"id": "10", "api_key_id": "6", "scope": "read"},
+  {"id": "11", "api_key_id": "7", "scope": "read"},
+  {"id": "12", "api_key_id": "8", "scope": "read"},
+  {"id": "13", "api_key_id": "8", "scope": "write"}
+]

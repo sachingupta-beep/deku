@@ -1,0 +1,10 @@
+[
+  {"id": "1", "table_name": "work_orders", "operation": "insert", "row_id": "1004", "direction": "push", "device_id": "tab-emea-04", "synced_at": "2026-05-26T06:06:12Z", "conflict": "0"},
+  {"id": "2", "table_name": "work_orders", "operation": "update", "row_id": "1003", "direction": "push", "device_id": "tab-emea-02", "synced_at": "2026-05-25T15:02:41Z", "conflict": "0"},
+  {"id": "3", "table_name": "parts", "operation": "update", "row_id": "6", "direction": "pull", "device_id": "tab-emea-02", "synced_at": "2026-05-25T15:02:44Z", "conflict": "0"},
+  {"id": "4", "table_name": "work_order_parts", "operation": "insert", "row_id": "4", "direction": "push", "device_id": "tab-emea-02", "synced_at": "2026-05-25T15:02:45Z", "conflict": "0"},
+  {"id": "5", "table_name": "work_orders", "operation": "update", "row_id": "1010", "direction": "push", "device_id": "tab-emea-02", "synced_at": "2026-05-20T11:31:07Z", "conflict": "1"},
+  {"id": "6", "table_name": "work_orders", "operation": "insert", "row_id": "1006", "direction": "push", "device_id": "tab-emea-02", "synced_at": "2026-05-25T14:31:02Z", "conflict": "1"},
+  {"id": "7", "table_name": "sites", "operation": "update", "row_id": "7", "direction": "pull", "device_id": "tab-amer-01", "synced_at": "2026-05-24T08:00:30Z", "conflict": "0"},
+  {"id": "8", "table_name": "work_orders", "operation": "update", "row_id": "1005", "direction": "push", "device_id": "tab-amer-01", "synced_at": "2026-05-13T11:16:00Z", "conflict": "0"}
+]

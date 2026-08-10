@@ -1,0 +1,50 @@
+[
+  {
+    "id": "fn_aggregate_feedback",
+    "name": "Aggregate Feedback",
+    "runtime": "node-20.0",
+    "enabled": "true",
+    "live": "true",
+    "logging": "true",
+    "entrypoint": "src/main.js",
+    "timeout": "30",
+    "events": "databases.orbit_app.collections.feedback.documents.*.create",
+    "schedule": "0 * * * *",
+    "scopes": "documents.read;documents.write",
+    "deploymentId": "dep_agg_7",
+    "createdAt": "2024-10-02T10:00:00.000+00:00",
+    "updatedAt": "2026-05-19T11:20:00.000+00:00"
+  },
+  {
+    "id": "fn_notify_oncall",
+    "name": "Notify On-call",
+    "runtime": "node-20.0",
+    "enabled": "true",
+    "live": "true",
+    "logging": "true",
+    "entrypoint": "src/main.js",
+    "timeout": "15",
+    "events": "databases.orbit_app.collections.feedback.documents.*.update",
+    "schedule": "",
+    "scopes": "documents.read",
+    "deploymentId": "dep_notify_12",
+    "createdAt": "2025-01-14T08:30:00.000+00:00",
+    "updatedAt": "2026-05-26T07:15:00.000+00:00"
+  },
+  {
+    "id": "fn_flag_evaluator",
+    "name": "Flag Evaluator",
+    "runtime": "python-3.12",
+    "enabled": "false",
+    "live": "false",
+    "logging": "false",
+    "entrypoint": "main.py",
+    "timeout": "10",
+    "events": "",
+    "schedule": "",
+    "scopes": "documents.read",
+    "deploymentId": "dep_flags_3",
+    "createdAt": "2026-02-02T11:20:00.000+00:00",
+    "updatedAt": "2026-05-06T08:00:00.000+00:00"
+  }
+]

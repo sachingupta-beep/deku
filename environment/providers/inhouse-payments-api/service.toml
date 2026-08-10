@@ -1,0 +1,5 @@
+[service]
+name = "inhouse-payments-api"
+port = 8126
+env_var_name = "INHOUSE_PAYMENTS_API_URL"
+healthcheck_path = "/health"

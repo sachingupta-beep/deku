@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ch_documents",
+    "name": "public:documents",
+    "topic": "realtime:public:documents",
+    "schema_table": "public.documents",
+    "event_filter": "INSERT;UPDATE;DELETE",
+    "subscriber_count": "14",
+    "is_private": "false",
+    "inserted_at": "2026-03-01T14:00:00+00:00"
+  },
+  {
+    "id": "ch_project_101",
+    "name": "project:101",
+    "topic": "realtime:project:101",
+    "schema_table": "public.documents",
+    "event_filter": "UPDATE",
+    "subscriber_count": "5",
+    "is_private": "true",
+    "inserted_at": "2026-04-02T09:15:00+00:00"
+  },
+  {
+    "id": "ch_presence_web",
+    "name": "presence:web-app",
+    "topic": "realtime:presence:web-app",
+    "schema_table": "",
+    "event_filter": "",
+    "subscriber_count": "31",
+    "is_private": "false",
+    "inserted_at": "2026-03-07T09:30:00+00:00"
+  }
+]

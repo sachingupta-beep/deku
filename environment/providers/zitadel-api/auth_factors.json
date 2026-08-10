@@ -1,0 +1,7 @@
+[
+  {"id": "af-amelia-totp-0001", "userId": "280310551611114001", "type": "totp", "state": "AUTH_FACTOR_STATE_READY", "name": "Authenticator app", "secret": "JBSWY3DPEHPK3PXP", "code": "482913", "createdAt": "2025-06-04T09:04:00Z"},
+  {"id": "af-amelia-u2f-0001", "userId": "280310551611114001", "type": "u2f", "state": "AUTH_FACTOR_STATE_READY", "name": "YubiKey 5C", "secret": "", "code": "", "createdAt": "2025-09-12T14:20:00Z"},
+  {"id": "af-helena-passkey01", "userId": "280310551611114003", "type": "passkey", "state": "AUTH_FACTOR_STATE_READY", "name": "MacBook Touch ID", "secret": "", "code": "", "createdAt": "2025-11-08T10:15:00Z"},
+  {"id": "af-jonas-totp-00001", "userId": "280310551611114002", "type": "totp", "state": "AUTH_FACTOR_STATE_NOT_READY", "name": "Authenticator app", "secret": "KRSXG5CTMVRXEZLU", "code": "770412", "createdAt": "2026-05-25T17:45:00Z"},
+  {"id": "af-priya-totp-00001", "userId": "280310551611114008", "type": "totp", "state": "AUTH_FACTOR_STATE_READY", "name": "Authenticator app", "secret": "MZXW6YTBOI======", "code": "605144", "createdAt": "2026-01-15T08:00:00Z"}
+]

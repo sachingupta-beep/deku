@@ -1,0 +1,43 @@
+{
+  "service": "orbit-backoffice-api",
+  "version": "2.7.3",
+  "commit": "9f3c1a7e5b2d4086af51c7e93b0d6248c9f10b3e",
+  "environment": "production",
+  "database": {
+    "engine": "postgresql",
+    "version": "15.6",
+    "host": "postgres-primary.internal",
+    "port": 5432,
+    "name": "orbit_backoffice",
+    "schema": "public",
+    "pool": {"min": 2, "max": 20, "in_use": 3, "idle": 5},
+    "replica_lag_ms": 42
+  },
+  "auth": {
+    "algorithm": "HS256",
+    "access_token_ttl_seconds": 900,
+    "refresh_token_ttl_seconds": 1209600,
+    "max_failed_logins": 5,
+    "issuer": "orbit-backoffice-api"
+  },
+  "pagination": {"default_per_page": 25, "max_per_page": 100},
+  "seeded_counters": {
+    "http_requests_total": 1284315,
+    "http_request_errors_total": 4127,
+    "db_queries_total": 8912044,
+    "uptime_seconds": 1728642
+  },
+  "credentials": {
+    "note": "Seed logins. Passwords are stored as sha256(salt + password) in users.json. The static tokens are long-lived service tokens that map straight onto a user, so a client can exercise each role without logging in first.",
+    "static_tokens": {
+      "at_static_admin_9f3c1a7e": 1,
+      "at_static_manager_2b90d7fc": 2,
+      "at_static_viewer_c81b7e05": 3
+    },
+    "accounts": [
+      {"email": "amelia.ortega@orbit-labs.com", "password": "OrbitAdmin2026!", "role": "admin"},
+      {"email": "jonas.pereira@orbit-labs.com", "password": "OrbitManager2026!", "role": "manager"},
+      {"email": "rohit.bansal@orbit-labs.com", "password": "OrbitViewer2026!", "role": "viewer"}
+    ]
+  }
+}

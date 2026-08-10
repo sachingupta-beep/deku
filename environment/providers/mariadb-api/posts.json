@@ -1,0 +1,12 @@
+[
+  {"id": "1", "thread_id": "5001", "author_id": "3", "body": "Above roughly 40 nodes on one bus we start losing frames. Termination is correct and the harness is the CBL-900.", "score": "12", "accepted": "0", "created_at": "2026-05-18 07:20:00", "edited_at": ""},
+  {"id": "2", "thread_id": "5001", "author_id": "1", "body": "What bitrate are you running? The 400 defaults to 500 kbit/s and the datasheet caps a 40+ node bus at 250.", "score": "8", "accepted": "0", "created_at": "2026-05-18 09:02:00", "edited_at": ""},
+  {"id": "3", "thread_id": "5001", "author_id": "3", "body": "500 kbit/s. Dropping to 250 fixed it completely, thank you.", "score": "21", "accepted": "1", "created_at": "2026-05-19 10:31:00", "edited_at": ""},
+  {"id": "4", "thread_id": "5002", "author_id": "7", "body": "After rotating our API key every stored cursor returns 400 invalid_cursor. Is the key part of the cursor signature?", "score": "5", "accepted": "0", "created_at": "2026-05-22 11:05:00", "edited_at": "2026-05-22 11:20:00"},
+  {"id": "5", "thread_id": "5002", "author_id": "2", "body": "It is. Cursors are signed with the issuing key so they cannot outlive it. We are looking at scoping the signature to the org instead.", "score": "9", "accepted": "0", "created_at": "2026-05-25 16:44:00", "edited_at": ""},
+  {"id": "6", "thread_id": "5003", "author_id": "4", "body": "Green LEDs but the dashboard says offline for over an hour.", "score": "3", "accepted": "0", "created_at": "2026-02-11 09:14:00", "edited_at": ""},
+  {"id": "7", "thread_id": "5003", "author_id": "1", "body": "Green means power and link, not cloud connectivity. Check outbound 8883/tcp on the site firewall.", "score": "34", "accepted": "1", "created_at": "2026-02-11 10:40:00", "edited_at": "2026-03-02 08:00:00"},
+  {"id": "8", "thread_id": "5005", "author_id": "5", "body": "We hit 429 on /v1/telemetry/batch at about 300 requests per minute. Is that per key or per org?", "score": "4", "accepted": "0", "created_at": "2026-05-24 13:00:00", "edited_at": ""},
+  {"id": "9", "thread_id": "5005", "author_id": "2", "body": "Per key. Split the ingest across two keys or ask support to raise the ceiling.", "score": "6", "accepted": "0", "created_at": "2026-05-26 07:12:00", "edited_at": ""},
+  {"id": "10", "thread_id": "5004", "author_id": "2", "body": "Orbit 4.8 is live. Highlights: offline queue for field reports, passkey sign-in in beta, and a 84% cut in sign-in latency.", "score": "88", "accepted": "0", "created_at": "2026-05-06 09:00:00", "edited_at": ""}
+]

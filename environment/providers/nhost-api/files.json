@@ -1,0 +1,50 @@
+[
+  {
+    "id": "7f31b0c5-4a92-4e18-b306-5d9c0e27f4a1",
+    "bucket_id": "exports",
+    "name": "storefront-overview-2026-05-24.csv",
+    "size": "482310",
+    "mime_type": "text/csv",
+    "etag": "\"9d3f01a6c47b\"",
+    "is_uploaded": "true",
+    "uploaded_by_user_id": "2b7f1c94-3d05-4e68-a91f-6c48e07b2d53",
+    "created_at": "2026-05-24T14:12:00+00:00",
+    "updated_at": "2026-05-24T14:12:04+00:00"
+  },
+  {
+    "id": "c0e94a76-2b58-4d31-9f07-38b1c6e5a204",
+    "bucket_id": "exports",
+    "name": "fleet-telemetry-2026-05-26.parquet",
+    "size": "18874368",
+    "mime_type": "application/octet-stream",
+    "etag": "\"41ba7c9e0d52\"",
+    "is_uploaded": "true",
+    "uploaded_by_user_id": "8e40a5d1-72b6-4c39-95f0-1d83c7e6b0a4",
+    "created_at": "2026-05-26T06:06:00+00:00",
+    "updated_at": "2026-05-26T06:06:41+00:00"
+  },
+  {
+    "id": "b58170ea-9c34-4f62-a015-7e2d0b93c8f6",
+    "bucket_id": "default",
+    "name": "priya-avatar.png",
+    "size": "18422",
+    "mime_type": "image/png",
+    "etag": "\"7c02de84f193\"",
+    "is_uploaded": "true",
+    "uploaded_by_user_id": "2b7f1c94-3d05-4e68-a91f-6c48e07b2d53",
+    "created_at": "2025-03-04T10:26:00+00:00",
+    "updated_at": "2025-03-04T10:26:00+00:00"
+  },
+  {
+    "id": "3d02c8b1-6f47-40ae-9235-c81b7e05d6a9",
+    "bucket_id": "exports",
+    "name": "revenue-by-region-2026-05-19.xlsx",
+    "size": "204800",
+    "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "etag": "\"2f9c47a0be15\"",
+    "is_uploaded": "false",
+    "uploaded_by_user_id": "5d83e2a9-041b-4f76-8c35-b9e07a1d264c",
+    "created_at": "2026-05-19T15:01:00+00:00",
+    "updated_at": "2026-05-19T15:01:00+00:00"
+  }
+]

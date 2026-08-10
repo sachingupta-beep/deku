@@ -1,0 +1,38 @@
+[
+  {
+    "id": "feedback",
+    "databaseId": "orbit_app",
+    "name": "Feedback",
+    "enabled": "true",
+    "documentSecurity": "true",
+    "permissions": "create(\"users\")",
+    "attributes": "rating:integer:true;message:string:true;platform:string:true;appVersion:string:true;status:string:true;userId:string:true;screenshotId:string:false",
+    "indexes": "idx_status:key:status:ASC;idx_rating:key:rating:DESC",
+    "createdAt": "2024-09-10T09:05:00.000+00:00",
+    "updatedAt": "2026-03-19T10:15:00.000+00:00"
+  },
+  {
+    "id": "feature_flags",
+    "databaseId": "orbit_app",
+    "name": "Feature Flags",
+    "enabled": "true",
+    "documentSecurity": "false",
+    "permissions": "read(\"any\")",
+    "attributes": "key:string:true;description:string:false;enabled:boolean:true;rolloutPercent:integer:true;platforms:string[]:true;owner:string:false",
+    "indexes": "idx_key:unique:key:ASC",
+    "createdAt": "2024-09-10T09:07:00.000+00:00",
+    "updatedAt": "2026-05-20T13:40:00.000+00:00"
+  },
+  {
+    "id": "releases",
+    "databaseId": "orbit_app",
+    "name": "Releases",
+    "enabled": "true",
+    "documentSecurity": "false",
+    "permissions": "read(\"users\")",
+    "attributes": "version:string:true;platform:string:true;channel:string:true;notes:string:false;buildNumber:integer:true;status:string:true;artifactId:string:false;releasedAt:datetime:false",
+    "indexes": "idx_version:key:version:DESC;idx_platform:key:platform:ASC",
+    "createdAt": "2024-09-10T09:09:00.000+00:00",
+    "updatedAt": "2026-05-22T09:05:00.000+00:00"
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {"id": "1", "username": "helena_park", "email": "helena.park@orbit-labs.com", "display_name": "Helena Park", "role": "moderator", "reputation": "8412", "joined_at": "2024-03-18 14:20:00", "banned": "0", "last_seen_at": "2026-05-26 07:05:00"},
+  {"id": "2", "username": "jonas_p", "email": "jonas.pereira@orbit-labs.com", "display_name": "Jonas Pereira", "role": "staff", "reputation": "5204", "joined_at": "2024-02-04 11:30:00", "banned": "0", "last_seen_at": "2026-05-25 17:40:00"},
+  {"id": "3", "username": "marcus_helix", "email": "marcus.feld@helixrobotics.io", "display_name": "Marcus Feld", "role": "member", "reputation": "1841", "joined_at": "2024-09-12 08:05:00", "banned": "0", "last_seen_at": "2026-05-26 06:41:00"},
+  {"id": "4", "username": "priya_r", "email": "priya.raman@aurorabistro.com", "display_name": "Priya Raman", "role": "member", "reputation": "612", "joined_at": "2025-03-04 10:22:00", "banned": "0", "last_seen_at": "2026-05-24 14:12:00"},
+  {"id": "5", "username": "sofia_d", "email": "sofia.duarte@lumendesign.co", "display_name": "Sofia Duarte", "role": "member", "reputation": "308", "joined_at": "2025-06-18 14:30:00", "banned": "0", "last_seen_at": "2026-05-20 09:00:00"},
+  {"id": "6", "username": "gateway_spam", "email": "spam@example.invalid", "display_name": "Gateway Deals", "role": "member", "reputation": "-40", "joined_at": "2026-04-11 03:22:00", "banned": "1", "last_seen_at": "2026-04-11 04:10:00"},
+  {"id": "7", "username": "daniel_osei", "email": "daniel.osei@quanta.ai", "display_name": "Daniel Osei", "role": "member", "reputation": "2077", "joined_at": "2024-11-27 15:50:00", "banned": "0", "last_seen_at": "2026-05-26 08:20:00"}
+]

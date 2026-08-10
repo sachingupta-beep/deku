@@ -1,0 +1,13 @@
+[
+  {
+    "id": "re_4f2ac8170b91",
+    "payment": "pay_2d47b9e01f5c",
+    "amount_minor": "10000",
+    "currency": "EUR",
+    "reason": "requested_by_customer",
+    "status": "succeeded",
+    "failure_reason": "",
+    "idempotency_key": "seed-refund-egress-2026",
+    "created": "2026-05-26T10:17:33Z"
+  }
+]

@@ -1,0 +1,5 @@
+[service]
+name = "appwrite-api"
+port = 8104
+env_var_name = "APPWRITE_API_URL"
+healthcheck_path = "/health"

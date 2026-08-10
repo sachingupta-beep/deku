@@ -1,0 +1,7 @@
+[
+  {"user": "root", "host": "localhost", "plugin": "unix_socket", "account_locked": "0", "max_connections": "0", "grants": "ALL PRIVILEGES ON *.*", "privileges": "SELECT;INSERT;UPDATE;DELETE;CREATE;DROP;ALTER;INDEX;RELOAD;PROCESS;SUPER;REPLICATION CLIENT;REPLICATION SLAVE"},
+  {"user": "forum_app", "host": "%", "plugin": "mysql_native_password", "account_locked": "0", "max_connections": "200", "grants": "SELECT, INSERT, UPDATE, DELETE ON orbit_forum.*", "privileges": "SELECT;INSERT;UPDATE;DELETE"},
+  {"user": "forum_mod", "host": "10.42.%", "plugin": "mysql_native_password", "account_locked": "0", "max_connections": "20", "grants": "SELECT, UPDATE, DELETE ON orbit_forum.*", "privileges": "SELECT;UPDATE;DELETE"},
+  {"user": "forum_analytics", "host": "10.42.0.44", "plugin": "mysql_native_password", "account_locked": "0", "max_connections": "5", "grants": "SELECT ON orbit_forum.page_views, SELECT ON orbit_forum.threads, SELECT ON orbit_forum.categories", "privileges": "SELECT"},
+  {"user": "forum_import", "host": "%", "plugin": "mysql_native_password", "account_locked": "1", "max_connections": "0", "grants": "SELECT, INSERT ON orbit_forum.*", "privileges": "SELECT;INSERT"}
+]

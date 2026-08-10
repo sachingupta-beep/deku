@@ -1,0 +1,51 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "supertokens"
+name     = "SuperTokens"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.supertokens.service:SupertokensService"
+upstream = "https://supertokens.com/docs/references/core/api-reference"
+summary  = """
+Self-hosted core API: recipe-based sign-up/sign-in, session handles with rotating refresh tokens, and JWT verification."""
+tags = [
+  "sessions",
+  "recipes",
+  "jwt",
+  "refresh-rotation",
+]
+
+[data]
+dir = "supertokens"
+
+[auth]
+scheme      = "apikey"
+roles       = [
+  "public",
+  "user",
+]
+description = """
+`api-key` header authenticates the *backend* to the core; end users are identified by session handles and JWTs, not by that key."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/recipe/signup",
+  "/recipe/signin",
+  "/recipe/session",
+  "/recipe/session/verify",
+  "/recipe/session/refresh",
+  "/recipe/user",
+  "/recipe/jwt",
+  "/hello",
+]

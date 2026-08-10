@@ -1,0 +1,5 @@
+[service]
+name = "postgres-backend-api"
+port = 8107
+env_var_name = "POSTGRES_BACKEND_API_URL"
+healthcheck_path = "/health"

@@ -1,0 +1,6 @@
+[
+  {"id": "1", "grantee": "orbit_etl", "table_name": "customers", "privileges": "SELECT"},
+  {"id": "2", "grantee": "orbit_etl", "table_name": "orders", "privileges": "SELECT"},
+  {"id": "3", "grantee": "orbit_etl", "table_name": "order_items", "privileges": "SELECT"},
+  {"id": "4", "grantee": "orbit_etl", "table_name": "products", "privileges": "SELECT"}
+]

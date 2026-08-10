@@ -1,0 +1,46 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "sqlite"
+name     = "SQLite"
+category = "database"
+status   = "declared"
+version  = "v1"
+module   = "services.sqlite.service:SqliteService"
+upstream = "https://www.sqlite.org/docs.html"
+summary  = """
+Embedded SQL engine: real SELECT/INSERT/UPDATE/DELETE against an in-memory database, PRAGMA introspection, and SQLite's own error codes and type affinity."""
+tags = [
+  "sql",
+  "embedded",
+  "pragma",
+  "transactions",
+]
+
+[data]
+dir = "sqlite"
+
+[auth]
+scheme      = "none"
+roles       = []
+description = """
+No authentication -- SQLite is a file, and the simulator keeps that property. Access control, if a task needs it, belongs to whatever fronts the database."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/query",
+  "/execute",
+  "/tables",
+  "/schema",
+  "/pragma",
+  "/backup",
+]

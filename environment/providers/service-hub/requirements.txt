@@ -1,0 +1,13 @@
+# Direct dependencies. The resolved, hash-pinned set is requirements-locked.txt,
+# which is what the image installs -- never install this file in the container.
+#
+# Deliberately two packages. Everything else the hub needs is stdlib: tomllib
+# parses the manifests, importlib does the lazy loading, asyncio provides the
+# per-slug locks. A benchmark fixture that has to be reproducible years from now
+# is worth keeping boring.
+fastapi==0.115.5
+uvicorn==0.32.1
+
+# Test-only (not installed in the image; see the `test` stage in the Dockerfile):
+#   pytest
+#   httpx      -- required by fastapi.testclient.TestClient

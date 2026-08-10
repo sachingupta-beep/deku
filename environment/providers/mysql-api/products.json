@@ -1,0 +1,10 @@
+[
+  {"id": "1", "sku": "ORB-GW-100", "name": "Orbit Gateway 100", "category": "hardware", "price_cents": "49900", "weight_grams": "820", "active": "1", "created_at": "2024-02-01 09:00:00"},
+  {"id": "2", "sku": "ORB-GW-400", "name": "Orbit Gateway 400", "category": "hardware", "price_cents": "129900", "weight_grams": "1450", "active": "1", "created_at": "2024-08-14 09:00:00"},
+  {"id": "3", "sku": "ORB-SNS-T", "name": "Temperature sensor pack (10)", "category": "hardware", "price_cents": "34900", "weight_grams": "600", "active": "1", "created_at": "2024-02-01 09:00:00"},
+  {"id": "4", "sku": "ORB-SNS-V", "name": "Vibration sensor pack (10)", "category": "hardware", "price_cents": "44900", "weight_grams": "640", "active": "1", "created_at": "2025-01-20 09:00:00"},
+  {"id": "5", "sku": "ORB-LIC-PRO", "name": "Orbit Pro licence (annual)", "category": "licence", "price_cents": "29900", "weight_grams": "0", "active": "1", "created_at": "2024-02-01 09:00:00"},
+  {"id": "6", "sku": "ORB-LIC-ENT", "name": "Orbit Enterprise licence (annual)", "category": "licence", "price_cents": "249900", "weight_grams": "0", "active": "1", "created_at": "2024-02-01 09:00:00"},
+  {"id": "7", "sku": "ORB-SUP-24", "name": "24/7 support add-on", "category": "service", "price_cents": "99900", "weight_grams": "0", "active": "1", "created_at": "2024-06-01 09:00:00"},
+  {"id": "8", "sku": "ORB-GW-050", "name": "Orbit Gateway 50 (discontinued)", "category": "hardware", "price_cents": "24900", "weight_grams": "700", "active": "0", "created_at": "2023-05-10 09:00:00"}
+]

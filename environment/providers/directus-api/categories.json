@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1",
+    "name": "Engineering",
+    "slug": "engineering",
+    "color": "#2E7DFF",
+    "description": "Architecture notes and postmortems from the platform team.",
+    "sort": "1"
+  },
+  {
+    "id": "2",
+    "name": "Product",
+    "slug": "product",
+    "color": "#00B37E",
+    "description": "Release notes and feature deep dives.",
+    "sort": "2"
+  },
+  {
+    "id": "3",
+    "name": "Company",
+    "slug": "company",
+    "color": "#F2A03D",
+    "description": "Hiring, culture and announcements.",
+    "sort": "3"
+  },
+  {
+    "id": "4",
+    "name": "Security",
+    "slug": "security",
+    "color": "#D64545",
+    "description": "Advisories and compliance updates.",
+    "sort": "4"
+  }
+]

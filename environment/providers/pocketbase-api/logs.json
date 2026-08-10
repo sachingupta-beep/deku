@@ -1,0 +1,98 @@
+[
+  {
+    "id": "log000000000001",
+    "level": "0",
+    "message": "GET /api/collections/incidents/records",
+    "method": "GET",
+    "url": "/api/collections/incidents/records?filter=status!=\"resolved\"",
+    "status": "200",
+    "execTime": "3.412",
+    "userIp": "203.0.113.41",
+    "referer": "https://status.orbit-labs.com/",
+    "created": "2026-05-26 07:58:12.104Z"
+  },
+  {
+    "id": "log000000000002",
+    "level": "0",
+    "message": "POST /api/collections/subscribers/records",
+    "method": "POST",
+    "url": "/api/collections/subscribers/records",
+    "status": "200",
+    "execTime": "7.881",
+    "userIp": "198.51.100.12",
+    "referer": "https://status.orbit-labs.com/subscribe",
+    "created": "2026-05-26 07:44:03.552Z"
+  },
+  {
+    "id": "log000000000003",
+    "level": "4",
+    "message": "Failed to authenticate request",
+    "method": "GET",
+    "url": "/api/collections/subscribers/records",
+    "status": "403",
+    "execTime": "0.611",
+    "userIp": "192.0.2.77",
+    "referer": "",
+    "created": "2026-05-26 07:31:47.900Z"
+  },
+  {
+    "id": "log000000000004",
+    "level": "0",
+    "message": "PATCH /api/collections/incidents/records/incident0000001",
+    "method": "PATCH",
+    "url": "/api/collections/incidents/records/incident0000001",
+    "status": "200",
+    "execTime": "11.204",
+    "userIp": "203.0.113.19",
+    "referer": "https://admin.orbit-labs.com/",
+    "created": "2026-05-26 07:41:02.318Z"
+  },
+  {
+    "id": "log000000000005",
+    "level": "8",
+    "message": "Backup created successfully",
+    "method": "POST",
+    "url": "/api/backups",
+    "status": "204",
+    "execTime": "2841.770",
+    "userIp": "10.42.0.7",
+    "referer": "",
+    "created": "2026-05-26 02:00:04.021Z"
+  },
+  {
+    "id": "log000000000006",
+    "level": "4",
+    "message": "Record not found",
+    "method": "GET",
+    "url": "/api/collections/incidents/records/incident0000099",
+    "status": "404",
+    "execTime": "0.884",
+    "userIp": "198.51.100.203",
+    "referer": "https://status.orbit-labs.com/",
+    "created": "2026-05-25 19:12:38.447Z"
+  },
+  {
+    "id": "log000000000007",
+    "level": "0",
+    "message": "GET /api/collections/services/records",
+    "method": "GET",
+    "url": "/api/collections/services/records?sort=sort_order",
+    "status": "200",
+    "execTime": "1.905",
+    "userIp": "203.0.113.41",
+    "referer": "https://status.orbit-labs.com/",
+    "created": "2026-05-25 18:03:11.760Z"
+  },
+  {
+    "id": "log000000000008",
+    "level": "0",
+    "message": "POST /api/collections/users/auth-with-password",
+    "method": "POST",
+    "url": "/api/collections/users/auth-with-password",
+    "status": "200",
+    "execTime": "94.330",
+    "userIp": "203.0.113.19",
+    "referer": "https://admin.orbit-labs.com/",
+    "created": "2026-05-25 17:40:22.019Z"
+  }
+]

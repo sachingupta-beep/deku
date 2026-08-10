@@ -1,0 +1,58 @@
+[
+  {
+    "external_id": "sub_orbit_growth",
+    "lago_id": "sub_3f7e1b0c2d5401a7",
+    "external_customer_id": "cust_orbit_labs",
+    "plan_code": "orbit_growth",
+    "name": "Orbit Labs production",
+    "status": "active",
+    "billing_time": "calendar",
+    "subscription_at": "2025-10-03T08:20:00Z",
+    "started_at": "2025-10-03T08:20:00Z",
+    "terminated_at": "",
+    "current_period_from": "2026-05-01T00:00:00Z",
+    "current_period_to": "2026-06-01T00:00:00Z"
+  },
+  {
+    "external_id": "sub_acme_starter",
+    "lago_id": "sub_5b07d21f8c6402b8",
+    "external_customer_id": "cust_acme",
+    "plan_code": "orbit_starter",
+    "name": "Acme sandbox",
+    "status": "active",
+    "billing_time": "anniversary",
+    "subscription_at": "2026-01-19T14:25:00Z",
+    "started_at": "2026-02-02T14:25:00Z",
+    "terminated_at": "",
+    "current_period_from": "2026-05-19T00:00:00Z",
+    "current_period_to": "2026-06-19T00:00:00Z"
+  },
+  {
+    "external_id": "sub_northwind_scale",
+    "lago_id": "sub_9f14c73e0b2a03c9",
+    "external_customer_id": "cust_northwind",
+    "plan_code": "orbit_scale",
+    "name": "Northwind annual",
+    "status": "active",
+    "billing_time": "calendar",
+    "subscription_at": "2026-01-22T17:10:00Z",
+    "started_at": "2026-01-22T17:10:00Z",
+    "terminated_at": "",
+    "current_period_from": "2026-05-01T00:00:00Z",
+    "current_period_to": "2026-06-01T00:00:00Z"
+  },
+  {
+    "external_id": "sub_acme_legacy",
+    "lago_id": "sub_5b07d21f8c6404da",
+    "external_customer_id": "cust_acme",
+    "plan_code": "orbit_starter",
+    "name": "Acme legacy trial",
+    "status": "terminated",
+    "billing_time": "calendar",
+    "subscription_at": "2025-11-01T00:00:00Z",
+    "started_at": "2025-11-01T00:00:00Z",
+    "terminated_at": "2026-01-19T14:24:00Z",
+    "current_period_from": "",
+    "current_period_to": ""
+  }
+]

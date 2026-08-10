@@ -1,0 +1,5 @@
+[service]
+name = "cockroachdb-api"
+port = 8112
+env_var_name = "COCKROACHDB_API_URL"
+healthcheck_path = "/health"

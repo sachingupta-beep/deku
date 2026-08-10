@@ -1,0 +1,6 @@
+[
+  {"id": "con0github001", "connectorId": "github-universal", "target": "github", "type": "Social", "platform": "Universal", "enabled": "1", "name": "GitHub", "config": "clientId=Iv1.orbit-labs-logto;scope=read:user user:email"},
+  {"id": "con1google001", "connectorId": "google-universal", "target": "google", "type": "Social", "platform": "Universal", "enabled": "1", "name": "Google", "config": "clientId=orbit-labs-logto.apps.googleusercontent.com;scope=openid email profile"},
+  {"id": "con2smtp00001", "connectorId": "simple-mail-transfer-protocol", "target": "smtp", "type": "Email", "platform": "", "enabled": "1", "name": "SMTP", "config": "host=mailpit;port=1025;fromEmail=auth@orbit-labs.com"},
+  {"id": "con3sms000001", "connectorId": "twilio-short-message-service", "target": "twilio-sms", "type": "Sms", "platform": "", "enabled": "0", "name": "Twilio SMS", "config": "fromMessagingServiceSid=MG0000000000000000000000000000"}
+]

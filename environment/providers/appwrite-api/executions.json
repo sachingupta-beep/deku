@@ -1,0 +1,62 @@
+[
+  {
+    "id": "exec_agg_9f21",
+    "functionId": "fn_aggregate_feedback",
+    "trigger": "schedule",
+    "status": "completed",
+    "requestMethod": "POST",
+    "requestPath": "/",
+    "responseStatusCode": "200",
+    "responseBody": "{\"open\":2,\"triaged\":1,\"escalated\":1,\"closed\":2,\"averageRating\":3.33}",
+    "duration": "0.842",
+    "errors": "",
+    "logs": "Aggregated 6 feedback documents.",
+    "createdAt": "2026-05-26T08:00:01.000+00:00",
+    "updatedAt": "2026-05-26T08:00:02.000+00:00"
+  },
+  {
+    "id": "exec_notify_4c07",
+    "functionId": "fn_notify_oncall",
+    "trigger": "event",
+    "status": "completed",
+    "requestMethod": "POST",
+    "requestPath": "/",
+    "responseStatusCode": "200",
+    "responseBody": "{\"paged\":\"jonas\",\"channel\":\"pagerduty\"}",
+    "duration": "0.311",
+    "errors": "",
+    "logs": "Escalated fb_aurora_001 to the on-call engineer.",
+    "createdAt": "2026-05-26T07:15:00.000+00:00",
+    "updatedAt": "2026-05-26T07:15:01.000+00:00"
+  },
+  {
+    "id": "exec_agg_1b88",
+    "functionId": "fn_aggregate_feedback",
+    "trigger": "schedule",
+    "status": "completed",
+    "requestMethod": "POST",
+    "requestPath": "/",
+    "responseStatusCode": "200",
+    "responseBody": "{\"open\":2,\"triaged\":0,\"escalated\":1,\"closed\":2,\"averageRating\":3.20}",
+    "duration": "0.907",
+    "errors": "",
+    "logs": "Aggregated 5 feedback documents.",
+    "createdAt": "2026-05-26T07:00:01.000+00:00",
+    "updatedAt": "2026-05-26T07:00:02.000+00:00"
+  },
+  {
+    "id": "exec_notify_2ae5",
+    "functionId": "fn_notify_oncall",
+    "trigger": "event",
+    "status": "failed",
+    "requestMethod": "POST",
+    "requestPath": "/",
+    "responseStatusCode": "500",
+    "responseBody": "",
+    "duration": "15.002",
+    "errors": "Error: PagerDuty request timed out after 15000ms",
+    "logs": "Attempting to page the on-call engineer for fb_pelagic_006.",
+    "createdAt": "2026-04-02T14:20:00.000+00:00",
+    "updatedAt": "2026-04-02T14:20:15.000+00:00"
+  }
+]

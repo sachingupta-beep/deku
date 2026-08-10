@@ -1,0 +1,93 @@
+[
+  {
+    "id": "1",
+    "employee_id": "3",
+    "system": "production-database",
+    "access_level": "read_write",
+    "justification": "Dual-writer cutover needs live query access for the runbook rehearsal.",
+    "status": "pending",
+    "requested_at": "2026-05-25T10:15:00Z",
+    "decided_at": "",
+    "decided_by": "",
+    "decision_note": "",
+    "expires_on": "2026-06-08"
+  },
+  {
+    "id": "2",
+    "employee_id": "6",
+    "system": "billing-admin",
+    "access_level": "read_only",
+    "justification": "Investigating the April invoice backlog.",
+    "status": "approved",
+    "requested_at": "2026-05-04T09:30:00Z",
+    "decided_at": "2026-05-04T11:02:00Z",
+    "decided_by": "2",
+    "decision_note": "Approved for the duration of the incident review.",
+    "expires_on": "2026-06-04"
+  },
+  {
+    "id": "3",
+    "employee_id": "7",
+    "system": "production-database",
+    "access_level": "read_only",
+    "justification": "Support escalation triage.",
+    "status": "denied",
+    "requested_at": "2026-04-19T14:00:00Z",
+    "decided_at": "2026-04-19T16:20:00Z",
+    "decided_by": "1",
+    "decision_note": "Use the read replica dashboard instead; no direct access for contractors.",
+    "expires_on": ""
+  },
+  {
+    "id": "4",
+    "employee_id": "5",
+    "system": "content-cms",
+    "access_level": "admin",
+    "justification": "Owns the marketing site content model.",
+    "status": "approved",
+    "requested_at": "2025-09-02T08:00:00Z",
+    "decided_at": "2025-09-02T08:40:00Z",
+    "decided_by": "1",
+    "decision_note": "Standing access as content lead.",
+    "expires_on": "2026-09-02"
+  },
+  {
+    "id": "5",
+    "employee_id": "4",
+    "system": "pagerduty",
+    "access_level": "read_write",
+    "justification": "Support lead needs to manage escalation policies.",
+    "status": "pending",
+    "requested_at": "2026-05-22T13:45:00Z",
+    "decided_at": "",
+    "decided_by": "",
+    "decision_note": "",
+    "expires_on": "2027-05-22"
+  },
+  {
+    "id": "7",
+    "employee_id": "2",
+    "system": "payments-console",
+    "access_level": "admin",
+    "justification": "Billing on-call needs to issue manual refunds during the dunning rework.",
+    "status": "pending",
+    "requested_at": "2026-05-26T07:05:00Z",
+    "decided_at": "",
+    "decided_by": "",
+    "decision_note": "",
+    "expires_on": "2026-07-31"
+  },
+  {
+    "id": "6",
+    "employee_id": "8",
+    "system": "content-cms",
+    "access_level": "read_write",
+    "justification": "Documentation updates for the 4.8 release.",
+    "status": "revoked",
+    "requested_at": "2025-11-14T09:20:00Z",
+    "decided_at": "2025-11-14T10:00:00Z",
+    "decided_by": "5",
+    "decision_note": "Revoked automatically on offboarding, 2026-02-27.",
+    "expires_on": "2026-02-27"
+  }
+]

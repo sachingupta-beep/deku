@@ -1,0 +1,14 @@
+[
+  {"id": "1", "org_id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445", "endpoint_id": "3", "day": "2026-05-26", "requests": "482119", "errors": "412", "p95_ms": "38.40", "bytes_out": "918273645"},
+  {"id": "2", "org_id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445", "endpoint_id": "4", "day": "2026-05-26", "requests": "91044", "errors": "1877", "p95_ms": "142.10", "bytes_out": "144230011"},
+  {"id": "3", "org_id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445", "endpoint_id": "3", "day": "2026-05-25", "requests": "471880", "errors": "388", "p95_ms": "36.90", "bytes_out": "901221873"},
+  {"id": "4", "org_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901", "endpoint_id": "1", "day": "2026-05-26", "requests": "8412", "errors": "9", "p95_ms": "22.70", "bytes_out": "12094881"},
+  {"id": "5", "org_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901", "endpoint_id": "5", "day": "2026-05-26", "requests": "312", "errors": "0", "p95_ms": "610.50", "bytes_out": "48210993"},
+  {"id": "6", "org_id": "a41f7c88-5be9-42d7-9c03-77e2f8b41d16", "endpoint_id": "1", "day": "2026-05-26", "requests": "20118", "errors": "44", "p95_ms": "25.10", "bytes_out": "30112884"},
+  {"id": "7", "org_id": "a41f7c88-5be9-42d7-9c03-77e2f8b41d16", "endpoint_id": "6", "day": "2026-05-26", "requests": "1904", "errors": "1904", "p95_ms": "4.20", "bytes_out": "228480"},
+  {"id": "8", "org_id": "d05b3f61-9c27-4e8a-b134-6a8d0e52f7c3", "endpoint_id": "3", "day": "2026-05-26", "requests": "188402", "errors": "77", "p95_ms": "41.80", "bytes_out": "402118773"},
+  {"id": "9", "org_id": "d05b3f61-9c27-4e8a-b134-6a8d0e52f7c3", "endpoint_id": "5", "day": "2026-05-26", "requests": "2044", "errors": "12", "p95_ms": "884.30", "bytes_out": "310884221"},
+  {"id": "10", "org_id": "0f9a2c7d-4e61-4b03-8d75-3c1e9f60a284", "endpoint_id": "1", "day": "2026-05-26", "requests": "6103", "errors": "2", "p95_ms": "19.90", "bytes_out": "8112044"},
+  {"id": "11", "org_id": "0f9a2c7d-4e61-4b03-8d75-3c1e9f60a284", "endpoint_id": "3", "day": "2026-05-25", "requests": "44022", "errors": "18", "p95_ms": "33.60", "bytes_out": "70228144"},
+  {"id": "12", "org_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901", "endpoint_id": "1", "day": "2026-05-25", "requests": "7988", "errors": "14", "p95_ms": "23.40", "bytes_out": "11480221"}
+]

@@ -218,6 +218,29 @@ def load_task_rubric(path: Path) -> list[dict]:
     return out
 
 
+def rubric_verdict(score: float) -> str:
+    """A readable label beside the score. Presentation only -- never arithmetic.
+
+    A rubric measures DEGREE, unlike a workflow substep which genuinely passes or
+    fails, so `score` stays the source of truth and `judge_score` is computed from
+    it alone. But a bare float per criterion is hard to scan, and readers were
+    inventing their own cutoffs to answer "which ones failed?" -- so the cutoff is
+    stated here once rather than differently by each reader.
+
+    Thresholds match the scoring guide the judge is given:
+        1.0 fully meets · 0.8 mostly meets · 0.5 partial · 0.2 barely · 0.0 absent
+
+    `partial` covers 0.5, which is also what the judge is told to return when a
+    criterion could not be assessed from the evidence -- so a `partial` deserves a
+    look at its rationale before being read as a defect.
+    """
+    if score >= 0.8:
+        return "pass"
+    if score > 0.0:
+        return "partial"
+    return "fail"
+
+
 def compute_task_rubric_score(criteria: list[dict], graded: dict[str, dict]) -> float:
     """Normalised weighted mean of the per-criterion scores.
 
@@ -1136,6 +1159,7 @@ def main() -> int:
                     "number": c["number"], "dimension": c["dimension"],
                     "importance": c["importance"], "is_positive": c["is_positive"],
                     "criterion": c["criterion"],
+                    "verdict": rubric_verdict(graded.get("score", 0.0)),
                 })
                 dimensions[c["key"]] = graded
                 payload["dimensions"] = dimensions

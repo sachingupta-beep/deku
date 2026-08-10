@@ -1,0 +1,49 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "pocketbase-auth"
+name     = "PocketBase Auth"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.pocketbase_auth.service:PocketbaseAuthService"
+upstream = "https://pocketbase.io/docs/authentication/"
+summary  = """
+Auth collections with record tokens, OAuth2 provider stubs, verification and password-reset flows, and the separate admin authentication path."""
+tags = [
+  "record-auth",
+  "admin-auth",
+  "oauth2",
+  "verification",
+]
+
+[data]
+dir = "pocketbase-auth"
+
+[auth]
+scheme      = "token"
+roles       = [
+  "guest",
+  "user",
+  "admin",
+]
+description = """
+`Authorization: <token>`, no Bearer prefix. Auth collections issue record tokens; /api/admins issues admin tokens, and the two are not interchangeable."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/api/collections/users/auth-with-password",
+  "/api/collections/users/auth-with-oauth2",
+  "/api/collections/users/auth-refresh",
+  "/api/collections/users/request-password-reset",
+  "/api/admins/auth-with-password",
+]

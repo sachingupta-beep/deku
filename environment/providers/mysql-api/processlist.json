@@ -1,0 +1,8 @@
+[
+  {"id": "104412", "user": "orbit_shop", "host": "10.42.0.11:52104", "db": "orbit_shop", "command": "Query", "time": "0", "state": "executing", "info": "SELECT * FROM orders WHERE customer_id = ? ORDER BY placed_at DESC"},
+  {"id": "104413", "user": "orbit_shop", "host": "10.42.0.11:52106", "db": "orbit_shop", "command": "Sleep", "time": "12", "state": "", "info": ""},
+  {"id": "104418", "user": "orbit_report", "host": "10.42.0.30:41882", "db": "orbit_shop", "command": "Query", "time": "3", "state": "Sending data", "info": "SELECT c.country, SUM(o.total_cents) FROM orders o JOIN customers c ON c.id = o.customer_id GROUP BY c.country"},
+  {"id": "104420", "user": "orbit_etl", "host": "10.42.0.44:33012", "db": "orbit_shop", "command": "Query", "time": "41", "state": "Copying to tmp table", "info": "SELECT * FROM order_items ORDER BY order_id"},
+  {"id": "5", "user": "system user", "host": "", "db": "", "command": "Daemon", "time": "1231913", "state": "Waiting on empty queue", "info": ""},
+  {"id": "9", "user": "repl", "host": "10.42.0.22:44118", "db": "", "command": "Binlog Dump GTID", "time": "1231880", "state": "Source has sent all binlog to replica; waiting for more updates", "info": ""}
+]

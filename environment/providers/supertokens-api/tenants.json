@@ -1,0 +1,4 @@
+[
+  {"tenantId": "public", "appId": "public", "emailPasswordEnabled": "1", "thirdPartyEnabled": "1", "passwordlessEnabled": "0", "passwordlessFlowType": "", "passwordlessContactMethod": "", "firstFactors": "emailpassword;thirdparty", "requiredSecondaryFactors": "", "providers": "github;google", "coreConfig": "password_reset_token_lifetime=3600000;email_verification_token_lifetime=86400000", "created": "2023-11-02T08:00:00Z"},
+  {"tenantId": "orbit-enterprise", "appId": "public", "emailPasswordEnabled": "0", "thirdPartyEnabled": "1", "passwordlessEnabled": "1", "passwordlessFlowType": "USER_INPUT_CODE_AND_MAGIC_LINK", "passwordlessContactMethod": "EMAIL", "firstFactors": "thirdparty;otp-email;link-email", "requiredSecondaryFactors": "totp", "providers": "okta", "coreConfig": "password_reset_token_lifetime=1800000;email_verification_token_lifetime=43200000", "created": "2025-03-17T10:30:00Z"}
+]

@@ -1,0 +1,1320 @@
+{
+  "info": {
+    "name": "PocketBase Auth Mock API v0.24.4",
+    "description": "Test collection for the mock PocketBase auth service. Base URL defaults to http://localhost:8114. In docker-compose, the service is reachable at http://pocketbase-auth-api:8114. This is the auth half of the same instance pocketbase-api backs, so record ids match. PocketBase authenticates per collection: `users` allows email or username identities, OTP, MFA and OAuth2 and carries authRule `verified = true`; the system `_superusers` collection allows only an email identity and password. Tokens are `<header>.<recordId>.<tokenKey>` and resolve only while the record still carries that tokenKey, so a password or email change invalidates every token already issued for it. Seed passwords are listed in settings.json under seed_credentials. Requests labelled '(N expected)' assert an error path.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8114"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "pocketbase health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/health"
+      }
+    },
+    {
+      "name": "auth methods for users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/auth-methods"
+      }
+    },
+    {
+      "name": "auth methods for _superusers",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/_superusers/auth-methods"
+      }
+    },
+    {
+      "name": "auth methods for unknown collection (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/sessions/auth-methods"
+      }
+    },
+    {
+      "name": "list auth collections",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list auth collections as guest (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections"
+      }
+    },
+    {
+      "name": "auth with password by email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with password by username",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"orbit_sync_bot\", \"password\": \"OrbitSyncBot2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth as superuser",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/_superusers/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"ops@orbit-labs.com\", \"password\": \"OrbitSuperuser2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth as superuser by username (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/_superusers/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"ops\", \"password\": \"OrbitSuperuser2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with wrong password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"jonas.pereira@orbit-labs.com\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with unknown identity (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"nobody@orbit-labs.com\", \"password\": \"OrbitJonas2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth against an oauth2-only record (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"helena.park@orbit-labs.com\", \"password\": \"OrbitHelena2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth blocked by the collection authRule (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"noor.aziz@orbit-labs.com\", \"password\": \"OrbitNoor2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "auth without a password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"jonas.pereira@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "auth needing a second factor (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitStatus2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "complete mfa with an otp",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"otpId\": \"otp1amelia00001\", \"password\": \"47182930\", \"mfaId\": \"mfa1amelia00001\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with an expired otp (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"otpId\": \"otp2jonas000002\", \"password\": \"60349175\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with a wrong otp (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"otpId\": \"otp1amelia00001\", \"password\": \"00000000\"}"
+        }
+      }
+    },
+    {
+      "name": "request an otp",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "request an otp for an unknown email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"nobody@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "request an otp where otp is off (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/_superusers/request-otp",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"ops@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with a linked oauth2 account",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-oauth2",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\": \"github\", \"code\": \"2210448\", \"codeVerifier\": \"6f3a1c85d0b74e29\", \"redirectURL\": \"https://status.orbit-labs.com/oauth\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with a new oauth2 account",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-oauth2",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\": \"google\", \"code\": \"114872003991425506118\", \"codeVerifier\": \"2b7e0d94c1f8a536\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with a disabled provider (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-oauth2",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\": \"gitlab\", \"code\": \"77120\"}"
+        }
+      }
+    },
+    {
+      "name": "auth with oauth2 and no code (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-oauth2",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\": \"github\"}"
+        }
+      }
+    },
+    {
+      "name": "oauth2 against _superusers (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/_superusers/auth-with-oauth2",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"provider\": \"github\", \"code\": \"2210448\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh a session",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-refresh",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usramelia000001.tk_amelia_5f1c"
+          }
+        ]
+      }
+    },
+    {
+      "name": "refresh without a token (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-refresh"
+      }
+    },
+    {
+      "name": "refresh against the wrong collection (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/_superusers/auth-refresh",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usramelia000001.tk_amelia_5f1c"
+          }
+        ]
+      }
+    },
+    {
+      "name": "impersonate a record",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/impersonate/usrrohit0000004",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"duration\": 600}"
+        }
+      }
+    },
+    {
+      "name": "impersonate as a non-superuser (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/impersonate/usrrohit0000004",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "impersonate an unknown record (404 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/impersonate/usrnosuchrec001",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "request verification",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-verification",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"noor.aziz@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm verification",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-verification",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_verif_9c41e7a5b2d80f36\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm verification twice (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-verification",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_verif_9c41e7a5b2d80f36\"}"
+        }
+      }
+    },
+    {
+      "name": "request verification for a verified record",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-verification",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "request an email change",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-email-change",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"newEmail\": \"jonas.pereira@orbit-labs.io\"}"
+        }
+      }
+    },
+    {
+      "name": "request an email change as guest (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-email-change",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"newEmail\": \"someone@orbit-labs.io\"}"
+        }
+      }
+    },
+    {
+      "name": "request an email change to a taken address (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-email-change",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"newEmail\": \"amelia.ortega@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm an email change with a wrong password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-email-change",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_email_7b39f1c084a6d25e\", \"password\": \"notmypassword\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm an email change",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-email-change",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_email_7b39f1c084a6d25e\", \"password\": \"OrbitRohit2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm an email change twice (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-email-change",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_email_7b39f1c084a6d25e\", \"password\": \"OrbitRohit2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "request a password reset",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-password-reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"rohit.bansal@orbit-labs.io\"}"
+        }
+      }
+    },
+    {
+      "name": "request a password reset for an unknown email",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/request-password-reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"nobody@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm a reset with a spent token (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-password-reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_reset_1a05d7b3e6c94f28\", \"password\": \"OrbitJonasNew2026!\", \"passwordConfirm\": \"OrbitJonasNew2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm a reset with mismatched passwords (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-password-reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_reset_4f82c0e91b7d5a63\", \"password\": \"OrbitJonasNew2026!\", \"passwordConfirm\": \"OrbitJonasOther!\"}"
+        }
+      }
+    },
+    {
+      "name": "confirm a reset with a short password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-password-reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_reset_4f82c0e91b7d5a63\", \"password\": \"short\"}"
+        }
+      }
+    },
+    {
+      "name": "list records as guest (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records"
+      }
+    },
+    {
+      "name": "list records",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records?page=1&perPage=3",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list records filtered by role",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records?role=engineer",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list unverified records",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records?verified=false",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list superusers as a user (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/_superusers/records",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list superusers",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/_superusers/records",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "view own record",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records/usrjonas0000002",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "view another record with a hidden email",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records/usrrohit0000004",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "view a record that opted into email visibility",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records/usramelia000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "view an unknown record (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records/usrnosuchrec001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sign up a new record",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/records",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"iris.tanaka@orbit-labs.com\", \"password\": \"OrbitIris2026!\", \"passwordConfirm\": \"OrbitIris2026!\", \"username\": \"iris\", \"name\": \"Iris Tanaka\", \"role\": \"support\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up with a taken email (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/records",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitIris2026!\", \"passwordConfirm\": \"OrbitIris2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "sign up with a short password (400 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/records",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"too.short@orbit-labs.com\", \"password\": \"short\", \"passwordConfirm\": \"short\"}"
+        }
+      }
+    },
+    {
+      "name": "create a superuser as guest (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/_superusers/records",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"new-ops@orbit-labs.com\", \"password\": \"OrbitNewSuper2026!\", \"passwordConfirm\": \"OrbitNewSuper2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "create a superuser",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/_superusers/records",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"new-ops@orbit-labs.com\", \"password\": \"OrbitNewSuper2026!\", \"passwordConfirm\": \"OrbitNewSuper2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "update own record",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/collections/users/records/usrjonas0000002",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Jonas Pereira\", \"emailVisibility\": true}"
+        }
+      }
+    },
+    {
+      "name": "promote self (403 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/collections/users/records/usrjonas0000002",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"owner\"}"
+        }
+      }
+    },
+    {
+      "name": "update another record (403 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/collections/users/records/usrrohit0000004",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Someone Else\"}"
+        }
+      }
+    },
+    {
+      "name": "update a record as superuser",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/collections/users/records/usrrohit0000004",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"engineer\", \"verified\": true}"
+        }
+      }
+    },
+    {
+      "name": "change a password without the old one (400 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/collections/users/records/usrjonas0000002",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"password\": \"OrbitJonasNew2026!\", \"passwordConfirm\": \"OrbitJonasNew2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "list own external auths",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records/usrjonas0000002/external-auths",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list another record's external auths (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/collections/users/records/usramelia000001/external-auths",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlink the only sign-in method (400 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/collections/users/records/usrhelena000003/external-auths/github",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlink an external auth",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/collections/users/records/usramelia000001/external-auths/github",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unlink it again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/collections/users/records/usramelia000001/external-auths/github",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete a record",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/collections/users/records/usrsyncbot00006",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete it again (404 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/collections/users/records/usrsyncbot00006",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete a record as another user (403 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/collections/users/records/usrrohit0000004",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list auth logs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs?page=1&perPage=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list auth logs for one record",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs?authId=usramelia000001",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list failed auth logs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs?status=400",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list auth logs as a user (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "auth log stats",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/logs/stats",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "confirm a password reset",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/confirm-password-reset",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"token\": \"pb_reset_4f82c0e91b7d5a63\", \"password\": \"OrbitJonasNew2026!\", \"passwordConfirm\": \"OrbitJonasNew2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with the pre-reset token (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-refresh",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90"
+          }
+        ]
+      }
+    },
+    {
+      "name": "auth with the new password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/collections/users/auth-with-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"identity\": \"jonas.pereira@orbit-labs.com\", \"password\": \"OrbitJonasNew2026!\"}"
+        }
+      }
+    }
+  ]
+}

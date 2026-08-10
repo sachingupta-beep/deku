@@ -1,0 +1,49 @@
+{
+  "version": "v0.24.4",
+  "meta": {
+    "appName": "Orbit Labs Status",
+    "appURL": "https://status.orbit-labs.com",
+    "senderName": "Orbit Labs Status",
+    "senderAddress": "status@orbit-labs.com",
+    "hideControls": false
+  },
+  "smtp": {
+    "enabled": true,
+    "host": "mailpit",
+    "port": 1025,
+    "tls": false,
+    "authMethod": "PLAIN"
+  },
+  "rateLimits": {
+    "enabled": true,
+    "rules": [
+      {"label": "*:auth", "maxRequests": 5, "duration": 10},
+      {"label": "*:authWithOAuth2", "maxRequests": 3, "duration": 10},
+      {"label": "*:requestPasswordReset", "maxRequests": 2, "duration": 180},
+      {"label": "*:requestVerification", "maxRequests": 2, "duration": 180},
+      {"label": "*:requestOTP", "maxRequests": 3, "duration": 60}
+    ]
+  },
+  "trustedProxy": {"headers": ["X-Forwarded-For"], "useLeftmostIP": true},
+  "tokens": {
+    "note": "Auth tokens are stateless: <header>.<recordId>.<tokenKey>. Changing a password or email rotates the record's tokenKey, which invalidates every token already issued for it.",
+    "superuser": "eyJhbGciOiJIUzI1NiJ9.sup0admin000001.tk_ops_e64a",
+    "legacySuperuser": "eyJhbGciOiJIUzI1NiJ9.superuser.orbit-labs-status",
+    "amelia": "eyJhbGciOiJIUzI1NiJ9.usramelia000001.tk_amelia_5f1c",
+    "jonas": "eyJhbGciOiJIUzI1NiJ9.usrjonas0000002.tk_jonas_2b90",
+    "syncBot": "eyJhbGciOiJIUzI1NiJ9.usrsyncbot00006.tk_syncbot_7d4f"
+  },
+  "seed_credentials": {
+    "note": "Passwords are verified as sha256(passwordSalt + password); neither the hash nor the salt is ever returned by the API.",
+    "accounts": [
+      {"collection": "users", "identity": "amelia.ortega@orbit-labs.com", "password": "OrbitStatus2026!", "note": "MFA enabled; auth-with-password returns 401 with an mfaId"},
+      {"collection": "users", "identity": "jonas.pereira@orbit-labs.com", "password": "OrbitJonas2026!", "note": "plain password auth; has a google external auth"},
+      {"collection": "users", "identity": "helena.park@orbit-labs.com", "password": null, "note": "GitHub OAuth2 only; password auth is refused"},
+      {"collection": "users", "identity": "rohit.bansal@orbit-labs.com", "password": "OrbitRohit2026!", "note": "has a pending email-change token"},
+      {"collection": "users", "identity": "noor.aziz@orbit-labs.com", "password": "OrbitNoor2026!", "note": "verified = false, so the users authRule refuses the login"},
+      {"collection": "users", "identity": "orbit_sync_bot", "password": "OrbitSyncBot2026!", "note": "username identity rather than email"},
+      {"collection": "_superusers", "identity": "ops@orbit-labs.com", "password": "OrbitSuperuser2026!", "note": "superuser; may impersonate"},
+      {"collection": "_superusers", "identity": "deploy@orbit-labs.com", "password": "OrbitDeploy2026!", "note": "superuser"}
+    ]
+  }
+}

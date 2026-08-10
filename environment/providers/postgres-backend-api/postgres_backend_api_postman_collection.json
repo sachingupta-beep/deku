@@ -1,0 +1,999 @@
+{
+  "info": {
+    "name": "Orbit Back-office API (Plain PostgreSQL Backend) v2",
+    "description": "Test collection for the mock plain PostgreSQL backend. Base URL defaults to http://localhost:8107. In docker-compose, the service is reachable at http://postgres-backend-api:8107. Authorization is a bearer access token; three long-lived static tokens map onto the three roles: at_static_admin_9f3c1a7e (admin), at_static_manager_2b90d7fc (manager), at_static_viewer_c81b7e05 (viewer). POST /api/v1/auth/login also mints a session — seed logins are amelia.ortega@orbit-labs.com / OrbitAdmin2026!, jonas.pereira@orbit-labs.com / OrbitManager2026!, rohit.bansal@orbit-labs.com / OrbitViewer2026!.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8107"
+    }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "health db",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/db"
+      }
+    },
+    {
+      "name": "health ready",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/ready"
+      }
+    },
+    {
+      "name": "prometheus metrics",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/metrics"
+      }
+    },
+    {
+      "name": "login as admin",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"amelia.ortega@orbit-labs.com\", \"password\": \"OrbitAdmin2026!\"}"
+        }
+      }
+    },
+    {
+      "name": "login with bad password (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"jonas.pereira@orbit-labs.com\", \"password\": \"wrong\"}"
+        }
+      }
+    },
+    {
+      "name": "login to locked account (423 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"noor.aziz@orbit-labs.com\", \"password\": \"anything\"}"
+        }
+      }
+    },
+    {
+      "name": "refresh with unknown token (401 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/auth/refresh",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"refresh_token\": \"rt_does_not_exist\"}"
+        }
+      }
+    },
+    {
+      "name": "current user",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/auth/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ]
+      }
+    },
+    {
+      "name": "current user anonymous (401 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/auth/me"
+      }
+    },
+    {
+      "name": "list employees",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees?per_page=3&sort=last_name",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list employees page 2",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees?per_page=3&page=2&sort=last_name",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search employees",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees?q=engineer&sort=-started_on",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "filter employees by team and status",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees?team_id=1&status=active",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "employees with expansions",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees?team_id=1&expand=team,manager,assets",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sort by unknown column (400 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees?sort=-salary",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get employee",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees/3?expand=team,assets",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get missing employee (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/employees/999",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create employee as admin",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/employees",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\": \"Mira\", \"last_name\": \"Castellanos\", \"email\": \"mira.castellanos@orbit-labs.com\", \"title\": \"Platform Engineer\", \"team_id\": 1, \"manager_id\": 1, \"location\": \"Madrid\", \"started_on\": \"2026-06-01\"}"
+        }
+      }
+    },
+    {
+      "name": "create employee as manager (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/employees",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\": \"Nope\", \"last_name\": \"Denied\", \"email\": \"nope@orbit-labs.com\", \"title\": \"Engineer\", \"team_id\": 1}"
+        }
+      }
+    },
+    {
+      "name": "create employee missing fields (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/employees",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\": \"Half\", \"email\": \"half@orbit-labs.com\"}"
+        }
+      }
+    },
+    {
+      "name": "create employee duplicate email (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/employees",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\": \"Amelia\", \"last_name\": \"Clone\", \"email\": \"amelia.ortega@orbit-labs.com\", \"title\": \"Engineer\", \"team_id\": 1}"
+        }
+      }
+    },
+    {
+      "name": "create employee bad team (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/employees",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\": \"Orphan\", \"last_name\": \"Row\", \"email\": \"orphan@orbit-labs.com\", \"title\": \"Engineer\", \"team_id\": 99}"
+        }
+      }
+    },
+    {
+      "name": "update employee",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/v1/employees/7",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Senior Support Engineer\", \"location\": \"Accra\"}"
+        }
+      }
+    },
+    {
+      "name": "update employee unknown column (422 expected)",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/api/v1/employees/7",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"salary\": 100000}"
+        }
+      }
+    },
+    {
+      "name": "delete employee holding assets (409 expected - FK on assets)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/employees/3",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete employee referenced by access requests (409 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/employees/6",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete employee as viewer (403 expected)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/employees/9",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delete employee (the one created above)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/employees/9",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list teams",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/teams?sort=name",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get team",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/teams/1",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list team employees",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/teams/4/employees?status=active",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get missing team (404 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/teams/99",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list assets",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/assets?sort=asset_tag&per_page=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "filter assets in stock",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/assets?status=in_stock&category=laptop",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "search assets",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/assets?q=thinkpad",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get asset",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/assets/5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create asset",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"asset_tag\": \"OL-LT-0046\", \"category\": \"laptop\", \"model\": \"MacBook Pro 16 M4\", \"serial\": \"C02ZZ1AB99XY\", \"purchase_cost_cents\": 329900, \"purchased_on\": \"2026-05-20\", \"warranty_until\": \"2029-05-20\"}"
+        }
+      }
+    },
+    {
+      "name": "create asset duplicate tag (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"asset_tag\": \"OL-LT-0041\", \"category\": \"laptop\", \"model\": \"Duplicate\"}"
+        }
+      }
+    },
+    {
+      "name": "assign asset",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets/4/assign",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"employee_id\": 7}"
+        }
+      }
+    },
+    {
+      "name": "assign already-assigned asset (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets/1/assign",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"employee_id\": 7}"
+        }
+      }
+    },
+    {
+      "name": "assign retired asset (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets/10/assign",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"employee_id\": 7}"
+        }
+      }
+    },
+    {
+      "name": "assign asset as viewer (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets/6/assign",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"employee_id\": 7}"
+        }
+      }
+    },
+    {
+      "name": "return asset",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets/5/return",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"condition\": \"repair\", \"note\": \"Cracked screen, RMA 90114 raised.\"}"
+        }
+      }
+    },
+    {
+      "name": "return unassigned asset (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/assets/6/return",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "list access requests",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/access-requests?sort=-requested_at",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list pending access requests",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/access-requests?status=pending&system=production-database",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get access request",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/access-requests/2",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ]
+      }
+    },
+    {
+      "name": "create access request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"employee_id\": 7, \"system\": \"grafana\", \"access_level\": \"read_only\", \"justification\": \"Support triage needs dashboard access.\", \"expires_on\": \"2026-08-31\"}"
+        }
+      }
+    },
+    {
+      "name": "create access request bad level (422 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"employee_id\": 7, \"system\": \"grafana\", \"access_level\": \"root\", \"justification\": \"Too much.\"}"
+        }
+      }
+    },
+    {
+      "name": "create duplicate pending request (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"employee_id\": 3, \"system\": \"production-database\", \"access_level\": \"read_only\", \"justification\": \"Duplicate of request 1.\"}"
+        }
+      }
+    },
+    {
+      "name": "approve access request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests/1/approve",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"note\": \"Approved for the cutover window only.\"}"
+        }
+      }
+    },
+    {
+      "name": "approve already-decided request (409 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests/1/approve",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"note\": \"Second attempt.\"}"
+        }
+      }
+    },
+    {
+      "name": "approve own request (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests/7/approve",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"note\": \"Approving my own request.\"}"
+        }
+      }
+    },
+    {
+      "name": "approve request as viewer (403 expected)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests/7/approve",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_viewer_c81b7e05"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"note\": \"Viewers cannot decide.\"}"
+        }
+      }
+    },
+    {
+      "name": "deny access request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/access-requests/5/deny",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"note\": \"Use the shared on-call schedule instead.\"}"
+        }
+      }
+    },
+    {
+      "name": "audit log",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/audit-log?per_page=5",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ]
+      }
+    },
+    {
+      "name": "audit log filtered",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/audit-log?entity_type=asset",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ]
+      }
+    },
+    {
+      "name": "audit log as manager (403 expected)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/audit-log",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_manager_2b90d7fc"
+          }
+        ]
+      }
+    },
+    {
+      "name": "migrations",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/_meta/migrations",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ]
+      }
+    },
+    {
+      "name": "schema introspection",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/_meta/schema",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ]
+      }
+    },
+    {
+      "name": "logout",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/auth/logout",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer at_static_admin_9f3c1a7e"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    }
+  ]
+}

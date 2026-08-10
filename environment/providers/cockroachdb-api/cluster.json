@@ -1,0 +1,43 @@
+{
+  "version": "CockroachDB CCL v23.2.5 (x86_64-pc-linux-gnu, built 2026/03/18 14:02:11, go1.21.9)",
+  "server_version": "23.2.5",
+  "cluster_id": "9f3c1a7e-5b2d-4086-af51-c7e93b0d6248",
+  "cluster_name": "orbit-fleet",
+  "database": "orbit_fleet",
+  "schema": "public",
+  "license_type": "Enterprise",
+  "primary_region": "eu-central-1",
+  "survival_goal": "REGION FAILURE",
+  "regions": [
+    {"region": "eu-central-1", "zones": ["a", "b"], "nodes": 2, "primary": true},
+    {"region": "eu-west-1", "zones": ["a"], "nodes": 1, "primary": false},
+    {"region": "us-east-1", "zones": ["a"], "nodes": 1, "primary": false},
+    {"region": "us-west-2", "zones": ["a"], "nodes": 1, "primary": false},
+    {"region": "ap-southeast-1", "zones": ["a"], "nodes": 1, "primary": false}
+  ],
+  "table_localities": {
+    "devices": "REGIONAL BY ROW",
+    "device_events": "REGIONAL BY TABLE IN PRIMARY REGION",
+    "firmware_releases": "GLOBAL",
+    "rollouts": "REGIONAL BY TABLE IN PRIMARY REGION"
+  },
+  "settings": [
+    {"variable": "sql.defaults.default_int_size", "value": "8", "type": "i", "description": "the size, in bytes, of an INT type"},
+    {"variable": "sql.defaults.transaction_isolation", "value": "serializable", "type": "s", "description": "default isolation level"},
+    {"variable": "kv.rangefeed.enabled", "value": "true", "type": "b", "description": "if set, rangefeed registration is enabled"},
+    {"variable": "kv.closed_timestamp.target_duration", "value": "3s", "type": "d", "description": "target duration for advancing the closed timestamp"},
+    {"variable": "kv.closed_timestamp.follower_reads_enabled", "value": "true", "type": "b", "description": "allow follower reads"},
+    {"variable": "sql.stats.automatic_collection.enabled", "value": "true", "type": "b", "description": "automatic statistics collection"},
+    {"variable": "server.time_until_store_dead", "value": "5m0s", "type": "d", "description": "time after which a store is considered dead"},
+    {"variable": "kv.range_split.load_qps_threshold", "value": "2500", "type": "i", "description": "QPS above which a range is split"},
+    {"variable": "sql.trace.txn.enable_threshold", "value": "0s", "type": "d", "description": "trace transactions slower than this"},
+    {"variable": "version", "value": "23.2", "type": "m", "description": "set the active cluster version"}
+  ],
+  "contention": {
+    "note": "Rows listed here are hot enough that a serializable transaction touching them collides on its first attempt, as it would under real contention.",
+    "devices": ["3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901"]
+  },
+  "auth": {
+    "default_user": "orbit_app"
+  }
+}

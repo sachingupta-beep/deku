@@ -1,0 +1,35 @@
+{
+  "subdomain": "orbitinsights",
+  "name": "Orbit Insights",
+  "region": "eu-central-1",
+  "plan": "pro",
+  "postgres_version": "15.6",
+  "versions": {
+    "hasura": "v2.42.0",
+    "auth": "0.36.1",
+    "storage": "0.6.1",
+    "postgres": "15.6",
+    "functions": "1.5.0"
+  },
+  "endpoints": {
+    "graphql": "/v1/graphql",
+    "auth": "/v1/auth",
+    "storage": "/v1/storage",
+    "functions": "/v1/functions"
+  },
+  "auth": {
+    "access_token_expires_in": 900,
+    "refresh_token_expires_in": 2592000,
+    "allowed_email_domains": [],
+    "sign_up_enabled": true,
+    "mfa_enabled": false
+  },
+  "credentials": {
+    "adminSecret": "nhost_admin_secret_5b71c9e0a482",
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9.user.orbitinsights",
+    "refreshToken": "1c6e0a94-73b5-4f28-8d10-9a2c74e5b063",
+    "sessionUserId": "2b7f1c94-3d05-4e68-a91f-6c48e07b2d53",
+    "email": "priya.raman@aurorabistro.com",
+    "password": "OrbitInsights2026!"
+  }
+}

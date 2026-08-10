@@ -1,0 +1,72 @@
+[
+  {
+    "id": "1001",
+    "dashboard_id": "101",
+    "name": "Daily orders",
+    "spec": "SELECT date_trunc('day', created_at) AS day, count(*) FROM orders GROUP BY 1",
+    "runtime_ms": "48",
+    "rows_returned": "30",
+    "cached": "true",
+    "last_run_at": "2026-05-26T06:00:00+00:00"
+  },
+  {
+    "id": "1002",
+    "dashboard_id": "101",
+    "name": "Average basket size",
+    "spec": "SELECT avg(total_cents)/100.0 FROM orders WHERE created_at > now() - interval '30 days'",
+    "runtime_ms": "112",
+    "rows_returned": "1",
+    "cached": "true",
+    "last_run_at": "2026-05-26T06:00:02+00:00"
+  },
+  {
+    "id": "1003",
+    "dashboard_id": "103",
+    "name": "Robot uptime by site",
+    "spec": "SELECT site, avg(uptime_pct) FROM telemetry GROUP BY site ORDER BY 2 DESC",
+    "runtime_ms": "1840",
+    "rows_returned": "48",
+    "cached": "false",
+    "last_run_at": "2026-05-26T06:05:00+00:00"
+  },
+  {
+    "id": "1004",
+    "dashboard_id": "103",
+    "name": "Fault codes this week",
+    "spec": "SELECT code, count(*) FROM faults WHERE ts > now() - interval '7 days' GROUP BY 1",
+    "runtime_ms": "620",
+    "rows_returned": "17",
+    "cached": "false",
+    "last_run_at": "2026-05-26T06:05:04+00:00"
+  },
+  {
+    "id": "1005",
+    "dashboard_id": "104",
+    "name": "MRR by region",
+    "spec": "SELECT region, sum(mrr_cents)/100.0 FROM subscriptions GROUP BY region",
+    "runtime_ms": "204",
+    "rows_returned": "6",
+    "cached": "true",
+    "last_run_at": "2026-05-19T15:00:00+00:00"
+  },
+  {
+    "id": "1006",
+    "dashboard_id": "106",
+    "name": "Overdue deliverables",
+    "spec": "SELECT client, count(*) FROM deliverables WHERE due_on < current_date AND status <> 'done' GROUP BY 1",
+    "runtime_ms": "77",
+    "rows_returned": "4",
+    "cached": "true",
+    "last_run_at": "2026-04-30T12:00:00+00:00"
+  },
+  {
+    "id": "1007",
+    "dashboard_id": "102",
+    "name": "Public uptime 30d",
+    "spec": "SELECT date_trunc('day', ts) AS day, avg(uptime_pct) FROM status_checks GROUP BY 1",
+    "runtime_ms": "36",
+    "rows_returned": "30",
+    "cached": "true",
+    "last_run_at": "2026-05-20T08:40:00+00:00"
+  }
+]

@@ -1,0 +1,5 @@
+[service]
+name = "mailcatcher-api"
+port = 8125
+env_var_name = "MAILCATCHER_API_URL"
+healthcheck_path = "/health"

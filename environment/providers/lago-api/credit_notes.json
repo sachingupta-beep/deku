@@ -1,0 +1,17 @@
+[
+  {
+    "lago_id": "cn_3f7e1b0c2d54c001",
+    "number": "ORB-2026-0004-001-CN01",
+    "invoice_id": "inv_3f7e1b0c2d54f001",
+    "external_customer_id": "cust_orbit_labs",
+    "reason": "duplicated_charge",
+    "description": "Egress double counted on 2026-04-18",
+    "credit_status": "available",
+    "refund_status": "pending",
+    "currency": "EUR",
+    "credit_amount_cents": "4500",
+    "refund_amount_cents": "0",
+    "balance_amount_cents": "4500",
+    "created_at": "2026-05-06T10:22:14Z"
+  }
+]

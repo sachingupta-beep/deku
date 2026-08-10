@@ -1,0 +1,44 @@
+[
+  {
+    "paymentId": "p111f3c7-d94b-4e6a-8d85-3f7e1b0c2d54",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "a1f3c7d9-4b2e-4c6a-9d85-3f7e1b0c2d54",
+    "paymentMethodId": "pm11f3c7-d94b-4e6a-8d85-3f7e1b0c2d54",
+    "paymentNumber": "801",
+    "externalKey": "orbit-amelia-2026-05",
+    "currency": "EUR",
+    "authAmount": "0",
+    "capturedAmount": "0",
+    "purchasedAmount": "14800",
+    "refundedAmount": "0",
+    "created": "2026-05-04T02:10:00Z"
+  },
+  {
+    "paymentId": "p222e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "b2e4d8ea-5c3f-4d7b-8e96-4a8f2c1d3e65",
+    "paymentMethodId": "pm22e4d8-ea5c-4f7b-8e96-4a8f2c1d3e65",
+    "paymentNumber": "802",
+    "externalKey": "orbit-acme-2026-06",
+    "currency": "EUR",
+    "authAmount": "0",
+    "capturedAmount": "0",
+    "purchasedAmount": "0",
+    "refundedAmount": "0",
+    "created": "2026-06-02T02:10:00Z"
+  },
+  {
+    "paymentId": "p333f5e9-fb6d-4e8c-9fa7-5b903d2e4f76",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "accountId": "c3f5e9fb-6d40-4e8c-9fa7-5b903d2e4f76",
+    "paymentMethodId": "pm33f5e9-fb6d-4e8c-9fa7-5b903d2e4f76",
+    "paymentNumber": "798",
+    "externalKey": "orbit-northwind-2026-01",
+    "currency": "USD",
+    "authAmount": "115000",
+    "capturedAmount": "92900",
+    "purchasedAmount": "0",
+    "refundedAmount": "0",
+    "created": "2026-01-22T17:15:00Z"
+  }
+]

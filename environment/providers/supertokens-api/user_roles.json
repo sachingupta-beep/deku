@@ -1,0 +1,8 @@
+[
+  {"id": "1", "userId": "0d1e7b3a-5c92-4f68-a017-9e4b3d6c25f1", "tenantId": "public", "role": "owner"},
+  {"id": "2", "userId": "5a92c04f-1b76-4d38-9e51-c8f0b273a469", "tenantId": "public", "role": "engineer"},
+  {"id": "3", "userId": "b3f61d08-9e24-4a75-8c30-71d5e0a94b26", "tenantId": "public", "role": "engineer"},
+  {"id": "4", "userId": "e84c25b7-0a63-4f91-bd28-3c7016fa5d84", "tenantId": "public", "role": "support"},
+  {"id": "5", "userId": "7c05f9e2-46b1-48da-9037-2ba8d1c6e053", "tenantId": "orbit-enterprise", "role": "engineer"},
+  {"id": "6", "userId": "2f7a83c1-d504-4e69-b1a2-60e9c745f83b", "tenantId": "public", "role": "service"}
+]

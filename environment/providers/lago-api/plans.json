@@ -1,0 +1,41 @@
+[
+  {
+    "code": "orbit_starter",
+    "lago_id": "pl_3f7e1b0c2d54a196",
+    "name": "Orbit Starter",
+    "description": "Small teams, metered API usage in packages",
+    "interval": "monthly",
+    "amount_cents": "2900",
+    "amount_currency": "EUR",
+    "pay_in_advance": "1",
+    "trial_period_days": "14",
+    "bill_charges_monthly": "0",
+    "created_at": "2025-10-02T10:00:00Z"
+  },
+  {
+    "code": "orbit_growth",
+    "lago_id": "pl_5b07d21f8c642e07",
+    "name": "Orbit Growth",
+    "description": "Graduated API pricing, volume egress, per-seat",
+    "interval": "monthly",
+    "amount_cents": "9900",
+    "amount_currency": "EUR",
+    "pay_in_advance": "1",
+    "trial_period_days": "0",
+    "bill_charges_monthly": "0",
+    "created_at": "2025-10-02T10:06:18Z"
+  },
+  {
+    "code": "orbit_scale",
+    "lago_id": "pl_9f14c73e0b2a83f5",
+    "name": "Orbit Scale",
+    "description": "Annual commitment with a percentage charge on volume",
+    "interval": "yearly",
+    "amount_cents": "99000",
+    "amount_currency": "USD",
+    "pay_in_advance": "1",
+    "trial_period_days": "0",
+    "bill_charges_monthly": "1",
+    "created_at": "2026-01-09T11:00:00Z"
+  }
+]

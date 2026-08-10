@@ -1,0 +1,16 @@
+[
+  {
+    "apiKey": "orbit-labs",
+    "tenantId": "3f7e1b0c-2d54-4a19-9b85-1c2a3e4f5a6b",
+    "apiSecret": "orbit-labs-secret-9f14c73e",
+    "externalKey": "orbit-labs-production",
+    "created": "2025-09-14T08:00:00Z"
+  },
+  {
+    "apiKey": "acme-reseller",
+    "tenantId": "5b07d21f-8c64-4e07-8d96-2a3b4c5d6e7f",
+    "apiSecret": "acme-reseller-secret-5b07d21f",
+    "externalKey": "acme-reseller-production",
+    "created": "2026-01-19T14:00:00Z"
+  }
+]

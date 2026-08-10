@@ -1,0 +1,51 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "lago"
+name     = "Lago"
+category = "payments"
+status   = "declared"
+version  = "v1"
+module   = "services.lago.service:LagoService"
+upstream = "https://docs.getlago.com/api-reference/intro"
+summary  = """
+Usage-based billing: metered events aggregated per billable metric, then priced through standard, package, graduated, volume and percentage charge models."""
+tags = [
+  "usage-based",
+  "metering",
+  "charge-models",
+  "invoices",
+  "wallets",
+]
+
+[data]
+dir = "lago"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "api",
+]
+description = """
+`Authorization: Bearer <api_key>` for a single organization. There is no per-user role model -- Lago's API key *is* the tenant."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/api/v1/customers",
+  "/api/v1/plans",
+  "/api/v1/subscriptions",
+  "/api/v1/events",
+  "/api/v1/invoices",
+  "/api/v1/wallets",
+  "/api/v1/credit_notes",
+  "/api/v1/coupons",
+]

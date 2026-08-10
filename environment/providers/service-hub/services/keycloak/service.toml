@@ -1,0 +1,53 @@
+# Service Hub manifest -- catalog entry only.
+#
+# status = "declared" means the hub advertises this service in /hub/services and
+# /hub/catalog, but calling it returns 501 with a pointer at the authoring guide.
+# That is deliberate: a declared service is an honest "not built yet", never a
+# stub that answers 200 with invented data. Flip it to "implemented" in the same
+# commit that adds the module -- see docs/SERVICE_AUTHORING.md.
+
+[service]
+slug     = "keycloak"
+name     = "Keycloak"
+category = "auth"
+status   = "declared"
+version  = "v1"
+module   = "services.keycloak.service:KeycloakService"
+upstream = "https://www.keycloak.org/docs-api/latest/rest-api/"
+summary  = """
+Realms, clients, users, groups, role mappings and the OIDC token endpoint -- the full enterprise IAM shape, realm-scoped throughout."""
+tags = [
+  "realms",
+  "oidc",
+  "saml",
+  "role-mapping",
+  "groups",
+]
+
+[data]
+dir = "keycloak"
+
+[auth]
+scheme      = "bearer"
+roles       = [
+  "user",
+  "realm-admin",
+  "master-admin",
+]
+description = """
+`Authorization: Bearer <access_token>` from the token endpoint. Admin routes are realm-scoped: a token for realm A cannot administer realm B."""
+
+[health]
+path = "/health"
+
+[routes]
+prefixes = [
+  "/realms/{realm}/protocol/openid-connect/token",
+  "/realms/{realm}/protocol/openid-connect/userinfo",
+  "/realms/{realm}/.well-known/openid-configuration",
+  "/admin/realms",
+  "/admin/realms/{realm}/users",
+  "/admin/realms/{realm}/clients",
+  "/admin/realms/{realm}/roles",
+  "/admin/realms/{realm}/groups",
+]

@@ -1,0 +1,5 @@
+[service]
+name = "smtp4dev-api"
+port = 8124
+env_var_name = "SMTP4DEV_API_URL"
+healthcheck_path = "/health"

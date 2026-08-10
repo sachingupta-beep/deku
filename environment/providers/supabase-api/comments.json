@@ -1,0 +1,58 @@
+[
+  {
+    "id": "9001",
+    "document_id": "501",
+    "author_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901",
+    "body": "Call out the reuse-detection window explicitly - 60 seconds is not obvious from the diagram.",
+    "resolved": "true",
+    "created_at": "2026-04-04T10:15:00+00:00"
+  },
+  {
+    "id": "9002",
+    "document_id": "501",
+    "author_id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445",
+    "body": "Family invalidation should log the parent token id so support can trace it.",
+    "resolved": "false",
+    "created_at": "2026-05-21T14:05:00+00:00"
+  },
+  {
+    "id": "9003",
+    "document_id": "502",
+    "author_id": "a41f7c88-5be9-42d7-9c03-77e2f8b41d16",
+    "body": "Numbers are from the 8-core runner. Re-run on the production instance size before we quote them.",
+    "resolved": "false",
+    "created_at": "2026-04-22T08:30:00+00:00"
+  },
+  {
+    "id": "9004",
+    "document_id": "503",
+    "author_id": "3f1c9b52-8a44-4f6e-9d21-0a7c5e13b901",
+    "body": "Rollback trigger needs an owner. Assigning to Helena until the runbook is published.",
+    "resolved": "false",
+    "created_at": "2026-05-25T10:20:00+00:00"
+  },
+  {
+    "id": "9005",
+    "document_id": "504",
+    "author_id": "c72e5a94-1d38-4b6f-ae90-2f4b8c07d532",
+    "body": "Finance signed off on the downgrade queueing rule.",
+    "resolved": "true",
+    "created_at": "2026-02-20T11:00:00+00:00"
+  },
+  {
+    "id": "9006",
+    "document_id": "506",
+    "author_id": "6b2d4e10-77c3-4a9b-8f52-1d9e6c02a445",
+    "body": "Heartbeat interval should be configurable per channel, not global.",
+    "resolved": "false",
+    "created_at": "2026-05-12T09:45:00+00:00"
+  },
+  {
+    "id": "9007",
+    "document_id": "507",
+    "author_id": "a41f7c88-5be9-42d7-9c03-77e2f8b41d16",
+    "body": "Added the service_role bypass warning to the top of the page.",
+    "resolved": "true",
+    "created_at": "2026-05-09T16:20:00+00:00"
+  }
+]
