@@ -316,8 +316,6 @@ referencing `users`; `reason`, null except on an adjustment; created timestamp.
    the palette, the type scale, the count animation, reduced motion, the
    breakpoints, the focus ring, the live region, the persistent refusal.
 8. **Live convergence.** Board refresh by interval or same-origin event stream.
-9. **Detach and verify.** Start the server so it outlives your session, then
-   confirm the listening process and the port.
 
 ---
 
@@ -347,41 +345,9 @@ knows nothing about your code, after your session has ended.
   shape is invisible to it.
 - Reserved `.browser_screenshots/` and `.downloads/` directories exist at the app
   root, empty.
-- **Write `/app/start.sh`, and make it executable.** Grading may redeploy your
-  app into a *clean* container: same base image, your `/app` files copied in, and
-  nothing else — no processes running, no caches you warmed, no packages you
-  installed outside `/app`, no state you created by hand. Postgres is still there
-  at the same address, but **its data is re-created from scratch**, so any rows
-  you wrote during this session are gone and your schema, constraints and seed
-  must be applied by the script. That includes the database constraint the
-  oversell rule depends on — a constraint that only exists because you typed it
-  once by hand does not survive. `start.sh` must:
-  - install whatever it needs from inside the script — do not assume anything you
-    installed during this session still exists. **A virtualenv is not portable**:
-    `.venv` records absolute paths and holds binaries built for one machine, so
-    copying it into `/app` produces `cannot execute binary file` in a clean
-    container. Create the environment inside `start.sh`, or install into the
-    system interpreter. The same applies to `node_modules` containing compiled
-    native modules.
-  - apply migrations and seed data against `DATABASE_URL`, and be safe to run
-    against an already-populated database as well as an empty one,
-  - read the port from `APP_PUBLIC_PORT` and the database address from the
-    environment, never hardcoded,
-  - start the server detached, and exit `0` once the app is answering.
-- **Prove `start.sh` works before you finish.** Kill every process you started,
-  run `bash /app/start.sh` yourself, and confirm `GET /api/health` returns `200`
-  afterwards. An app that only runs because of something you did by hand in this
-  session is not a deployable app, and will score zero.
 - Serve a production build behind a static or preview server — never a dev
   server.
-- The server must outlive this session. Grading runs after your session ends.
-  Start it fully detached:
-  `setsid nohup <command> > /tmp/app.log 2>&1 < /dev/null &`
-  An ordinary background job is killed the instant the session ends, and the app
-  scores zero however correct it is.
 - Bind `0.0.0.0`, never `127.0.0.1` or `localhost`.
-- Before finishing, verify persistence: the listening process's parent is not
-  your shell, and the port still answers.
 - The backing services named in this brief are already running and reachable at
   their environment variables. Do not download, install, compile or start a copy
   of any of them.

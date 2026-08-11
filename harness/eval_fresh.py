@@ -253,9 +253,28 @@ def stage_app(trial: Path, staging: Path) -> Path:
     if not src.is_dir():
         sys.exit(f"no /app artifact at {src} -- was the trial run with artifact collection?")
     dst = staging / "app"
+    # symlinks=True: copy links AS links, never follow them.
+    #
+    # The default follows a symlink and copies its target, so a DANGLING link
+    # aborts the whole copy. Agents commit virtualenvs, and `.venv/bin/python3`
+    # points at an interpreter that does not exist in the collected artifact:
+    #
+    #   shutil.Error: [Errno 2] No such file or directory:
+    #     .../artifacts/app/.venv/bin/python3
+    #
+    # 2026-08-11: that killed a 19-minute run at the first step of grading, on an
+    # app that had been collected perfectly. It is also the wrong behaviour on its
+    # own terms -- resolving links would silently inline whatever they point at
+    # and change what is graded.
+    #
+    # NOT stripping .venv/node_modules here on purpose. The deployment contract
+    # makes excluding them the agent's job via its own .dockerignore; removing
+    # them for it would hide whether it did.
     shutil.copytree(
         src, dst,
+        symlinks=True,
         ignore=shutil.ignore_patterns(*CACHE_DIRS),
+        ignore_dangling_symlinks=True,
     )
     dropped = sum(1 for p in src.rglob("*") if p.is_dir() and p.name in CACHE_DIRS)
     if dropped:

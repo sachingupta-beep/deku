@@ -54,7 +54,13 @@ def _copytree(src: Path, dst: Path) -> int:
         return 0
     n = sum(1 for p in src.rglob("*") if p.is_file())
     if n:
-        shutil.copytree(src, dst, dirs_exist_ok=True)
+        # symlinks=True so a dangling link is copied as a link rather than
+        # followed. An agent-committed .venv holds `bin/python3 -> <interpreter
+        # that is not in the artifact>`, and following it raised
+        # FileNotFoundError, which skipped publishing an entire completed run
+        # (2026-08-11). Publishing must never fail on the CONTENT of an app.
+        shutil.copytree(src, dst, dirs_exist_ok=True,
+                        symlinks=True, ignore_dangling_symlinks=True)
     return n
 
 
@@ -231,6 +237,12 @@ def repackage(trial: Path, verifier_dir: str = "verifier") -> Path:
         vdir / "ctrf.json": "pytest_ctrf.json",
         vdir / "judge.json": "judge.json",
         vdir / "ctrf-error.json": "pytest_collection_error.json",
+        # The per-substep browser verdicts, each with the `note` saying WHY it
+        # failed ("the URL remains at /queue instead of redirecting to /login").
+        # Without this the published bundle records that a browser substep failed
+        # and nothing about what the grader actually saw, which is the difference
+        # between a diagnosable result and a number.
+        vdir / "browser_results.json": "browser_results.json",
         trial / "artifacts" / "manifest.json": "artifacts_manifest.json",
         # How the app was actually deployed. Without these the published bundle
         # shows an app and a score with nothing connecting them -- and when the
@@ -259,6 +271,14 @@ def repackage(trial: Path, verifier_dir: str = "verifier") -> Path:
     published = _load_json(vdir / "reward.json")
     if "reward" in published:
         rewards = {**rewards, "reward": published["reward"]}
+    # `deployed` lives in the SUMMARY, not in reward.json, and result.json's copy
+    # is Harbor's -- empty under --disable-verification, which is how every run
+    # goes through bin/deku-run. Reading it there published `deployed: null`
+    # beside a workflows.json saying `deployed: 1.0`: a manifest contradicting the
+    # file next to it, on the one field that says whether the app came up at all.
+    published_summary = _load_json(dest / "workflows.json").get("summary") or {}
+    if published_summary.get("deployed") is not None:
+        rewards = {**rewards, "deployed": published_summary["deployed"]}
     manifest = {
         "task": task_name,
         "model": model,
