@@ -71,14 +71,18 @@ build_timeout_sec = 900.0
 # PLAN.md 3.6 targets no-network with a pre-seeded package cache. Until the
 # Phase 2 cache lands this uses the documented allowlist fallback. Egress is
 # build-time only: no provider is remote.
-network_mode  = "allowlist"
-allowed_hosts = [
-  "registry.npmjs.org",
-  "pypi.org",
-  "files.pythonhosted.org",
-  "github.com",
-  "objects.githubusercontent.com",
-]
+# LOCAL-DEV SETTING -- revert to "allowlist" before admission. Docker Desktop's
+# LinuxKit kernel lacks CONFIG_NFT_FIB_INET, so Harbor cannot enforce any
+# non-public policy and rejects the task before the agent starts:
+#   ValueError: network_mode='allowlist' is not supported by EnvironmentType.DOCKER
+network_mode  = "public"
+# allowed_hosts = [
+#   "registry.npmjs.org",
+#   "pypi.org",
+#   "files.pythonhosted.org",
+#   "github.com",
+#   "objects.githubusercontent.com",
+# ]
 
 env = { APP_PUBLIC_PORT = "4173", DB_URL = "${DB_URL:-postgresql://deku_app:deku-local-dev@postgres:5432/ethara}", DATABASE_URL = "${DB_URL:-postgresql://deku_app:deku-local-dev@postgres:5432/ethara}" }
 

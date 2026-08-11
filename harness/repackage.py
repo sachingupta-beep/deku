@@ -77,9 +77,35 @@ def _dur(stage: dict | None) -> float | None:
 
 
 # ------------------------------------------------------------- task services
-def _task_services(task_name: str) -> dict:
+def _resolve_task_dir(trial: Path, task_name: str) -> Path:
+    """The task directory this trial actually ran, on disk.
+
+    config.json records the path Harbor was given, which is the only reliable
+    source. The trial DIRECTORY name is not: Harbor truncates it to 31 characters,
+    so `E_custo_tick_customer-issue-queue_20260810_063238` arrives as
+    `E_custo_tick_customer-issue-queu__3o5bDMk` and `tasks/<that>` does not exist.
+    _task_services() then found nothing and wrote `{"declared": {}, "images": {},
+    "seed_files": []}` -- an empty provenance record that reads as "this task
+    declared no services" rather than "we could not find the task".
+    """
+    config = _load_json(trial / "config.json")
+    raw = (config.get("task") or {}).get("path") or ""
+    if raw:
+        path = Path(raw)
+        if not path.is_absolute():
+            path = REPO / path
+        if path.is_dir():
+            return path
+    # Fall back to the (possibly truncated) name, then to a unique prefix match.
+    direct = REPO / "tasks" / task_name
+    if direct.is_dir():
+        return direct
+    matches = [p for p in (REPO / "tasks").glob(f"{task_name}*") if p.is_dir()]
+    return matches[0] if len(matches) == 1 else direct
+
+
+def _task_services(tdir: Path) -> dict:
     """Read the task's declared slots + parse service images from its compose."""
-    tdir = REPO / "tasks" / task_name
     services: dict = {"declared": {}, "images": {}, "seed_files": []}
     toml_path = tdir / "task.toml"
     if tomllib and toml_path.exists():
@@ -193,7 +219,7 @@ def repackage(trial: Path, verifier_dir: str = "verifier") -> Path:
     # --- services evidence ---
     (dest / "services").mkdir(exist_ok=True)
     (dest / "services" / "services.json").write_text(
-        json.dumps(_task_services(task_name), indent=2) + "\n"
+        json.dumps(_task_services(_resolve_task_dir(trial, task_name)), indent=2) + "\n"
     )
 
     # --- every raw log ---
@@ -206,6 +232,17 @@ def repackage(trial: Path, verifier_dir: str = "verifier") -> Path:
         vdir / "judge.json": "judge.json",
         vdir / "ctrf-error.json": "pytest_collection_error.json",
         trial / "artifacts" / "manifest.json": "artifacts_manifest.json",
+        # How the app was actually deployed. Without these the published bundle
+        # shows an app and a score with nothing connecting them -- and when the
+        # score is a deploy failure, they ARE the evidence. The Dockerfile and the
+        # plan are harness-generated (app_image.py), so they are not in app/ and
+        # exist nowhere else once the trial is cleaned up.
+        vdir / "generated.Dockerfile": "generated.Dockerfile",
+        vdir / "generated.plan.txt": "generated.plan.txt",
+        vdir / "app_build.log": "app_build.log",
+        vdir / "app_container.log": "app_container.log",
+        vdir / "start_sh.log": "start_sh.log",
+        vdir / "USER_README.boot.md": "USER_README.boot.md",
     }
     for src, name in log_map.items():
         if src.exists():

@@ -1,0 +1,262 @@
+# Hidden grading checklist for ethara/customer-issue-queue.
+#
+# A workflow passes iff  passing_substeps / total_substeps >= 0.90
+#                        AND every substep marked `critical` passed.
+# reward = passing_workflows / total_workflows.
+#
+# Substep grader selection (INV7, reference E):
+#   browser -> what a user does or sees
+#   pytest  -> a real, externally observable side effect (DB state, HTTP
+#              surface, permission denial, mail-server inbox). Email delivery
+#              is ALWAYS pytest: a browser looking at a confirmation screen
+#              cannot tell a real send from a setTimeout.
+#
+# `critical` is written here and nowhere else. The two declared slots (db,
+# email) each carry critical substeps; every permission-boundary workflow
+# asserts its denial at the API.
+
+# ---------------------------------------------------------------- happy paths
+
+- id: customer_raises_issue
+  purpose: A customer submits an issue and it enters the queue unowned
+  substeps:
+    - kind: browser
+      do: Sign in as customer@example.com with the password in /app/USER_README.md
+      cov: C-CF-04
+    - kind: browser
+      do: Open /tickets/new and submit the title "Checkout button unresponsive" at high urgency
+      cov: C-UF-05
+    - kind: browser
+      do: Verify the ticket detail page shows status open with no assignee named
+      cov: C-CF-08
+    - kind: pytest
+      test: test_core_features.py::test_raised_ticket_persists_open_and_unassigned
+      critical: true
+      cov: C-CF-09
+    - kind: pytest
+      test: test_data_integrity.py::test_raised_ticket_records_raising_customer
+      cov: C-CF-10
+
+- id: agent_claims_ticket_and_customer_is_emailed
+  purpose: An agent claims a queued ticket and the raising customer receives one email
+  substeps:
+    - kind: browser
+      do: Sign in as agent@example.com and open /queue
+      cov: C-UF-02
+    - kind: browser
+      do: Claim the seeded ticket "Payment page returns 500"
+      cov: C-RL-08
+    - kind: browser
+      do: Verify the ticket detail names Marco Ruiz as the assignee and reads assigned
+      cov: C-CF-16
+    - kind: pytest
+      test: test_core_features.py::test_claim_persists_assignee_and_status
+      critical: true
+      cov: C-CF-17
+    - kind: pytest
+      test: test_email.py::test_claim_delivers_one_email_to_raising_customer
+      critical: true
+      cov: C-CF-32, C-DC-19, C-CN-04
+    - kind: pytest
+      test: test_email.py::test_assignment_email_subject_carries_prefix_and_title
+      critical: true
+      cov: C-CF-37
+
+- id: supervisor_reassigns_and_customer_is_emailed_again
+  purpose: A supervisor moves an owned ticket to another agent and the customer is emailed again
+  substeps:
+    - kind: browser
+      do: Sign in as supervisor@example.com and open /all-tickets
+      cov: C-UF-04
+    - kind: browser
+      do: Reassign the seeded ticket "Login loop on mobile" to Lena Fischer
+      cov: C-RL-13
+    - kind: browser
+      do: Verify the ticket detail now names Lena Fischer as the assignee
+      cov: C-CF-26
+    - kind: pytest
+      test: test_core_features.py::test_reassign_persists_new_assignee
+      critical: true
+      cov: C-CF-26
+    - kind: pytest
+      test: test_email.py::test_reassign_delivers_second_email_to_raising_customer
+      critical: true
+      cov: C-CF-32
+
+- id: assignee_resolves_ticket
+  purpose: The owning agent closes a ticket and no notification is sent
+  substeps:
+    - kind: browser
+      do: Sign in as agent@example.com and open the ticket assigned to that agent
+      cov: C-UF-03
+    - kind: browser
+      do: Resolve the ticket and confirm the action in the modal
+      cov: C-RL-09
+    - kind: browser
+      do: Verify the ticket detail reads resolved
+      cov: C-CF-43
+    - kind: pytest
+      test: test_core_features.py::test_resolve_persists_terminal_status
+      critical: true
+      cov: C-CF-43
+    - kind: pytest
+      test: test_email.py::test_resolution_delivers_no_email
+      critical: true
+      cov: C-CF-41
+
+- id: queue_lists_unowned_tickets_newest_first
+  purpose: The queue shows only unowned tickets in newest-first order
+  substeps:
+    - kind: browser
+      do: Sign in as agent2@example.com and open /queue
+      cov: C-UF-02
+    - kind: browser
+      do: Verify the queue lists "Payment page returns 500" and "Export CSV missing columns"
+      cov: C-DM-14
+    - kind: pytest
+      test: test_core_features.py::test_ticket_list_returns_array_newest_first
+      critical: true
+      cov: C-CF-15, C-OV-07, C-OV-08, C-OV-10, C-CN-01, C-CN-05, C-CN-07, C-DC-08, C-DC-09
+
+# ------------------------------------------------------- boundaries and edges
+
+- id: second_claim_on_owned_ticket_is_rejected
+  purpose: A ticket already owned by one agent cannot be claimed by another
+  substeps:
+    - kind: browser
+      do: Sign in as agent2@example.com and open the seeded ticket "Login loop on mobile"
+      cov: C-DM-16
+    - kind: browser
+      do: Verify no claim control is offered on a ticket that already has an assignee
+      cov: C-RL-11
+    - kind: pytest
+      test: test_core_features.py::test_claim_on_assigned_ticket_returns_409
+      critical: true
+      cov: C-CF-19
+    - kind: pytest
+      test: test_data_integrity.py::test_rejected_claim_leaves_assignee_unchanged
+      critical: true
+      cov: C-CF-20
+
+- id: concurrent_claims_yield_one_winner
+  purpose: Two simultaneous claims on one queued ticket produce exactly one owner
+  substeps:
+    - kind: pytest
+      test: test_core_features.py::test_concurrent_claims_produce_one_success_and_one_409
+      critical: true
+      cov: C-CF-21
+    - kind: pytest
+      test: test_data_integrity.py::test_concurrent_claims_store_single_assignee
+      critical: true
+      cov: C-CF-23
+    - kind: pytest
+      test: test_email.py::test_concurrent_claims_deliver_exactly_one_email
+      critical: true
+      cov: C-OV-06
+
+- id: agent_reassign_is_forbidden
+  purpose: An agent cannot move a ticket between agents
+  substeps:
+    - kind: pytest
+      test: test_authorization.py::test_agent_reassign_returns_403
+      critical: true
+      cov: C-RL-10
+    - kind: pytest
+      test: test_data_integrity.py::test_forbidden_reassign_leaves_assignee_unchanged
+      critical: true
+      cov: C-CF-31
+
+- id: customer_claim_is_forbidden
+  purpose: A customer cannot claim a ticket from the queue
+  substeps:
+    - kind: pytest
+      test: test_authorization.py::test_customer_claim_returns_403
+      critical: true
+      cov: C-RL-03
+    - kind: pytest
+      test: test_authorization.py::test_agent_raise_returns_403
+      cov: C-CF-13
+
+- id: cross_customer_read_is_denied
+  purpose: A customer cannot read an issue raised by a different customer
+  substeps:
+    - kind: browser
+      do: Sign in as customer2@example.com and open /my-tickets
+      cov: C-UF-09
+    - kind: browser
+      do: Verify only "Export CSV missing columns" appears in that customer's own list
+      cov: C-RL-01
+    - kind: pytest
+      test: test_authorization.py::test_cross_customer_ticket_read_returns_403
+      critical: true
+      cov: C-RL-20
+
+- id: unauthenticated_request_cannot_reach_protected_data
+  purpose: An anonymous visitor is sent to the sign-in page and the API refuses the call
+  substeps:
+    - kind: browser
+      do: Open /queue in a fresh session and verify the app lands on /login
+      cov: C-UF-07
+    - kind: pytest
+      test: test_authorization.py::test_ticket_list_without_token_returns_401
+      critical: true
+      cov: C-RL-17
+
+- id: resolve_without_assignee_is_refused
+  purpose: A queued ticket with no owner cannot be closed
+  substeps:
+    - kind: pytest
+      test: test_edge_cases.py::test_resolve_open_ticket_returns_409
+      critical: true
+      cov: C-CF-44
+    - kind: pytest
+      test: test_edge_cases.py::test_transition_out_of_resolved_returns_409
+      cov: C-CF-45, C-OV-09, C-CN-02, C-CN-03
+
+- id: empty_title_submission_is_refused
+  purpose: A ticket with no title is not stored
+  substeps:
+    - kind: browser
+      do: Sign in as customer@example.com and submit the new-issue form with an empty title
+      cov: C-UF-05
+    - kind: browser
+      do: Verify an inline message names the missing field
+      cov: C-UF-20
+    - kind: pytest
+      test: test_edge_cases.py::test_empty_title_returns_422
+      critical: true
+      cov: C-CF-11
+    - kind: pytest
+      test: test_edge_cases.py::test_empty_body_returns_422
+      cov: C-CF-12
+
+- id: reassign_to_current_holder_is_refused
+  purpose: Naming the agent who already owns a ticket is not a reassignment
+  substeps:
+    - kind: pytest
+      test: test_edge_cases.py::test_reassign_to_current_holder_returns_409
+      critical: true
+      cov: C-CF-28
+    - kind: pytest
+      test: test_email.py::test_refused_reassign_delivers_no_email
+      critical: true
+      cov: C-CF-42
+
+- id: health_and_seed_integrity
+  purpose: The app reports ready and its seeded data matches the brief
+  substeps:
+    - kind: pytest
+      test: test_data_integrity.py::test_health_endpoint_returns_200
+      critical: true
+      cov: C-TR-04, C-DC-02, C-DC-03, C-DC-06, C-DC-10, C-DC-11, C-DC-12, C-DC-13, C-DC-14, C-DC-15, C-TR-01, C-TR-02, C-TR-03, C-TR-05, C-TR-06, C-TR-07
+    - kind: pytest
+      test: test_data_integrity.py::test_seeded_accounts_match_brief
+      critical: true
+      cov: C-DM-17, C-CF-03, C-DM-03, C-DC-07
+    - kind: pytest
+      test: test_data_integrity.py::test_seeded_tickets_match_brief
+      critical: true
+      cov: C-DM-16, C-DC-18, C-TR-08, C-TR-09, C-CN-06
+    - kind: pytest
+      test: test_data_integrity.py::test_seeding_is_idempotent
+      cov: C-DM-18

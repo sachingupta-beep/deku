@@ -1,0 +1,43 @@
+{{ instruction }}
+
+---
+
+## How this app is deployed and graded
+
+This section is added by the harness, identically for every task. It describes
+how your work is collected and run; the brief above describes what to build.
+
+**Write `/app/Dockerfile`.** Grading does not reuse this container. It runs
+`docker build /app` against your source alone, then starts the resulting image as
+a container of its own on the same network as the backing services. Nothing from
+this session comes with it: no running processes, no packages you installed
+outside `/app`, no caches you warmed, no rows you created by hand. The database
+is re-created from scratch, so your schema, migrations and seed must be applied
+by the image itself.
+
+The container must serve the app in the foreground on the port this brief names,
+bound to `0.0.0.0`, and read every service address from the environment at
+container start — no service is reachable during `docker build`.
+
+**Check whether you have a Docker daemon to test with.** Run `docker info`. If it
+answers, a daemon has been reserved for you and you should not finish until you
+have built your image and confirmed the health endpoint answers from it. If the
+command is missing or cannot connect, this task has no daemon: write the
+`Dockerfile` carefully and read it back as if you were the machine executing it,
+step by step, asking at each one what is present in the image at that moment.
+
+If the daemon IS available, two facts about it you cannot discover on your own,
+and which will otherwise cost you time:
+
+- A container you start with `--network host` is reachable at **`http://dockerd:<port>`**,
+  not `http://localhost:<port>`. `--network host` means the daemon's network, not
+  this container's. Your app has not failed just because `localhost` refuses.
+- Inside it, the backing services resolve by the same hostnames they use here, so
+  a real database connection is part of the test. Pass the environment variables
+  your app needs with `-e`, as grading will.
+
+The daemon is yours alone and shares nothing with the grader, so images you build
+here are invisible to it. **Grading rebuilds from your source**, which means a
+working container proves nothing by itself — what is graded is the `Dockerfile`.
+If you fix something by hand inside a running container, put the fix in the
+`Dockerfile`.

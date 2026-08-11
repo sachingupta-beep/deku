@@ -1,0 +1,143 @@
+# Corpus is pinned to 1.3; validate_task.py rejects anything else.
+schema_version = "1.3"
+
+[task]
+name = "ethara/customer-issue-queue"
+version = "1.0.0"
+description = "Enterprise support queue with single-owner ticket claiming, supervisor reassignment and SMTP notification to the raising customer"
+authors = []
+keywords = ["greenfield", "enterprise", "typescript", "postgres", "mailpit", "smtp"]
+
+# ---------------------------------------------------------------------------
+# Deku metadata (TAXONOMY §12.1). Harbor treats [metadata] as arbitrary.
+# `category` is the Harbor-facing constant; the taxonomy level-1 value lives in
+# `sub_category` (D-C, qc_toml TAX-001).
+# ---------------------------------------------------------------------------
+[metadata]
+category      = "Greenfield"
+sub_category  = "enterprise"
+domain        = "customer-support"
+pattern       = "ticketing-queue"
+archetype     = "customer-issue-queue"
+variant       = "a"
+service_profile = "P2-db-email"
+language      = "typescript"
+
+task_code     = "E_custo_tick_customer-issue-queue_20260810_063238"
+naming_scheme = "task-code-v1"
+grader_version = "0.20.0"
+canary_present = true
+
+# Task Order declared no capability_flags. Emitted verbatim as the empty string
+# (never invented, never omitted) -- G41 reads NOT-APPLICABLE for this bundle.
+capability_flags = ""
+
+# Difficulty lever (§2.1): two levers emitted, "buildplan" withheld at baseline
+# so the agent sequences the build itself.
+spec_sections_given = [
+  "overview",
+  "roles",
+  "features",
+  "flow",
+  "uiux",
+  "techrequirements",
+  "datamodel",
+  "constraints",
+  "contract",
+]
+
+turns_expected  = 120
+tokens_expected = 4500000
+contributor_id  = "<contributor-id>"
+created_at      = "2026-08-10"
+
+# Calibration record - written by the Calibration Engineer, never by the kit
+# (§4.3). Present and empty.
+# Provisional until calibration trials run.
+difficulty           = "hard"
+reference_model_used = ""
+pass_rate            = 0.0
+pass_rate_ci         = [0.0, 0.0]
+calibration_trials   = 0
+calibration_date     = ""
+openhands_version    = ""
+harbor_version       = "0.20.0"
+
+# Service matrix selection (reference C). One provider per declared slot; every
+# slot here carries at least one `critical` pytest substep (G9).
+# Mailpit is a real SMTP server, not a stub: the notification half of this
+# task's critical focus is only observable because mail is genuinely delivered.
+[metadata.services]
+backend = "postgres"
+email   = "mailpit"
+
+# ---------------------------------------------------------------------------
+# Agent phase
+# ---------------------------------------------------------------------------
+[agent]
+timeout_sec = 18000.0            # 5h VCB budget
+
+# ---------------------------------------------------------------------------
+# Agent environment. Agent-visible surface only -- admin credentials are
+# forbidden here by INV4 and live in [verifier].env.
+# ---------------------------------------------------------------------------
+[environment]
+os                = "linux"
+cpus              = 4
+memory_mb         = 8192
+storage_mb        = 20480
+build_timeout_sec = 900.0
+
+# G16: network_mode set explicitly, allowlist non-empty. Egress is build-time
+# only; both backing services sit on the internal network.
+# LOCAL-DEV SETTING -- revert to "allowlist" before admission. Docker Desktop's
+# LinuxKit kernel lacks CONFIG_NFT_FIB_INET, so Harbor cannot enforce any
+# non-public policy and rejects the task outright.
+network_mode  = "public"
+# allowed_hosts = [
+#   "registry.npmjs.org",
+#   "pypi.org",
+#   "files.pythonhosted.org",
+#   "github.com",
+#   "objects.githubusercontent.com",
+# ]
+
+
+# Canonical env for the two declared slots (reference K.1 / C.2). The db slot
+# injects BOTH DATABASE_URL and DB_URL with the same value: the brief reads
+# DATABASE_URL, and a mismatch between the name the brief names and the name the
+# container injects is a silent reward-zero hazard no static gate can see.
+# SMTP_* is the client end the agent sends through; EMAIL_INBOX_API_URL is the
+# inspection escape hatch and lives in [verifier].env only.
+env = { APP_PUBLIC_PORT = "4173", DATABASE_URL = "${DATABASE_URL:-postgresql://deku_app:deku-local-dev@postgres:5432/ethara}", DB_URL = "${DB_URL:-postgresql://deku_app:deku-local-dev@postgres:5432/ethara}", SMTP_HOST = "${SMTP_HOST:-mailpit}", SMTP_PORT = "${SMTP_PORT:-1025}", SMTP_USER = "${SMTP_USER:-}", SMTP_PASS = "${SMTP_PASS:-}" }
+
+# Healthcheck targets the sidecar, never the agent's app (reference C.3).
+[environment.healthcheck]
+command            = "pg_isready -h postgres -p 5432 -q"
+interval_sec       = 5.0
+timeout_sec        = 5.0
+start_period_sec   = 60.0
+start_interval_sec = 2.0
+retries            = 60
+
+# ---------------------------------------------------------------------------
+# Verifier. Shared environment mode (D2): the hold-out of tests/ and solution/
+# is temporal, not spatial.
+# ---------------------------------------------------------------------------
+[verifier]
+environment_mode = "shared"
+timeout_sec      = 3600.0
+
+# DB_ADMIN_URL and EMAIL_INBOX_API_URL are the privileged escape hatches and
+# live here ONLY (INV4). An agent holding either could satisfy workflows without
+# implementing the feature: direct row writes, or reading the inbox to fake a
+# send. This task's whole critical focus is that both halves are real.
+env = { ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}", ANTHROPIC_BASE_URL = "${ANTHROPIC_BASE_URL}", DB_ADMIN_URL = "${DB_ADMIN_URL:-postgresql://deku_admin:deku-local-dev@postgres:5432/ethara}", EMAIL_INBOX_API_URL = "${EMAIL_INBOX_API_URL:-http://mailpit:8025}", APP_PUBLIC_URL = "${APP_PUBLIC_URL:-http://localhost:4173}", DEKU_SERVICE_BACKEND = "postgres", DEKU_SERVICE_EMAIL = "mailpit" }
+
+# ---------------------------------------------------------------------------
+# Artifacts - collected after the agent phase, before the verifier runs, so the
+# agent's built source survives a failing verifier run.
+# ---------------------------------------------------------------------------
+[[artifacts]]
+source      = "/app"
+destination = "app"

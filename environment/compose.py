@@ -116,6 +116,20 @@ def copy_assets(task: str) -> list[str]:
             src = ENV / spec["generic_seed"]["src"]
             dst = env_dir / spec["generic_seed"]["dst"]
             shutil.copy2(src, dst)
+            # copy2 preserves the mode, so a source file that lost its exec bit
+            # silently produces an unrunnable seed in every task generated from
+            # it. postgres runs /docker-entrypoint-initdb.d/*.sh by EXECUTING it:
+            #
+            #   /docker-entrypoint-initdb.d/10-app-role.sh: /bin/sh: bad
+            #   interpreter: Permission denied
+            #
+            # and it does not stop on that error. The database comes up healthy
+            # without the unprivileged role, and every app that connects as
+            # deku_app gets 28P01 -- which postgres reports identically for a
+            # wrong password and a role that does not exist, so it reads as a
+            # credentials bug in the app. Three tasks shipped this way and two of
+            # them were the ones being debugged on 2026-08-10.
+            dst.chmod(0o755)
             copied.append(dst.name)
         if "asset" in spec:
             src = ENV / spec["asset"]["src"]

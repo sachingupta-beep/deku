@@ -79,14 +79,18 @@ build_timeout_sec = 900.0
 # PLAN.md 3.6 targets no-network with a pre-seeded package cache. Until the
 # Phase 2 cache lands this uses the documented allowlist fallback. Egress is
 # build-time only: deku-pay and MinIO are sidecars on the internal network.
-network_mode  = "allowlist"
-allowed_hosts = [
-  "registry.npmjs.org",
-  "pypi.org",
-  "files.pythonhosted.org",
-  "github.com",
-  "objects.githubusercontent.com",
-]
+# LOCAL-DEV SETTING -- revert to "allowlist" before admission. Docker Desktop's
+# LinuxKit kernel lacks CONFIG_NFT_FIB_INET, so Harbor cannot enforce any
+# non-public policy and rejects the task before the agent starts:
+#   ValueError: network_mode='allowlist' is not supported by EnvironmentType.DOCKER
+network_mode  = "public"
+# allowed_hosts = [
+#   "registry.npmjs.org",
+#   "pypi.org",
+#   "files.pythonhosted.org",
+#   "github.com",
+#   "objects.githubusercontent.com",
+# ]
 
 # Canonical vars per slot (PLAN.md 3.4). Payments server keys and storage keys
 # are legitimately shared between the app (which charges and uploads) and the

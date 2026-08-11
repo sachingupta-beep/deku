@@ -90,9 +90,31 @@ if [[ "$FRESH" == "0" ]]; then
   echo "    yet require /app/start.sh."
 fi
 
+# The deployment contract lives HERE, not in any instruction.md.
+#
+# How the app is collected, redeployed and graded is a property of the harness
+# and is identical for every task, so it belongs in one file rather than copied
+# into eleven briefs -- where it also drifted, and where each portability trap
+# found had to be re-worded by hand. Harbor renders it around the task's own
+# instruction via `prompt_template_path`, so the brief stays a description of the
+# product and nothing else.
+#
+# Set DEKU_PROMPT_TEMPLATE= (empty) to run a task with its brief unwrapped.
+PROMPT_TEMPLATE="${DEKU_PROMPT_TEMPLATE-$REPO/harness/prompt/deployment_contract.j2}"
+TEMPLATE_FLAG=()
+if [[ -n "$PROMPT_TEMPLATE" ]]; then
+  if [[ -f "$PROMPT_TEMPLATE" ]]; then
+    TEMPLATE_FLAG=(--ak "prompt_template_path=$PROMPT_TEMPLATE")
+    echo "==> deployment contract: $(basename "$PROMPT_TEMPLATE") (wrapped around the brief)"
+  else
+    echo "==> WARNING: prompt template not found at $PROMPT_TEMPLATE; running unwrapped" >&2
+  fi
+fi
+
 echo "==> [1/3] agent phase: $AGENT on $(basename "$TASK")"
 yes | bin/harbor run --path "$REPO/${TASK#./}" -a "$AGENT" \
       ${MODEL_FLAG[@]+"${MODEL_FLAG[@]}"} ${AK_FLAG[@]+"${AK_FLAG[@]}"} \
+      ${TEMPLATE_FLAG[@]+"${TEMPLATE_FLAG[@]}"} \
       ${VERIFY_FLAG[@]+"${VERIFY_FLAG[@]}"} \
       --n-concurrent-agents 1 ${PASSTHRU[@]+"${PASSTHRU[@]}"}
 HARBOR_RC=$?
@@ -110,6 +132,28 @@ TRIAL="$(ls -td "$JOB"*__*/ 2>/dev/null | head -1)"
 TRIAL="${TRIAL%/}"
 if [[ -z "$TRIAL" || ! -d "$TRIAL" ]]; then
   echo "job $JOB has no trial directory -- the agent phase did not run." >&2
+  exit "${HARBOR_RC:-1}"
+fi
+
+# A trial DIRECTORY is not a trial that RAN. Harbor creates the directory during
+# Trial.create(), before the environment is built, so a task rejected at
+# validation leaves a directory containing nothing.
+#
+# 2026-08-11: tasks/bundle declared network_mode="allowlist", which Docker
+# Desktop's kernel cannot enforce. Harbor raised before the agent started, and
+# this script marched on to eval_fresh -- which crashed with a raw
+# FileNotFoundError on config.json -- and then printed a SCORE table reading
+# "(not produced)" twice, under a heading that implies a run happened. The real
+# error was thirty lines of traceback further up.
+if [[ ! -f "$TRIAL/config.json" ]]; then
+  echo >&2
+  echo "==> AGENT PHASE DID NOT RUN" >&2
+  echo "    $TRIAL exists but has no config.json, so Harbor aborted before the" >&2
+  echo "    trial started. The cause is in the harbor output above -- scroll to the" >&2
+  echo "    LAST line of the traceback, which names it." >&2
+  echo >&2
+  echo "    Most common: network_mode is 'allowlist' but Docker Desktop's LinuxKit" >&2
+  echo "    kernel cannot enforce it. Set network_mode = \"public\" in task.toml." >&2
   exit "${HARBOR_RC:-1}"
 fi
 echo "==> trial: $TRIAL"

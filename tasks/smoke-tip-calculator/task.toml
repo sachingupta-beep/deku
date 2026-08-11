@@ -64,14 +64,18 @@ memory_mb         = 2048
 storage_mb        = 4096
 build_timeout_sec = 900.0
 
-network_mode  = "allowlist"
-allowed_hosts = [
-  "registry.npmjs.org",
-  "pypi.org",
-  "files.pythonhosted.org",
-  "github.com",
-  "objects.githubusercontent.com",
-]
+# LOCAL-DEV SETTING -- revert to "allowlist" before admission. Docker Desktop's
+# LinuxKit kernel lacks CONFIG_NFT_FIB_INET, so Harbor cannot enforce any
+# non-public policy and rejects the task before the agent starts:
+#   ValueError: network_mode='allowlist' is not supported by EnvironmentType.DOCKER
+network_mode  = "public"
+# allowed_hosts = [
+#   "registry.npmjs.org",
+#   "pypi.org",
+#   "files.pythonhosted.org",
+#   "github.com",
+#   "objects.githubusercontent.com",
+# ]
 
 env = { APP_PUBLIC_PORT = "4173" }
 

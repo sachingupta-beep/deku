@@ -27,10 +27,16 @@ and tears the agent env down first -- so there is no app left to grade.
 
 Contract with the task
 ----------------------
-The agent must leave an executable `/app/start.sh` that brings the app up from a
-cold filesystem (see the Deployment Contract in instruction.md). Without it there
-is nothing to redeploy, and the run scores 0 with `invalid: ["no_start_script"]`
--- a task fault surfaced honestly, not silently billed to the agent.
+None. The task brief describes the product; it says nothing about packaging.
+harness/app_image.py reads the app's own manifests -- `package.json`,
+`requirements.txt`, `pyproject.toml` -- and generates the Dockerfile, exactly as a
+deployment platform does. An agent that ships its own `/app/Dockerfile` has that
+honoured instead; a task whose spec still asks for `/app/start.sh` still works.
+
+If none of the three is available the run is NOT scored 0. `invalid` records
+which of the three cases applies -- the agent crashed, it built nothing, or the
+harness does not recognise the stack -- because "we could not measure it" and
+"it failed" are different claims.
 
 Pure stdlib + the docker CLI, same as repackage.py.
 """
@@ -136,14 +142,23 @@ def load_task(trial: Path) -> tuple[Path, dict]:
 
 
 # ----------------------------------------------------------------- sidecars
-def sidecar_services(compose_file: Path) -> list[str]:
-    """Service names in the task's compose, EXCLUDING `main`.
+# Services that exist for the AGENT phase and must not be part of grading.
+#
+#   main    -- Harbor's agent container. The task compose only overrides it (a
+#              ports block, no image), so starting it here fails on a service
+#              with nothing to run. We supply our own app container instead.
+#   dockerd -- a nested Docker daemon some tasks give the agent so it can test
+#              the /app/Dockerfile it was asked to write. Grading builds that
+#              Dockerfile itself, on the host daemon, from source. Starting a
+#              privileged daemon during grading would burn ~400MB and a
+#              privileged container for something nothing in the grader uses --
+#              and would let a `deploy` step in the app reach a daemon, which no
+#              graded app should ever have.
+AGENT_ONLY_SERVICES = {"main", "dockerd"}
 
-    `main` is Harbor's agent container, and the task's compose only overrides it
-    (a ports block, no image). We bring up the real backing services and supply
-    our own app container in main's place, so starting `main` here would fail on
-    a service with nothing to run.
-    """
+
+def sidecar_services(compose_file: Path) -> list[str]:
+    """Backing services in the task's compose, minus the agent-only helpers."""
     if not compose_file.exists():
         return []
     names, inside = [], False
@@ -155,11 +170,11 @@ def sidecar_services(compose_file: Path) -> list[str]:
             inside = False
         if inside and re.match(r"^  [A-Za-z0-9_.-]+:\s*$", line):
             names.append(line.strip().rstrip(":"))
-    return [n for n in names if n != "main"]
+    return [n for n in names if n not in AGENT_ONLY_SERVICES]
 
 
 def sidecars_only_compose(compose_file: Path, dest: Path) -> Path:
-    """Write a copy of the task compose with the `main` block removed.
+    """Write a copy of the task compose with the agent-only blocks removed.
 
     Compose validates EVERY service in the file, not just the ones named on the
     command line. The task's `main` block is a partial override of Harbor's agent
@@ -172,16 +187,20 @@ def sidecars_only_compose(compose_file: Path, dest: Path) -> Path:
     which supplies main's image. We supply our own app container instead, so main
     is simply dropped.
     """
+    drop = re.compile(r"^  (%s):\s*$" % "|".join(sorted(AGENT_ONLY_SERVICES)))
     out, skipping = [], False
     for line in compose_file.read_text().splitlines():
-        if re.match(r"^  main:\s*$", line):
+        if drop.match(line):
             skipping = True
             continue
         if skipping:
-            # Stay in skip mode through main's body; stop at the next service
+            # Stay in skip mode through the block's body; stop at the next service
             # key (2-space indent) or any dedent to column 0.
             if re.match(r"^  \S", line) or re.match(r"^\S", line):
                 skipping = False
+                if drop.match(line):     # two agent-only blocks back to back
+                    skipping = True
+                    continue
             else:
                 continue
         out.append(line)
@@ -252,6 +271,13 @@ def main() -> int:
     ap.add_argument("--keep", action="store_true",
                     help="leave the container running for inspection")
     ap.add_argument("--port", default=DEFAULT_PORT)
+    ap.add_argument("--generate-dockerfile", action="store_true",
+                    help="if the agent wrote no /app/Dockerfile, derive one from the "
+                         "app's manifests (harness/app_image.py) instead of scoring "
+                         "the run a deploy failure. For trials that predate the "
+                         "deployment contract; off by default, because the contract "
+                         "asks the agent for a Dockerfile and writing one for it "
+                         "would grade an artifact the agent never produced")
     ap.add_argument("--repackage", action="store_true",
                     help="on success, publish the result to output/<task>/<model>/run_N/ "
                          "via harness/repackage.py --verifier-dir verifier_fresh")
@@ -306,8 +332,62 @@ def main() -> int:
     staging.mkdir()
     app_dir = stage_app(trial, staging)
 
+    # --- how do we deploy this app? ---------------------------------------
+    # THE AGENT PACKAGES ITS OWN APP. The deployment contract
+    # (harness/prompt/deployment_contract.j2, wrapped around every brief by
+    # bin/deku-run) asks for /app/Dockerfile, and that file is what gets built.
+    #
+    # Measured 2026-08-11 on customer-issue-queue, opus-4-8: the agent's own
+    # Dockerfile scored 0.7333 -- identical to the harness-generated one on the
+    # same task and model -- while being a better artifact: multi-stage, dev
+    # dependencies excluded from the runtime image, correct layer ordering, and a
+    # `**/node_modules` .dockerignore it worked out unprompted. Same 14-minute
+    # agent phase. There was no measurable cost, so there is no reason for the
+    # harness to second-guess it.
+    #
+    # Order:
+    #   1. /app/Dockerfile           -- the contract. What is graded.
+    #   2. /app/start.sh             -- tasks whose brief still asks for one, so
+    #                                   their historic scores stay comparable.
+    #   3. nothing                   -- scored failure; the contract was explicit.
+    #
+    # app_image.py is NOT used by default. It stays for --generate-dockerfile, a
+    # deliberate opt-in for grading a trial that predates this contract.
+    spec = (task_dir / "instruction.md")
+    spec_wants_start_sh = spec.is_file() and "start.sh" in spec.read_text()
+
+    plan = None
+    dockerfile = app_dir / "Dockerfile"
     start_sh = app_dir / "start.sh"
-    if not start_sh.is_file():
+    if dockerfile.is_file():
+        deploy_mode = "dockerfile"
+        log("deploy    : the agent's own /app/Dockerfile")
+    elif spec_wants_start_sh and start_sh.is_file():
+        deploy_mode = "start.sh"
+        log("deploy    : /app/start.sh (this task's brief still requires it)")
+    elif args.generate_dockerfile:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from app_image import plan_app, write_build_files, describe  # noqa: E402
+        plan = plan_app(app_dir)
+        if plan is not None:
+            deploy_mode = "dockerfile"
+            log("deploy    : Dockerfile generated by the harness (--generate-dockerfile)")
+            for line in describe(plan).splitlines():
+                log(f"  {line}")
+        elif start_sh.is_file():
+            deploy_mode = "start.sh"
+            log("deploy    : /app/start.sh")
+        else:
+            deploy_mode = "none"
+            log("deploy    : NONE -- no Dockerfile, no manifest, no start.sh")
+    elif start_sh.is_file():
+        deploy_mode = "start.sh"
+        log("deploy    : /app/start.sh (no Dockerfile was written)")
+    else:
+        deploy_mode = "none"
+        log("deploy    : NONE -- the agent wrote no /app/Dockerfile")
+
+    if deploy_mode == "none":
         # WHY it is missing decides whether this is the agent's fault.
         #
         # An agent that ran to completion and never wrote start.sh ignored the
@@ -346,19 +426,57 @@ def main() -> int:
                         )[:200]
                         break
 
+        # Did the agent build anything at all? The two answers point in opposite
+        # directions and must not share a reason code.
+        # MISSING.txt is Harbor's placeholder for an artifact it could not collect.
+        # Counting it as "the agent built something" turns a collection failure into
+        # `harness_could_not_identify_stack`, which points the reader at app_image.py
+        # for a problem that happened two stages earlier.
+        reserved = {".browser_screenshots", ".downloads", "USER_README.md",
+                    "MISSING.txt"}
+        built = [p for p in app_dir.rglob("*")
+                 if p.is_file() and p.relative_to(app_dir).parts[0] not in reserved]
+
         if exc:
-            reason = ["agent_crashed_before_start_script"]
+            reason = ["agent_crashed_before_finishing"]
             note = (f"the agent phase ended in {exc}"
                     f"{' (' + signal_hint + ')' if signal_hint else ''}, so it never "
-                    f"reached the point of writing /app/start.sh. Not scored as an "
-                    f"agent failure -- the run did not complete.")
-            log(f"\nFLAGGED: no /app/start.sh, but the agent phase ended in {exc}.")
+                    f"reached a deployable state. Not scored as an agent failure -- "
+                    f"the run did not complete.")
+            log(f"\nFLAGGED: nothing to deploy, and the agent phase ended in {exc}.")
             log("         Treating this as an incomplete run, not an agent failure.")
+        elif built and args.generate_dockerfile:
+            # --generate-dockerfile was asked for and app_image.py still could not
+            # identify the stack. That is OUR limitation, and scoring it 0 would
+            # publish a capability judgement the harness never earned the right to
+            # make.
+            reason = ["harness_could_not_identify_stack"]
+            note = (f"the agent left {len(built)} file(s) under /app but no manifest "
+                    f"harness/app_image.py recognises (package.json, requirements.txt, "
+                    f"pyproject.toml) and no start.sh. This is a harness gap, not an "
+                    f"agent failure -- extend app_image.py rather than reading this "
+                    f"as a score.")
+            log(f"\nFLAGGED: {len(built)} file(s) under /app, but no recognised manifest.")
+            log("         Recorded as a HARNESS gap, not scored against the agent.")
+            log("         Extend harness/app_image.py to cover this stack.")
+        elif built:
+            # The app exists but was not packaged. `invalid` stays EMPTY: the
+            # deployment contract asks for /app/Dockerfile in plain terms and the
+            # agent had a daemon to test it with, so this is a scored failure to
+            # meet the contract, not a measurement the harness failed to take.
+            reason = []
+            note = (f"the agent left {len(built)} file(s) under /app but no "
+                    f"/app/Dockerfile, which the deployment contract requires, and no "
+                    f"/app/start.sh. There is nothing to build. Re-grade an older "
+                    f"trial with --generate-dockerfile if it predates this contract.")
+            log(f"\nFAIL: {len(built)} file(s) under /app, but no /app/Dockerfile.")
+            log("      The deployment contract requires one. Scored as an agent failure.")
+            log("      (For a trial predating the contract: --generate-dockerfile)")
         else:
-            reason = ["no_start_script"]
-            note = ("the agent phase completed but left no /app/start.sh, which the "
-                    "Deployment Contract requires. Nothing can be redeployed.")
-            log("\nFAIL: the agent completed but left no /app/start.sh.")
+            reason = ["no_app_built"]
+            note = ("the agent phase completed but left nothing under /app beyond the "
+                    "reserved directories. There is no application to deploy.")
+            log("\nFAIL: the agent completed but built nothing under /app.")
 
         (out_dir / "reward.json").write_text(json.dumps({"reward": 0.0}, indent=2) + "\n")
         (out_dir / "workflows.json").write_text(json.dumps(
@@ -372,6 +490,20 @@ def main() -> int:
     must(["docker", "build", "-q", "-t", tag, str(task_dir / "environment")],
          "image build")
 
+    if plan is not None:
+        # Base the app image on the task's OWN environment image. It already
+        # carries the runtimes the task declares -- node, python, build tools --
+        # so nothing about the stack has to be guessed, and it is the same
+        # baseline the agent worked against.
+        #
+        # Written into the STAGING copy. trial/artifacts/app is evidence and is
+        # never modified.
+        write_build_files(app_dir, plan, base_image=tag, port=args.port)
+        shutil.copy2(app_dir / "Dockerfile", out_dir / "generated.Dockerfile")
+        (out_dir / "generated.plan.txt").write_text(describe(plan) + "\n")
+        log("      generated Dockerfile + .dockerignore "
+            "(copies in verifier_fresh/generated.*)")
+
     # --- container ---------------------------------------------------------
     run(["docker", "rm", "-f", cname])
     verifier_env = resolve_env((cfg.get("verifier") or {}).get("env") or {},
@@ -382,17 +514,34 @@ def main() -> int:
     for k, v in {**agent_env, **verifier_env}.items():
         env_flags += ["-e", f"{k}={v}"]
     env_flags += ["-e", f"APP_PUBLIC_PORT={args.port}"]
-    # The verifier is INSIDE this container, so the app is on its own localhost.
-    env_flags += ["-e", f"APP_PUBLIC_URL=http://localhost:{args.port}"]
+
+    app_cname = f"{cname}-app"
+    app_tag = f"deku-fresh-app-{slug}:latest"
+    if deploy_mode == "dockerfile":
+        # The app is a SEPARATE container, so it is not on the grader's localhost.
+        # Both sit on one user-defined network, where Docker's embedded DNS
+        # resolves container names -- the default bridge does not, which is why a
+        # network is created below even when the task declares no sidecars.
+        app_url = f"http://{app_cname}:{args.port}"
+    else:
+        # The verifier is INSIDE this container, so the app is on its own localhost.
+        app_url = f"http://localhost:{args.port}"
+    env_flags += ["-e", f"APP_PUBLIC_URL={app_url}"]
 
     log(f"[2/6] starting a fresh container ...")
     net_flags: list[str] = []
+    owned_network = ""
     if sidecars:
         filtered = sidecars_only_compose(compose_file, staging / "sidecars.yaml")
         start_sidecars(filtered, project, sidecars, compose_file.parent)
         # Same network as the services, so the app resolves them by name exactly
         # as it did during the agent phase (BACKEND_URL=http://pocketbase:8090).
         net_flags = ["--network", network]
+    elif deploy_mode == "dockerfile":
+        owned_network = f"{project}_net"
+        run(["docker", "network", "rm", owned_network])
+        must(["docker", "network", "create", owned_network], "network create")
+        net_flags = ["--network", owned_network]
     must(["docker", "run", "-d", "--name", cname,
           *net_flags,
           "--add-host", "host.docker.internal:host-gateway",
@@ -409,18 +558,75 @@ def main() -> int:
         run(["docker", "exec", cname, "chmod", "+x", "/app/start.sh"])
 
         # --- cold start ----------------------------------------------------
-        log("[4/6] running /app/start.sh from cold ...")
-        r = subprocess.run(
-            ["docker", "exec", "-w", "/app", cname, "bash", "/app/start.sh"],
-            capture_output=True, text=True, timeout=START_TIMEOUT_SEC,
-        )
-        (out_dir / "start_sh.log").write_text(
-            f"exit={r.returncode}\n\n--- stdout ---\n{r.stdout}\n--- stderr ---\n{r.stderr}\n"
-        )
-        log(f"      start.sh exit={r.returncode} (log: verifier_fresh/start_sh.log)")
+        if deploy_mode == "dockerfile":
+            log("[4/6] building /app/Dockerfile and running it as its own container ...")
+            # --no-cache and --pull for the same reason the container is fresh: a
+            # layer cached from an earlier grading run is carried-over state, and
+            # it can hide the failure we are here to detect. A `RUN npm ci` that
+            # succeeded last week replays from cache today even if the registry is
+            # unreachable or the lockfile now resolves differently, and the run
+            # would score as though the build worked. --pull does the same for the
+            # base image, so a stale local `node:20` cannot stand in for the one
+            # the Dockerfile actually names.
+            #
+            # Cost is a full dependency install per grading. That is the honest
+            # price of the claim "this builds from source, today, on a machine
+            # that has never seen it".
+            # --pull ONLY for an agent-written Dockerfile, whose FROM names a
+            # public image that could be stale locally. A generated Dockerfile is
+            # based on the task environment image built moments ago in [1/6] and
+            # existing nowhere else, so --pull sends docker to the registry for a
+            # repository that does not exist:
+            #   pull access denied, repository does not exist ... insufficient_scope
+            pull = [] if plan is not None else ["--pull"]
+            b = subprocess.run(
+                ["docker", "build", "--no-cache", *pull, "-t", app_tag, str(app_dir)],
+                capture_output=True, text=True, timeout=START_TIMEOUT_SEC,
+            )
+            (out_dir / "app_build.log").write_text(
+                f"exit={b.returncode}\n\n--- stdout ---\n{b.stdout}\n--- stderr ---\n{b.stderr}\n"
+            )
+            log(f"      docker build exit={b.returncode} (log: verifier_fresh/app_build.log)")
+            if b.returncode != 0:
+                # A build failure is the agent's -- the Dockerfile is theirs, and it
+                # is the artifact the contract asks for. Scored 0 with `deployed`
+                # 0.0, NOT invalidated: the harness observed exactly what it set
+                # out to observe.
+                tail = (b.stderr or b.stdout or "").strip().splitlines()[-15:]
+                log("\nFAIL: /app/Dockerfile does not build.")
+                for line in tail:
+                    log(f"      {line}")
+                (out_dir / "reward.json").write_text(
+                    json.dumps({"reward": 0.0}, indent=2) + "\n")
+                (out_dir / "workflows.json").write_text(json.dumps(
+                    {"summary": {"reward": 0.0, "invalid": [], "deployed": 0.0,
+                                 "note": "the agent's /app/Dockerfile failed to build in a "
+                                         "clean context; see verifier_fresh/app_build.log"}},
+                    indent=2) + "\n")
+                return 1
+
+            run(["docker", "rm", "-f", app_cname])
+            must(["docker", "run", "-d", "--name", app_cname,
+                  *net_flags,
+                  "--add-host", "host.docker.internal:host-gateway",
+                  *env_flags, app_tag], "app container start")
+            log(f"      app container {app_cname} started from {app_tag}")
+        else:
+            log("[4/6] running /app/start.sh from cold ...")
+            r = subprocess.run(
+                ["docker", "exec", "-w", "/app", cname, "bash", "/app/start.sh"],
+                capture_output=True, text=True, timeout=START_TIMEOUT_SEC,
+            )
+            (out_dir / "start_sh.log").write_text(
+                f"exit={r.returncode}\n\n--- stdout ---\n{r.stdout}\n--- stderr ---\n{r.stderr}\n"
+            )
+            log(f"      start.sh exit={r.returncode} (log: verifier_fresh/start_sh.log)")
 
         # --- health gate ---------------------------------------------------
-        log(f"[5/6] waiting for the app on localhost:{args.port} ...")
+        # Probed from INSIDE the grader container against the same APP_PUBLIC_URL
+        # the graders will use, so the gate cannot pass on a URL the graders
+        # cannot reach (in dockerfile mode those are different machines).
+        log(f"[5/6] waiting for the app at {app_url} ...")
         deadline = time.time() + HEALTH_TIMEOUT_SEC
         healthy = False
         while time.time() < deadline:
@@ -431,7 +637,7 @@ def main() -> int:
             # told us it was not ready.
             probe = run(["docker", "exec", cname, "sh", "-c",
                          f"curl -s -o /dev/null -w '%{{http_code}}' --max-time 5 "
-                         f"http://localhost:{args.port}/api/health"])
+                         f"{app_url}/api/health"])
             health_code = (probe.stdout or "").strip()
             if health_code == "200":
                 healthy = True
@@ -440,7 +646,7 @@ def main() -> int:
             # A 5xx is the app reporting its own failure.
             if health_code == "404":
                 alt = run(["docker", "exec", cname, "sh", "-c",
-                           f"curl -fsS --max-time 5 http://localhost:{args.port}/"])
+                           f"curl -fsS --max-time 5 {app_url}/"])
                 if alt.returncode == 0:
                     log("      no /api/health (404); accepted GET / instead")
                     healthy = True
@@ -450,6 +656,15 @@ def main() -> int:
         if not healthy:
             log(f"\nFAIL: the app never became healthy in a clean container.")
             log(f"      /api/health last returned: {health_code or 'no response'}")
+            if deploy_mode == "dockerfile":
+                # The app is in its own container, so its stdout is NOT in
+                # start_sh.log and is lost the moment the container is removed.
+                lg = run(["docker", "logs", "--tail", "200", app_cname])
+                (out_dir / "app_container.log").write_text(
+                    f"--- stdout ---\n{lg.stdout}\n--- stderr ---\n{lg.stderr}\n")
+                log("      app container output: verifier_fresh/app_container.log")
+                for line in (lg.stderr or lg.stdout or "").strip().splitlines()[-10:]:
+                    log(f"      {line}")
             if health_code and health_code.startswith("5"):
                 log("      That is the app reporting its OWN failure -- it started but")
                 log("      could not reach something it needs (commonly the database).")
@@ -463,11 +678,47 @@ def main() -> int:
             return 1
         log("      app is up")
 
+        if deploy_mode == "dockerfile":
+            # The browser grader reads its credentials from /app/USER_README.md in
+            # ITS OWN container (run_workflows.py DEFAULT_CREDENTIALS_PATH), and the
+            # app now runs somewhere else. Apps write that file at boot -- this
+            # task's does, from the same seed routine that creates the accounts --
+            # so the grader would be reading the agent's pre-run copy while the
+            # live database was seeded from the app's post-boot one.
+            #
+            # Here the spec pins the passwords, so the two agree and nothing breaks.
+            # An app that minted credentials at startup would be unloggable-into
+            # with no indication why. Under start.sh both were literally the same
+            # file; carrying it across restores that.
+            probe = run(["docker", "exec", app_cname, "cat", "/app/USER_README.md"])
+            if probe.returncode == 0 and probe.stdout.strip():
+                staged = (app_dir / "USER_README.md")
+                before = staged.read_text() if staged.is_file() else ""
+                if probe.stdout != before:
+                    log("      note: the app rewrote USER_README.md at boot; "
+                        "using the live version for grading")
+                    (out_dir / "USER_README.boot.md").write_text(probe.stdout)
+                tmp = staging / "USER_README.live.md"
+                tmp.write_text(probe.stdout)
+                # Deliberately NOT must(): the staged copy is a working fallback,
+                # and aborting a completed deploy over a file sync would throw away
+                # a gradable run to fix a problem that may not exist.
+                cp = run(["docker", "cp", str(tmp), f"{cname}:/app/USER_README.md"])
+                if cp.returncode != 0:
+                    log("      warn: could not sync USER_README.md from the app "
+                        "container; grading with the agent's staged copy")
+
         # --- grade ---------------------------------------------------------
         log("[6/6] running the graders (deploy gate -> browser -> pytest -> score) ...")
         r = subprocess.run(["docker", "exec", "-w", "/app", cname, "bash", "/tests/test.sh"],
                            text=True)
         run(["docker", "cp", f"{cname}:/logs/verifier/.", str(out_dir)])
+        if deploy_mode == "dockerfile":
+            # Kept on success as well: an app that serves /api/health but errors on
+            # every real request leaves its only explanation here.
+            lg = run(["docker", "logs", "--tail", "500", app_cname])
+            (out_dir / "app_container.log").write_text(
+                f"--- stdout ---\n{lg.stdout}\n--- stderr ---\n{lg.stderr}\n")
 
         reward_path = out_dir / "reward.json"
         if reward_path.exists():
@@ -497,12 +748,19 @@ def main() -> int:
             log(f"\n--keep: container left running. Inspect with:\n"
                 f"  docker exec -it {cname} bash\n"
                 f"  docker rm -f {cname}   # when done")
+            if deploy_mode == "dockerfile":
+                log(f"  docker logs -f {app_cname}   # the app itself\n"
+                    f"  docker rm -f {app_cname}")
             if sidecars:
                 log(f"  docker compose -p {project} down -v   # and the sidecars")
         else:
             run(["docker", "rm", "-f", cname])
+            if deploy_mode == "dockerfile":
+                run(["docker", "rm", "-f", app_cname])
             if sidecars:
                 stop_sidecars(staging / "sidecars.yaml", project, compose_file.parent)
+            if owned_network:
+                run(["docker", "network", "rm", owned_network])
         shutil.rmtree(staging, ignore_errors=True)
 
 

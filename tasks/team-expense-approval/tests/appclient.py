@@ -2,7 +2,8 @@
 
 Every task's App Contract pins the same two things: the app answers at
 `APP_PUBLIC_URL`, and `POST /api/auth/login` takes `{"email", "password"}` and
-returns `{"access_token": ...}`. Everything else about the app is the agent's
+returns a bearer token as `access_token` OR `token` -- whichever its brief names.
+Everything else about the app is the agent's
 choice, so nothing beyond that is assumed here.
 
 Tasks whose auth slot is an external IdP (Keycloak, Zitadel, Logto) still log in
@@ -36,8 +37,23 @@ def login(email: str, password: str) -> str:
     assert response.status_code == 200, (
         f"login for {email} returned {response.status_code}: {response.text[:400]}"
     )
-    token = response.json().get("access_token")
-    assert token, f"login response for {email} has no access_token: {response.text[:400]}"
+    # The field name is the TASK's contract, not this file's. Task briefs differ:
+    # eight say `access_token`, customer-issue-queue's API table says
+    # `{token, user:{...}}`. Hardcoding one of them makes the grader reject an app
+    # that did exactly what its own brief promised -- which is what happened on
+    # 2026-08-10: every one of 26 pytest substeps errored at fixture setup on an
+    # app whose login worked, and the run published reward 0.0 with `invalid: []`,
+    # asserting the measurement was sound.
+    #
+    # Accept either. A bearer token under a different key is not an application
+    # defect, and this file is shared by every task so it cannot encode one task's
+    # wording.
+    body = response.json()
+    token = body.get("access_token") or body.get("token")
+    assert token, (
+        f"login response for {email} carries neither 'access_token' nor 'token': "
+        f"{response.text[:400]}"
+    )
     return token
 
 

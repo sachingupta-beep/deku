@@ -1,0 +1,98 @@
+{
+  "_schema": "rubric-provenance-v1",
+  "R1": {
+    "items": ["C-UF-02", "C-CF-14", "C-UF-01", "C-DM-08"],
+    "anchor": "queue_list.row_composition",
+    "facet": "presentation"
+  },
+  "R2": {
+    "items": ["C-UF-10", "C-UF-11", "C-UF-12"],
+    "anchor": "agent_login.landing_screen",
+    "facet": "presentation"
+  },
+  "R3": {
+    "items": ["C-UF-09", "C-RL-01", "C-UF-08", "C-RL-21"],
+    "anchor": "customer_list.scope_presentation",
+    "facet": "presentation"
+  },
+  "R4": {
+    "items": ["C-UF-06", "C-CF-01", "C-CF-02", "C-CF-05"],
+    "anchor": "ticket_detail.assignee_copy",
+    "facet": "copy"
+  },
+  "R5": {
+    "items": ["C-RL-08", "C-RL-11"],
+    "anchor": "claim_control.affordance",
+    "facet": "affordance"
+  },
+  "R6": {
+    "items": ["C-RL-13"],
+    "anchor": "reassign_control.agent_selection",
+    "facet": "affordance"
+  },
+  "R7": {
+    "items": ["C-UF-19"],
+    "anchor": "resolve_control.confirmation",
+    "facet": "affordance"
+  },
+  "R8": {
+    "items": ["C-UF-20", "C-CF-06", "C-CF-07"],
+    "anchor": "refusal_message.legibility",
+    "facet": "copy"
+  },
+  "R9": {
+    "items": ["C-UF-19", "C-UF-13"],
+    "anchor": "refusal_state.orientation",
+    "facet": "presentation"
+  },
+  "R10": {
+    "items": ["C-UF-15", "C-UF-16", "C-UF-17", "C-UF-18"],
+    "anchor": "empty_state.copy",
+    "facet": "copy"
+  },
+  "R11": {
+    "items": ["C-UX-01", "C-UX-02", "C-UX-03", "C-UX-04", "C-UX-09", "C-UX-10"],
+    "anchor": "palette.application",
+    "facet": "presentation"
+  },
+  "R12": {
+    "items": ["C-UX-17", "C-UX-05"],
+    "anchor": "status_indicator.colour_and_word",
+    "facet": "presentation"
+  },
+  "R13": {
+    "items": ["C-UX-08", "C-UX-06", "C-UX-07"],
+    "anchor": "numeric_columns.alignment",
+    "facet": "presentation"
+  },
+  "R14": {
+    "items": ["C-UX-11", "C-UX-12"],
+    "anchor": "transitions.timing_and_reduced_motion",
+    "facet": "motion"
+  },
+  "R15": {
+    "items": ["C-UX-16", "C-UX-15"],
+    "anchor": "focus_ring.visibility",
+    "facet": "presentation"
+  },
+  "R16": {
+    "items": ["C-UX-13", "C-UX-14"],
+    "anchor": "narrow_viewport.layout",
+    "facet": "presentation"
+  },
+  "R17": {
+    "items": ["C-UF-14"],
+    "anchor": "reassign_control.disambiguation",
+    "facet": "affordance"
+  },
+  "R18": {
+    "items": ["C-UF-18"],
+    "anchor": "interface_copy.register",
+    "facet": "copy"
+  },
+  "R19": {
+    "items": ["C-RL-16", "C-UF-14"],
+    "anchor": "role_affordance.consistency",
+    "facet": "affordance"
+  }
+}

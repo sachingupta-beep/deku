@@ -1,0 +1,212 @@
+[
+  {
+    "number": "R1",
+    "criterion": "The response shows a grand total of 415000 minor units on the January 2026 Revenue report for the analyst.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "instruction_following",
+    "evaluation_target": "user_facing_message",
+    "importance": "critically_important",
+    "score": 5
+  },
+  {
+    "number": "R2",
+    "criterion": "The response displays a single North region row on the January 2026 Revenue report for the North manager.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "instruction_following",
+    "evaluation_target": "user_facing_message",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R3",
+    "criterion": "The response labels every transaction status with a word beside the status colour.",
+    "is_positive": true,
+    "type": "instruction following",
+    "dimension": "instruction_following",
+    "evaluation_target": "user_facing_message",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R4",
+    "criterion": "The response presents a report as two breakdown tables beneath a single grand total.",
+    "is_positive": true,
+    "type": "instruction following",
+    "dimension": "instruction_following",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R5",
+    "criterion": "The agent leaves the publication timestamp fixed on a second publish attempt against one report.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "critically_important",
+    "score": 5
+  },
+  {
+    "number": "R6",
+    "criterion": "The agent seeds the ledger with ten transaction rows carrying their pinned amounts.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R7",
+    "criterion": "The agent binds each seeded manager to a single region row.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R8",
+    "criterion": "The agent derives each summary figure from the ledger rows at read time.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R9",
+    "criterion": "The response carries a manager from sign-in to a published report within three screens.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ux_flow",
+    "evaluation_target": "user_facing_message",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R10",
+    "criterion": "The response shows an empty state on a report period holding zero settled rows.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ux_flow",
+    "evaluation_target": "user_facing_message",
+    "importance": "important",
+    "score": 3
+  },
+  {
+    "number": "R11",
+    "criterion": "The response paints the application background in the hex value #F7F8FA.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ui_visual",
+    "evaluation_target": "user_facing_message",
+    "importance": "critically_important",
+    "score": 5
+  },
+  {
+    "number": "R12",
+    "criterion": "The response sets Inter as the typeface across the interface.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "ui_visual",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R13",
+    "criterion": "The response animates interface transitions over 150 milliseconds.",
+    "is_positive": true,
+    "type": "instruction following",
+    "dimension": "motion",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R14",
+    "criterion": "The response drops transitions for a visitor whose system requests reduced motion.",
+    "is_positive": true,
+    "type": "instruction following",
+    "dimension": "motion",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R15",
+    "criterion": "The response meets a text contrast ratio of 4.5 to 1 on body copy.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "accessibility",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R16",
+    "criterion": "The response draws a visible focus ring on every interactive control.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "accessibility",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R17",
+    "criterion": "The response stacks the two breakdown cards beneath a 768 pixel viewport width.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "responsiveness",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R18",
+    "criterion": "The response keeps every table legible at a 390 by 844 viewport.",
+    "is_positive": true,
+    "type": "task completion",
+    "dimension": "responsiveness",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": 1
+  },
+  {
+    "number": "R19",
+    "criterion": "The agent stores a precomputed revenue total as a column on the report row.",
+    "is_positive": false,
+    "type": "commission",
+    "dimension": "functionality",
+    "evaluation_target": "state_change",
+    "importance": "important",
+    "score": -3
+  },
+  {
+    "number": "R20",
+    "criterion": "The response renders another region's revenue figures to a signed-in manager.",
+    "is_positive": false,
+    "type": "commission",
+    "dimension": "instruction_following",
+    "evaluation_target": "user_facing_message",
+    "importance": "important",
+    "score": -3
+  },
+  {
+    "number": "R21",
+    "criterion": "The response conveys a transaction status through colour alone.",
+    "is_positive": false,
+    "type": "commission",
+    "dimension": "ui_visual",
+    "evaluation_target": "user_facing_message",
+    "importance": "somewhat_important",
+    "score": -1
+  }
+]
