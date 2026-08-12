@@ -53,7 +53,11 @@ except ImportError:  # verifier image path, or module absent entirely
             return messages
 
 # Pinned grader model. See PLAN.md 4.5 -- fixed grader per benchmark run.
-DEFAULT_GRADER_MODEL = "claude-sonnet-4-5-20250929"
+# claude-sonnet-4-6, not 4-5: pricing.py carries no rate for claude-sonnet-4-5,
+# so the old default made every record unpostable (see run_rubric.py's
+# DEFAULT_JUDGE_MODEL for the full note). Keep the two graders on the same
+# priced default unless a task deliberately splits them.
+DEFAULT_GRADER_MODEL = "claude-sonnet-4-6"
 
 # Grading starts the instant the agent phase ends, on the same account the agent
 # just drained, so upstream 429 is routine here rather than exceptional.

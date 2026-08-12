@@ -63,7 +63,13 @@ except ImportError:  # verifier image path
 # --------------------------------------------------------------------------
 # Constants -- pinned per PLAN.md 4.5 for cross-run comparability.
 
-DEFAULT_JUDGE_MODEL = "claude-sonnet-4-5-20250929"
+# claude-sonnet-4-6, not 4-5: harness/finance/pricing.py deliberately carries no
+# rate for claude-sonnet-4-5 ("a number here would be invention"), so a run at
+# the old default produced judge_cost_usd = null and finance refused to post the
+# WHOLE record -- agent cost included. That surfaced ~30 minutes into a paid run
+# (2026-08-12, reward 0.3043, never billed). 4-6 is priced, so the default now
+# produces a postable record.
+DEFAULT_JUDGE_MODEL = "claude-sonnet-4-6"
 ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_VIEWPORTS = "1920x1200,768x1024,390x844"
 DEFAULT_MAX_STEPS = 40         # per dimension

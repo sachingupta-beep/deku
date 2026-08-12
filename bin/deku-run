@@ -130,7 +130,11 @@ elif [[ -n "${ANTHROPIC_BASE_URL:-}" && "${ANTHROPIC_BASE_URL}" != "${ANTHROPIC_
 fi
 
 AGENT="openhands"
-MODEL="anthropic/claude-opus-4-5-20251101"
+# claude-opus-4-8, not 4-5: pricing.py has no rate for claude-opus-4-5, so a
+# default run reported a null trajectory cost and finance refused the record.
+# Every run to date has passed `-m anthropic/claude-opus-4-8` by hand to avoid
+# exactly that; this makes the default match what people actually use.
+MODEL="anthropic/claude-opus-4-8"
 FRESH=1
 # Bash 3.2 (the macOS default) errors on "${arr[@]}" for an EMPTY array under
 # `set -u`. The ${arr[@]+"${arr[@]}"} form expands to nothing when unset and to
