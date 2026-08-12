@@ -29,7 +29,11 @@ from pathlib import Path
 SOURCE = Path(__file__).resolve().parent / "verifier"
 SHARED = ("score.py", "test.sh", "capabilities.py", "appclient.py",
           "_shapes.py", "pytest.ini")
-OPTIONAL = ("run_workflows.py", "run_rubric.py")
+# grader_compress.py is imported by run_workflows.py, so it has to ride along
+# into every tests/ dir -- the graders import it at /tests inside the container.
+# run_workflows falls back to an identity function if it is ever missing, so a
+# stale task that predates this entry still grades correctly, just uncompressed.
+OPTIONAL = ("run_workflows.py", "run_rubric.py", "grader_compress.py")
 EVAL = Path(__file__).resolve().parent / "eval"
 
 

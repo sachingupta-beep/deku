@@ -32,6 +32,47 @@ set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
+# Load .env (gitignored; see .env.example) so DEKU_* config does not have to be
+# exported by hand in every terminal.
+#
+# `set -a` is what makes this useful: a bare `VAR=value` line assigns a
+# SHELL-LOCAL variable, which python's os.environ never sees. Without it,
+# `echo $DEKU_PROJECT_ID` prints the right value while post_usage.py still
+# reports "DEKU_PROJECT_ID is unset" -- a genuinely confusing failure.
+#
+# A variable already present in the real environment WINS: this only fills in
+# what is unset, so `DEKU_BUDGET_TYPE=Production bin/deku-run ...` still
+# overrides the file for a one-off run.
+if [[ ! -f "$REPO/.env" ]]; then
+  echo "==> .env is missing -- refusing to run." >&2
+  echo >&2
+  echo "    A run without it completes and then silently reports nothing to" >&2
+  echo "    finance: no DEKU_PROJECT_ID means no dashboard row, and you only" >&2
+  echo "    find out after the agent time is already spent. Failing here" >&2
+  echo "    costs seconds; failing at the end costs a whole run." >&2
+  echo >&2
+  echo "    Fix:  cp .env.example .env   then fill in DEKU_PROJECT_ID" >&2
+  exit 2
+fi
+
+if [[ -f "$REPO/.env" ]]; then
+  while IFS= read -r _line || [[ -n "$_line" ]]; do
+    case "$_line" in
+      ''|'#'*) continue ;;
+      *=*) : ;;
+      *) continue ;;
+    esac
+    _key="${_line%%=*}"
+    _key="${_key#"${_key%%[![:space:]]*}"}"          # ltrim
+    _key="${_key%"${_key##*[![:space:]]}"}"          # rtrim
+    [[ "$_key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+    # already set in the real environment -> leave it alone
+    [[ -n "${!_key:-}" ]] && continue
+    set -a; eval "$_line"; set +a
+  done < "$REPO/.env"
+  unset _line _key
+fi
+
 TASK="${1:-}"
 if [[ -z "$TASK" || "$TASK" == -* ]]; then
   echo "usage: bin/deku-run <task-path> [--shared-only] [harbor flags...]" >&2
@@ -39,6 +80,54 @@ if [[ -z "$TASK" || "$TASK" == -* ]]; then
   exit 2
 fi
 shift
+
+# Refresh this task's copy of the shared grader before running it.
+#
+# harness/eval/{run_rubric,run_workflows,grader_compress}.py are the source of
+# truth, but they never execute: each task carries its own copy under tests/,
+# which is what gets mounted at /tests in the container. Edit the master, forget
+# to sync, and the run silently grades with the OLD code -- the edit appears to
+# do nothing and there is no error to notice.
+#
+# Syncing here makes that unmissable class of mistake impossible, and costs a
+# file compare. Only the task being run is touched; use
+# `harness/sync_verifier.py tasks/*/` to update the whole corpus before a commit.
+# `|| true`: a sync problem must not block a run that would otherwise work.
+if [[ -d "$TASK" ]]; then
+  python3 harness/sync_verifier.py "$TASK" >/dev/null 2>&1 || true
+fi
+
+# ---------------------------------------------------------------------------
+# Anthropic base-URL aliasing: the two names must always agree.
+# ---------------------------------------------------------------------------
+# Two different consumers read two different variables for the SAME value:
+#   ANTHROPIC_BASE_URL  -- Harbor's claude-code agent, and the graders
+#                          (harness/eval/run_workflows.py)
+#   ANTHROPIC_API_BASE  -- openhands, which routes through litellm
+#
+# Set only one and the other consumer silently ignores the bridge and dials
+# api.anthropic.com directly, sending the bridge secret as a real API key. That
+# surfaces a full agent-run later as `401 invalid x-api-key` inside a litellm
+# traceback, which names neither the variable nor the bridge. Measured cost of
+# learning this the hard way: one paid agent run (2026-08-11).
+#
+# README.md's "claude-code reads ANTHROPIC_BASE_URL, not the ANTHROPIC_API_BASE
+# the bridge prints" is correct for claude-code and actively misleading for the
+# DEFAULT agent, which is openhands. Rather than ask anyone to remember which
+# agent wants which spelling, mirror whichever one is set onto the other.
+#
+# Neither set is left alone on purpose: that is the legitimate "talk straight to
+# api.anthropic.com with a real key" path, and forcing a bridge URL would break it.
+if [[ -n "${ANTHROPIC_BASE_URL:-}" && -z "${ANTHROPIC_API_BASE:-}" ]]; then
+  export ANTHROPIC_API_BASE="$ANTHROPIC_BASE_URL"
+elif [[ -n "${ANTHROPIC_API_BASE:-}" && -z "${ANTHROPIC_BASE_URL:-}" ]]; then
+  export ANTHROPIC_BASE_URL="$ANTHROPIC_API_BASE"
+elif [[ -n "${ANTHROPIC_BASE_URL:-}" && "${ANTHROPIC_BASE_URL}" != "${ANTHROPIC_API_BASE}" ]]; then
+  echo "==> WARNING: ANTHROPIC_BASE_URL and ANTHROPIC_API_BASE disagree:" >&2
+  echo "      ANTHROPIC_BASE_URL = $ANTHROPIC_BASE_URL" >&2
+  echo "      ANTHROPIC_API_BASE = $ANTHROPIC_API_BASE" >&2
+  echo "    The agent and the grader will talk to different endpoints." >&2
+fi
 
 AGENT="openhands"
 MODEL="anthropic/claude-opus-4-5-20251101"
@@ -187,5 +276,47 @@ for pair in "verifier_fresh:clean container" "verifier:in-place (shared containe
 done
 echo "=============================================="
 echo "output/ now holds both, tagged manifest.graded_by"
+
+# ---------------------------------------------------------------------------
+# Optional: report this run to the finance API.
+# ---------------------------------------------------------------------------
+# OFF unless DEKU_FINANCE_AUTOPOST=true. Posting is an outward-facing, billed
+# action, so it stays opt-in rather than something a routine `deku-run` does by
+# surprise. Set it in .env alongside the other DEKU_FINANCE_* config.
+#
+# `|| true` is load-bearing, and so is running this AFTER the score table: a
+# finance outage, a bad token, or a stale trajectory must never turn a
+# successful trial into a failed command or hide the score. post_usage.py is
+# already idempotent -- it keys receipts by trajectory_id across every run
+# directory -- so a re-run of this script cannot double-bill.
+# `${VAR,,}` is a bash 4 lowercase expansion and macOS ships bash 3.2, where it
+# is a hard "bad substitution" parse error that would break this whole script.
+# `tr` is the portable equivalent.
+if [[ "$(printf '%s' "${DEKU_FINANCE_AUTOPOST:-}" | tr 'A-Z' 'a-z')" == "true" ]]; then
+  echo
+  echo "==> [4/4] reporting usage to finance (DEKU_FINANCE_AUTOPOST=true)"
+  # post_usage.py takes the PUBLISHED run directory (output/<task>/<model>/run_N),
+  # not the jobs/ trial directory -- it reads manifest.json, which only exists
+  # after repackage. Match on manifest.source_job so we bill the run we just
+  # published rather than whichever directory happens to be newest.
+  RUN_DIR="$(python3 - "$TRIAL" <<'PY'
+import glob, json, sys
+trial = sys.argv[1].rstrip("/")
+for m in glob.glob("output/*/*/run_*/manifest.json"):
+    try:
+        if json.load(open(m)).get("source_job", "").rstrip("/") == trial:
+            print(m.rsplit("/", 1)[0]); break
+    except Exception:
+        pass
+PY
+)"
+  if [[ -z "$RUN_DIR" ]]; then
+    echo "    no published run directory matches $TRIAL -- nothing to report." >&2
+  else
+    python3 harness/finance/post_usage.py "$RUN_DIR" --post || \
+      echo "    finance post failed -- the run itself is unaffected; re-run" \
+           "harness/finance/post_usage.py '$RUN_DIR' --post later to bill it." >&2
+  fi
+fi
 
 exit "${FRESH_RC:-0}"

@@ -209,13 +209,28 @@ curl -fsS http://127.0.0.1:8765/healthz            # {"ok":true}
 docker run --rm curlimages/curl -sS http://host.docker.internal:8765/healthz   # {"ok":true}
 ```
 
-Point Harbor at it. Note Harbor's `claude-code` agent reads `ANTHROPIC_BASE_URL`,
-**not** the `ANTHROPIC_API_BASE` the bridge script prints:
+Point Harbor at it. **Export both base-URL names** -- which one is read depends
+on the agent, and getting it wrong does not fail fast:
+
+| Consumer | Reads |
+| --- | --- |
+| `claude-code` agent, and the graders (`harness/eval/run_workflows.py`) | `ANTHROPIC_BASE_URL` |
+| `openhands` (the DEFAULT agent), via litellm | `ANTHROPIC_API_BASE` |
 
 ```bash
 export ANTHROPIC_BASE_URL=http://host.docker.internal:8765
+export ANTHROPIC_API_BASE=http://host.docker.internal:8765
 export ANTHROPIC_API_KEY=$(cat .bridge_secret)
 ```
+
+Set only one and the other consumer ignores the bridge, dials
+`api.anthropic.com` directly, and sends the bridge secret as a real API key. It
+surfaces minutes into a paid agent run as `401 invalid x-api-key` buried in a
+litellm traceback that names neither the variable nor the bridge.
+
+`bin/deku-run` now mirrors whichever one it finds onto the other, so this cannot
+bite you there -- but a bare `harbor run` has no such protection, which is why
+both belong in your shell (and in `.env`).
 
 With `ANTHROPIC_BASE_URL` set, Harbor keeps the full model name and aliases every
 model tier to it.

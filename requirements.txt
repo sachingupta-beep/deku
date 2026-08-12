@@ -39,6 +39,24 @@ pyyaml==6.0.3
 #   playwright==1.49.1         browser grader (plus `playwright install chromium`)
 #   psycopg[binary]==3.2.3     postgres capability adapter
 #
+#   headroom-ai>=0.24,<0.25    OPTIONAL -- grader prompt compression.
+#     Not required by anything. harness/eval/grader_compress.py imports it
+#     defensively and no-ops when absent, so every task grades identically
+#     today whether or not it is installed.
+#
+#     Do NOT install this on the host: the grader runs in the task container,
+#     so a host install changes nothing. Enable it per task with
+#         harness/eval/enable_headroom.sh <task>
+#     which edits that task's Dockerfile and task.toml together -- both are
+#     required, and doing one without the other fails silently. See
+#     harness/eval/HEADROOM.md.
+#     Note it hard-pins litellm==1.82.3, which is a large transitive dependency
+#     for a container that otherwise has none -- weigh that before enabling.
+#     It applies to the GRADER path only. Do not wire it into the agent path:
+#     98.5% of agent prompt tokens are cache reads (measured over the recorded
+#     completions in jobs/), and compressing a cached prefix costs several times
+#     more than it saves. The reasoning is written up in grader_compress.py.
+#
 # A task whose environment/Dockerfile omits any of them fails validate_task.py
 # with "the verifier runs in this image, so ...".
 # ---------------------------------------------------------------------------

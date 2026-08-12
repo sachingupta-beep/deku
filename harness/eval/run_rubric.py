@@ -1195,6 +1195,14 @@ def main() -> int:
     meta["finished_at"] = now_iso()
     meta["routes_visited"] = evidence.get("routes_visited", [])
     meta["login_status"] = evidence.get("login_status", "")
+    # Judge spend. harness/finance/usage.py reads `meta.usage` to build the
+    # judge_lines entry finance bills grading against; with it absent the entry
+    # is omitted and the run reports agent cost only, understating real spend.
+    # Guarded because a missing cost figure must never fail a grading run.
+    try:
+        meta["usage"] = llm.usage_snapshot()
+    except Exception:
+        pass
     payload["meta"] = meta
 
     _write_json(args.out, payload)

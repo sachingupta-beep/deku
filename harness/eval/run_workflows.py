@@ -38,6 +38,20 @@ from typing import Any
 import httpx
 import yaml
 
+# Optional Headroom prompt compression, default OFF (see grader_compress.py).
+# It sits next to this file locally and at /tests in the verifier image. A
+# missing or broken module must never stop a trial from being graded, so the
+# fallback is an explicit identity function rather than an error.
+try:
+    from grader_compress import compress_messages  # type: ignore
+except ImportError:  # verifier image path, or module absent entirely
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        from grader_compress import compress_messages  # type: ignore
+    except ImportError:
+        def compress_messages(model, messages):  # type: ignore[misc]
+            return messages
+
 # Pinned grader model. See PLAN.md 4.5 -- fixed grader per benchmark run.
 DEFAULT_GRADER_MODEL = "claude-sonnet-4-5-20250929"
 
@@ -457,6 +471,64 @@ class _GraderLLM:
         self.model = model
         self.client = httpx.Client(timeout=LLM_TIMEOUT_SEC)
         self._cooled = False
+        # Grader spend, accumulated across every call this instance makes.
+        # `calls` is load-bearing downstream: harness/finance/usage.py treats a
+        # line with calls==0 as "this grader never ran" and omits it entirely,
+        # rather than reporting an all-zero line that would read as "ran free".
+        self.usage = {
+            "calls": 0,
+            "model_name": model,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "cache_creation_input_tokens": 0,
+        }
+
+    def _record_usage(self, block, openai_shape: bool = False) -> None:
+        """Fold one response's usage into the running total.
+
+        Normalises BOTH providers to the Anthropic field names, which is the
+        contract harness/finance/pricing.py documents ("usage uses the Anthropic
+        names, which is what run_workflows normalises both providers into").
+
+        The two providers disagree about what the input count includes:
+          Anthropic -- input_tokens EXCLUDES cache reads, which are reported
+                       separately as cache_read_input_tokens.
+          OpenAI    -- prompt_tokens INCLUDES cached tokens, broken out under
+                       prompt_tokens_details.cached_tokens.
+        Copying OpenAI's prompt_tokens straight across would therefore
+        double-count every cached token and overstate grader cost. Subtract.
+
+        Never raises: a missing or malformed usage block costs us a cost figure,
+        which must never be able to fail a grading run.
+        """
+        try:
+            block = block or {}
+            if openai_shape:
+                cached = int((block.get("prompt_tokens_details") or {})
+                             .get("cached_tokens") or 0)
+                self.usage["input_tokens"] += max(
+                    0, int(block.get("prompt_tokens") or 0) - cached)
+                self.usage["output_tokens"] += int(block.get("completion_tokens") or 0)
+                self.usage["cache_read_input_tokens"] += cached
+                # OpenAI caches implicitly; there is no billable write to report.
+            else:
+                self.usage["input_tokens"] += int(block.get("input_tokens") or 0)
+                self.usage["output_tokens"] += int(block.get("output_tokens") or 0)
+                self.usage["cache_read_input_tokens"] += int(
+                    block.get("cache_read_input_tokens") or 0)
+                self.usage["cache_creation_input_tokens"] += int(
+                    block.get("cache_creation_input_tokens") or 0)
+            self.usage["calls"] += 1
+        except (TypeError, ValueError):
+            pass
+
+    def usage_snapshot(self) -> dict:
+        """Totals for this grader, shaped for `meta.usage` in the report JSON.
+
+        harness/finance/usage.py reads exactly this to build a judge_lines entry.
+        """
+        return dict(self.usage)
 
     def close(self):
         self.client.close()
@@ -535,7 +607,8 @@ class Anthropic(_GraderLLM):
         if not self.api_key:
             raise RuntimeError("ANTHROPIC_API_KEY not set")
         self._preflight()
-        return self._post_with_retry(lambda: self.client.post(
+        messages = compress_messages(self.model, messages)
+        payload = self._post_with_retry(lambda: self.client.post(
             f"{self.base_url}/v1/messages",
             headers={
                 "x-api-key": self.api_key,
@@ -550,6 +623,8 @@ class Anthropic(_GraderLLM):
                 "messages": messages,
             },
         ))
+        self._record_usage(payload.get("usage"))
+        return payload
 
 
 # ---------------------------------------------------------------------------
@@ -682,6 +757,7 @@ class OpenAI(_GraderLLM):
         if not self.api_key:
             raise RuntimeError("OPENAI_API_KEY not set")
         self._preflight()
+        messages = compress_messages(self.model, messages)
         payload = self._post_with_retry(lambda: self.client.post(
             f"{self.base_url}/chat/completions",
             headers={
@@ -695,6 +771,9 @@ class OpenAI(_GraderLLM):
                 "tools": _tools_to_openai(tools),
             },
         ))
+        # Record BEFORE converting: _response_to_anthropic keeps only content
+        # blocks and stop_reason, so the usage block is gone after it runs.
+        self._record_usage(payload.get("usage"), openai_shape=True)
         return _response_to_anthropic(payload)
 
 
