@@ -165,6 +165,53 @@ if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
   exit 2
 fi
 
+# A REAL completion, not a reachability check.
+#
+# "the key is non-empty" and "the endpoint answers" both pass while the bridge is
+# unusable, because an exhausted or de-authorised bridge returns 401 exactly like
+# a healthy one missing a key. Three runs were lost to that: the agent phase
+# started, burned 4-8 minutes, and died on the first LLM call with
+# `invalid x-api-key` or `OAuth refresh failed`. Nothing observable beforehand
+# distinguished it from a working setup.
+#
+# One 8-token call costs a fraction of a cent and turns those minutes into five
+# seconds. Skipped for nop/oracle, which make no LLM calls at all, and can be
+# disabled with DEKU_SKIP_PREFLIGHT=1.
+if [[ "$AGENT" != "nop" && "$AGENT" != "oracle" && -z "${DEKU_SKIP_PREFLIGHT:-}" ]]; then
+  # `host.docker.internal` is a CONTAINER-side name; it does not resolve on the
+  # host, so probing it verbatim yields an empty body and reports nothing useful.
+  # The bridge binds 0.0.0.0, so localhost is the same listener seen from here.
+  PREFLIGHT_URL="${ANTHROPIC_BASE_URL:-https://api.anthropic.com}"
+  PREFLIGHT_URL="${PREFLIGHT_URL/host.docker.internal/localhost}"
+  PREFLIGHT_BODY='{"model":"claude-sonnet-4-5-20250929","max_tokens":8,'
+  PREFLIGHT_BODY+='"messages":[{"role":"user","content":"ok"}]}'
+  PREFLIGHT_OUT="$(curl -sS --max-time 30 -X POST "${PREFLIGHT_URL%/}/v1/messages" \
+      -H "x-api-key: $ANTHROPIC_API_KEY" \
+      -H "anthropic-version: 2023-06-01" \
+      -H "content-type: application/json" \
+      -d "$PREFLIGHT_BODY" 2>&1)"
+  if [[ "$PREFLIGHT_OUT" != *'"content"'* ]]; then
+    echo >&2
+    echo "==> PREFLIGHT FAILED -- the LLM endpoint is not usable, so the agent" >&2
+    echo "    would start, spend several minutes, and die on its first call." >&2
+    echo >&2
+    echo "    endpoint: ${PREFLIGHT_URL%/}/v1/messages" >&2
+    echo "    response: $(printf '%s' "$PREFLIGHT_OUT" | head -c 400)" >&2
+    echo >&2
+    echo "    'OAuth refresh failed' / 'invalid_grant' means the bridge's grant" >&2
+    echo "    was rotated out from under it -- restart it so it re-reads the" >&2
+    echo "    keychain:" >&2
+    echo >&2
+    echo "      pkill -f 'agent.claude_code'" >&2
+    echo "      nohup .venv/bin/python3 -m agent.claude_code --host 0.0.0.0 \\" >&2
+    echo "        --port 8765 > /tmp/bridge.log 2>&1 &" >&2
+    echo >&2
+    echo "    DEKU_SKIP_PREFLIGHT=1 bypasses this check." >&2
+    exit 2
+  fi
+  echo "==> preflight: LLM endpoint answered a real completion"
+fi
+
 # Snapshot the existing jobs BEFORE running, so the trial we grade afterwards is
 # provably the one this invocation produced. Taking "newest" alone is wrong: when
 # the agent phase fails to start a trial at all, newest-first silently returns a
@@ -203,6 +250,18 @@ if [[ -n "$PROMPT_TEMPLATE" ]]; then
     echo "==> WARNING: prompt template not found at $PROMPT_TEMPLATE; running unwrapped" >&2
   fi
 fi
+
+# No grader sync here on purpose.
+#
+# It would be redundant: eval_fresh.py assembles /tests itself and overlays the
+# shared grader AND the task's instruction.md straight from harness/ and the task
+# directory, after copying tests/. Whatever those on-disk copies contain, the
+# container runs the current files.
+#
+# The copies under tasks/*/tests/ exist because Harbor uploads only tests/ when
+# HARBOR grades. deku-run passes --disable-verification, so that path is unused
+# here. Run harness/sync_verifier.py by hand to keep the copies tidy for reading,
+# or before using Harbor's own verifier.
 
 echo "==> [1/3] agent phase: $AGENT on $(basename "$TASK")"
 yes | bin/harbor run --path "$REPO/${TASK#./}" -a "$AGENT" \

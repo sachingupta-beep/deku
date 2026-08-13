@@ -573,6 +573,49 @@ def main() -> int:
               "/logs/verifier"], "mkdir")
         must(["docker", "cp", f"{app_dir}/.", f"{cname}:/app"], "copy app")
         must(["docker", "cp", f"{task_dir / 'tests'}/.", f"{cname}:/tests"], "copy tests")
+
+        # Then OVERLAY the shared grader straight from harness/, so the container
+        # runs the current one rather than whatever copy the task happens to hold.
+        #
+        # Every task carries its own copy of these files because Harbor uploads
+        # only tests/ when IT grades. We do not use Harbor's verifier -- deku-run
+        # passes --disable-verification and this function assembles /tests itself
+        # -- so the copies are a distribution mechanism we no longer depend on,
+        # and depending on them cost real money: appclient.py was fixed to accept
+        # `token` as well as `access_token`, and the next task run still carried
+        # the pre-fix copy. A stale grader does not error; it publishes a wrong
+        # number (0.0 with `invalid: []`, asserting a measurement it never made).
+        #
+        # Copied AFTER the task's tests/ so harness/ always wins. The task keeps
+        # ownership of what is task-specific: test_*.py, conftest.py,
+        # workflows.yaml, rubric.json.
+        shared = [REPO / "harness" / "verifier" / n for n in
+                  ("score.py", "test.sh", "capabilities.py", "appclient.py",
+                   "_shapes.py", "pytest.ini")]
+        # grader_compress.py rides along because run_workflows.py imports it at
+        # /tests. Its absence is SILENT -- the import is wrapped in a try/except
+        # that falls back to an identity function -- so a task with
+        # DEKU_GRADER_HEADROOM_ENABLED=true and no module compresses nothing and
+        # says nothing. Keep this list in step with sync_verifier.OPTIONAL.
+        shared += [REPO / "harness" / "eval" / n for n in
+                   ("run_workflows.py", "run_rubric.py", "grader_compress.py")]
+        # The task's OWN brief, from the task directory rather than its tests/
+        # copy. run_rubric.py grades against the spec, and Harbor passes
+        # instruction.md to the agent as a prompt without ever uploading it -- so
+        # the judge reads /tests/instruction.md, and that copy goes stale the
+        # moment a brief is edited. Sixteen packaging blocks were removed from
+        # briefs today; without this the judge would still be scoring against the
+        # text that told the agent to background its server.
+        shared += [task_dir / "instruction.md"]
+        overlaid = 0
+        for src in shared:
+            if not src.exists():
+                continue
+            must(["docker", "cp", str(src), f"{cname}:/tests/{src.name}"],
+                 f"overlay {src.name}")
+            overlaid += 1
+        log(f"      overlaid {overlaid} shared grader file(s) from harness/ "
+            f"(task copies cannot go stale)")
         run(["docker", "exec", cname, "chmod", "-R", "+x", "/tests"])
         run(["docker", "exec", cname, "chmod", "+x", "/app/start.sh"])
 

@@ -54,11 +54,23 @@ def sync(tests_dir: Path, *, check: bool) -> list[str]:
         if not src.exists():
             continue
         dst = tests_dir / src.name
+        # ABSENT is a decision, not drift.
+        #
+        # eval_fresh.py assembles /tests itself and overlays the shared grader --
+        # and instruction.md -- straight from harness/ after copying tests/, so a
+        # task does not need its own copy for grading. A task pruned to just its
+        # own data (conftest.py, test_*.py, workflows.yaml, rubric.json) is a
+        # deliberate state: 3,863 lines of duplicated grader against 1,853 lines
+        # of actual task in payroll-journal-approval before pruning.
+        #
+        # So: keep an EXISTING copy current, never resurrect a removed one. Tasks
+        # that still carry copies stay correct and keep working with Harbor's own
+        # verifier; pruned tasks stay pruned instead of being refilled by the next
+        # `bin/deku-run`.
+        if not dst.exists():
+            continue
         if check:
-            if not dst.exists():
-                problems.append(f"{tests_dir.parent.name}: missing {src.name} "
-                                f"(run harness/sync_verifier.py)")
-            elif not filecmp.cmp(src, dst, shallow=False):
+            if not filecmp.cmp(src, dst, shallow=False):
                 problems.append(f"{tests_dir.parent.name}: {src.name} differs from "
                                 f"harness/verifier (run harness/sync_verifier.py)")
         else:

@@ -644,6 +644,117 @@ def cross_task_checks(task_dirs: list[Path]) -> list[str]:
     return fails
 
 
+# Verbs that mean a browser substep CHANGED something rather than read it.
+MUTATING = (
+    "reserve", "release", "adjust", "claim", "resolve", "reassign", "assign",
+    "mark", "unmark", "delete", "remove", "create", "submit", "approve",
+    "reject", "cancel", "complete", "archive", "rename", "edit", "update",
+)
+
+
+def consumed_seed_warnings(task_dir: Path) -> list[str]:
+    """pytest checks that assert on seed data an earlier browser substep changed.
+
+    The browser pass runs BEFORE pytest by design (PLAN.md 4.5), so data tests
+    only ever inspect state a real user action created. A check that asserts the
+    seed is UNTOUCHED therefore fails precisely when the browser grader succeeds:
+
+        browser: "Release that hold and watch free stock on PLT-1001 return to 18"  PASSED
+        pytest : "PLT-1001 carries no 'held' reservation"                           FAILED
+
+    Both cannot hold. No application can satisfy them, so the check measures
+    nothing about the app. Found in three tasks independently --
+    warehouse-allocation-ledger (9 of 18 checks), streak-habit-tracker (3) and
+    customer-issue-queue (2 workflows) -- which makes it an authoring hazard
+    rather than a slip.
+
+    Heuristic, so it WARNS rather than fails: the overlap is real evidence, but
+    whether a given check is unpassable needs a human to read it. A check that
+    creates its own precondition first is fine and will still be listed here.
+    """
+    tests_dir = task_dir / "tests"
+    workflows = tests_dir / "workflows.yaml"
+    if not workflows.is_file():
+        return []
+
+    # Tokens that name a seeded entity: IDs like PLT-1001, and quoted strings.
+    token = re.compile(r'\b[A-Z]{2,5}-\d{3,5}\b')
+    quoted = re.compile(r'"([^"\n]{6,60})"')
+
+    def tokens(text: str) -> set[str]:
+        return set(token.findall(text)) | {q.strip() for q in quoted.findall(text)}
+
+    # Seeded entities are named ONCE in conftest and referenced by constant
+    # everywhere else -- `SKU_LIVE = "PLT-1001"`, then `SKU_LIVE` in the tests. A
+    # literal scan of test_*.py finds nothing at all, so resolve the constants
+    # first and treat a test that uses the name as naming the value.
+    const_value: dict[str, str] = {}
+    conftest = tests_dir / "conftest.py"
+    if conftest.is_file():
+        for m in re.finditer(r'^([A-Z][A-Z0-9_]*)\s*=\s*"([^"\n]+)"',
+                             conftest.read_text(), re.M):
+            const_value[m.group(1)] = m.group(2)
+
+    test_tokens: dict[str, set[str]] = {}
+    for path in sorted(tests_dir.glob("test_*.py")):
+        source = path.read_text()
+        found = tokens(source)
+        for name, value in const_value.items():
+            if re.search(rf'\b{re.escape(name)}\b', source):
+                found.add(value)
+        test_tokens[path.name] = found
+    if not test_tokens:
+        return []
+
+    # Browser substeps that CHANGE something, and what they name.
+    mutated: dict[str, str] = {}
+    for line in workflows.read_text().splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("do:"):
+            continue
+        do = stripped[3:].strip().strip('"\'')
+        if not any(v in do.lower() for v in MUTATING):
+            continue
+        for tok in tokens(do) | tokens(f'"{do}"'):
+            mutated.setdefault(tok, do)
+
+    # Also match a quoted name from the tests appearing verbatim INSIDE a
+    # mutating substep. Workflow prose names entities bare -- "Toggle Mark today
+    # on the Read 20 minutes habit" -- so neither the ID pattern nor a quoted
+    # match finds it, while the test says find_habit(client, "Read 20 minutes").
+    # Only tokens that plausibly NAME a seeded entity: a multi-word proper name
+    # ("Read 20 minutes"), not a URL path or a status word. Without this, `/claims`
+    # and `submitted` matched a mutating substep and produced warnings about
+    # things that are not entities at all.
+    def names_entity(tok: str) -> bool:
+        return (" " in tok
+                and len(tok) >= 8
+                and not tok.startswith("/")
+                and any(c.isupper() for c in tok))
+
+    mutating_dos = list(dict.fromkeys(mutated.values()))
+    for name, toks in test_tokens.items():
+        for tok in list(toks):
+            if tok in mutated or not names_entity(tok):
+                continue
+            for do in mutating_dos:
+                if tok in do:
+                    mutated.setdefault(tok, do)
+                    break
+
+    warnings = []
+    for name, toks in sorted(test_tokens.items()):
+        hits = sorted(toks & set(mutated))
+        for hit in hits[:3]:
+            warnings.append(
+                f"{name} asserts on {hit!r}, which a browser substep changes first "
+                f"(\"{mutated[hit][:70]}\"). The browser pass runs BEFORE pytest, so a "
+                f"check expecting the seed untouched can only pass when the browser "
+                f"grader fails. Make the check establish its own precondition."
+            )
+    return warnings
+
+
 def main(argv: list[str]) -> int:
     task_dirs = [Path(arg).resolve() for arg in argv[1:]]
     if not task_dirs:
@@ -658,6 +769,13 @@ def main(argv: list[str]) -> int:
         for problem in problems:
             print(f"       - {problem}")
         failed += bool(problems)
+
+        # Warnings do NOT set the exit code: the check is a heuristic and a false
+        # positive must not block a correct task. It is printed loudly because
+        # the failure mode it detects is silent and expensive -- the run scores,
+        # publishes, and looks like an application weakness.
+        for warning in consumed_seed_warnings(task_dir):
+            print(f"  [WARN] {warning}")
 
     cross = cross_task_checks([d for d in task_dirs if (d / "task.toml").exists()])
     print(f"[{'FAIL' if cross else 'PASS'}] combinatorics guard across "

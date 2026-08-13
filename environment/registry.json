@@ -1,44 +1,88 @@
 {
   "_comment": "Central service catalog. A task's [metadata.services] slot -> provider is resolved here; environment/compose.py assembles the task's docker-compose.yaml from these fragments. Source of truth -- edit a provider ONCE, regenerate every task.",
-
   "slots": {
-    "backend":  ["pocketbase", "supabase", "appwrite", "directus", "nhost", "postgres"],
-    "db":       ["sqlite", "postgres", "mysql", "mariadb", "cockroachdb"],
-    "auth":     ["supabase-auth", "pocketbase", "supertokens", "logto", "keycloak", "zitadel", "ory-kratos", "dex"],
-    "email":    ["mailhog", "mailpit", "inbucket", "smtp4dev", "mailcatcher"],
-    "payments": ["deku-pay", "lago", "killbill"],
-    "storage":  ["supabase-storage", "minio", "localstack-s3", "seaweedfs", "garage"]
+    "backend": [
+      "pocketbase",
+      "supabase",
+      "appwrite",
+      "directus",
+      "nhost",
+      "postgres"
+    ],
+    "db": [
+      "sqlite",
+      "postgres",
+      "mysql",
+      "mariadb",
+      "cockroachdb"
+    ],
+    "auth": [
+      "supabase-auth",
+      "pocketbase",
+      "supertokens",
+      "logto",
+      "keycloak",
+      "zitadel",
+      "ory-kratos",
+      "dex"
+    ],
+    "email": [
+      "mailhog",
+      "mailpit",
+      "inbucket",
+      "smtp4dev",
+      "mailcatcher"
+    ],
+    "payments": [
+      "lago",
+      "killbill"
+    ],
+    "storage": [
+      "supabase-storage",
+      "minio",
+      "localstack-s3",
+      "seaweedfs",
+      "garage"
+    ]
   },
-
   "providers": {
     "postgres": {
       "fragment": "providers/postgres/service.yaml",
-      "generic_seed": {"src": "providers/postgres/init.sh", "dst": "postgres-init.sh"},
-      "host": "postgres", "port": 5432,
-      "apt": ["postgresql-client"], "pip": ["psycopg[binary]==3.2.3"]
+      "generic_seed": {
+        "src": "providers/postgres/init.sh",
+        "dst": "postgres-init.sh"
+      },
+      "host": "postgres",
+      "port": 5432,
+      "apt": [
+        "postgresql-client"
+      ],
+      "pip": [
+        "psycopg[binary]==3.2.3"
+      ]
     },
     "pocketbase": {
       "fragment": "providers/pocketbase/service.yaml",
       "task_seed": "pocketbase-init.sh",
-      "host": "pocketbase", "port": 8090
+      "host": "pocketbase",
+      "port": 8090
     },
     "minio": {
       "fragment": "providers/minio/service.yaml",
-      "host": "minio", "port": 9000
+      "host": "minio",
+      "port": 9000
     },
     "mailpit": {
       "fragment": "providers/mailpit/service.yaml",
-      "host": "mailpit", "smtp_port": 1025, "api_port": 8025
+      "host": "mailpit",
+      "smtp_port": 1025,
+      "api_port": 8025
     },
     "keycloak": {
       "fragment": "providers/keycloak/service.yaml",
       "task_seed": "keycloak-realm.json",
-      "host": "keycloak", "port": 8080
-    },
-    "deku-pay": {
-      "fragment": "providers/deku-pay/service.yaml",
-      "asset": {"src": "providers/deku-pay/build", "dst": "deku-pay"},
-      "host": "deku-pay", "port": 8080
+      "host": "keycloak",
+      "port": 8080
     }
   }
 }

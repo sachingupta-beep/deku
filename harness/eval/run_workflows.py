@@ -204,12 +204,28 @@ def read_credentials(path: str) -> str:
         return f"[credentials file at {path} unreadable: {exc}]"
 
     raw_lines = [ln.strip() for ln in text.splitlines()]
+
+    # Two things have to be learned from the WHOLE document before any row can be
+    # read, because a table alone does not say which column is which:
+    #
+    #   1. the password column, from the header row
+    #   2. a shared password stated once outside the table
+    #
+    # 2026-08-11: an app wrote `| Email | Name | Role | Entity |` with the password
+    # given separately as "**Password for all accounts:** `deku-demo-pw-2026`".
+    # The positional rule below took the next cell and handed the grader
+    # `Password: Priya Raman`. It then spent its entire 100-step budget failing to
+    # sign in, every downstream substep was skipped, and the run was discarded --
+    # 1h45m of grader time on an app whose login worked (pytest signed in fine).
+    pw_column = _password_column(raw_lines)
+    shared_pw = _shared_password(raw_lines)
+
     kept: list[str] = []
     for line in raw_lines:
         if CREDENTIAL_LINE.match(line):
             kept.append(line)
             continue
-        kept.extend(_credentials_from_table_row(line))
+        kept.extend(_credentials_from_table_row(line, pw_column, shared_pw))
 
     if raw_lines and not kept:
         # A file that exists but yields nothing produced the SAME message as a
@@ -225,7 +241,59 @@ def read_credentials(path: str) -> str:
     return "\n".join(kept[:MAX_CREDENTIAL_LINES])
 
 
-def _credentials_from_table_row(line: str) -> list[str]:
+def _password_column(lines: list[str]) -> int | None:
+    """Index of the column headed `Password` in the first table that has one."""
+    for line in lines:
+        m = CREDENTIAL_TABLE_ROW.match(line)
+        if not m:
+            continue
+        cells = [c.strip().strip("*`").lower() for c in m.group("cells").split("|")]
+        for i, cell in enumerate(cells):
+            if cell in ("password", "pass", "passphrase"):
+                return i
+    return None
+
+
+def _shared_password(lines: list[str]) -> str | None:
+    """One password stated for every account, outside any table.
+
+    Matches "Password for all accounts: `x`", "All accounts use the password x",
+    "Every account uses the same password: x". Only a bare token is accepted --
+    no spaces -- so this cannot pull a sentence of prose into the grader's system
+    prompt, which is the whole point of whitelisting this file.
+    """
+    candidates = [ln for ln in lines
+                  if "password" in ln.lower() and not CREDENTIAL_TABLE_ROW.match(ln)]
+
+    def usable(tok: str) -> bool:
+        # A password, not the first word of a sentence about passwords. The prose
+        # "Every account uses the same password (benchmark fixture data...)"
+        # yielded "(benchmark" before this guard.
+        return (len(tok) >= 4 and " " not in tok
+                and (tok[0].isalnum() or tok[0] == "_"))
+
+    # Backticked first. A README that states a shared password almost always sets
+    # it as code, and that is the only form that reliably distinguishes the value
+    # from the sentence around it.
+    for line in candidates:
+        for tok in re.findall(r'`([^`\n]+)`', line):
+            if usable(tok.strip()):
+                return tok.strip()
+
+    pattern = re.compile(
+        r'(?:password[^:\n]{0,40}:|(?:use|share)s?\s+the\s+(?:same\s+)?password\b[^\S\n]*:?)'
+        r'[^\S\n]*[`*"\']?([^\s`*"\'|]{4,})[`*"\']?',
+        re.I)
+    for line in candidates:
+        m = pattern.search(line)
+        if m and usable(m.group(1)):
+            return m.group(1)
+    return None
+
+
+def _credentials_from_table_row(line: str,
+                                pw_column: int | None = None,
+                                shared_pw: str | None = None) -> list[str]:
     """Pull `Email:`/`Password:` pairs out of a markdown table row.
 
     Turns  `| demo@ethara.ai | deku-demo-pw-2026 |`  into
@@ -251,8 +319,15 @@ def _credentials_from_table_row(line: str) -> list[str]:
         if not EMAIL_TOKEN.match(cell):
             continue
         out.append(f"Email: {cell}")
-        # The password is the next non-empty cell; that is the column order every
-        # observed README used, and guessing further would start capturing prose.
+        # In priority order: the column the header actually named, a password
+        # stated once for every account, then the old positional guess. The guess
+        # is last because it is the one that produced `Password: Priya Raman`.
+        if pw_column is not None and pw_column < len(cells) and cells[pw_column]:
+            out.append(f"Password: {cells[pw_column].strip('`*')}")
+            continue
+        if shared_pw:
+            out.append(f"Password: {shared_pw}")
+            continue
         for candidate in cells[i + 1:]:
             if candidate and not EMAIL_TOKEN.match(candidate):
                 out.append(f"Password: {candidate}")
