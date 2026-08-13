@@ -108,6 +108,9 @@ class GraderUnavailable(RuntimeError):
 ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_VIEWPORT = "1920x1200"
 DEFAULT_MAX_STEPS = 100
+# Consecutive text-only replies tolerated before a substep is abandoned.
+# One is almost always the model cut off mid-thought by max_tokens.
+NO_TOOL_CALL_RETRIES = 3
 DEFAULT_CREDENTIALS_PATH = "/app/USER_README.md"
 # Per-workflow wall clock. MUST exceed the worst-case retry ladder, or a workflow
 # that hits a transient throttle can never recover: the ladder needs
@@ -879,6 +882,7 @@ def run_substep(
 
     steps_used = 0
     result: dict | None = None
+    no_tool_turns = 0          # consecutive text-only replies
 
     while steps_used < steps_remaining:
         try:
@@ -898,12 +902,36 @@ def run_substep(
 
         tool_uses = [b for b in content_blocks if b.get("type") == "tool_use"]
         if not tool_uses:
-            # Grader model refused to drive the browser -- we never observed the
-            # app react to a real user action, so this is a grader fault, not app.
-            text = " ".join(b.get("text", "") for b in content_blocks if b.get("type") == "text")[:200]
+            # A turn with text and no tool call is usually the model thinking out
+            # loud and running out of output tokens mid-sentence -- not a refusal.
+            # Aborting on the first one threw away a whole run: 1 substep of 27
+            # went ungraded, the run was invalidated, and an app that had passed
+            # 10 of 11 workflows published as 0.0 (2026-08-13). The observed reply
+            # ended "...is this in an editable form? Wait, " -- cut off, not
+            # declining.
+            #
+            # So nudge and continue. Only give up after NO_TOOL_CALL_RETRIES
+            # consecutive text-only turns, which is a model that genuinely will
+            # not drive the browser. `stop_reason == max_tokens` is the common
+            # case and the reminder is cheap; a retry costs one call, an abort
+            # costs the run.
+            text = " ".join(b.get("text", "") for b in content_blocks
+                            if b.get("type") == "text")[:200]
+            no_tool_turns += 1
+            if no_tool_turns < NO_TOOL_CALL_RETRIES:
+                messages.append({
+                    "role": "user",
+                    "content": ("You replied with text and no tool call, so nothing was "
+                                "observed. Continue by CALLING A TOOL: browser_snapshot to "
+                                "see the page, an action to change it, or report_result to "
+                                "finish this substep. Do not reply with prose again."),
+                })
+                continue
             return {"passed": False, "error": "grader_no_tool_call",
-                    "note": f"no tool call; model said: {text!r}",
+                    "note": f"no tool call after {no_tool_turns} attempts; "
+                            f"model said: {text!r}",
                     "steps_used": steps_used}, steps_used
+        no_tool_turns = 0
 
         tool_results: list[dict] = []
         for tu in tool_uses:

@@ -185,12 +185,50 @@ def main() -> int:
     # into "the agent scored X". Any ungraded browser substep now invalidates the
     # run: reward 0.0 plus an explicit reason, so it can be filtered out of
     # training data instead of being mistaken for an honest failure.
+    # An ungraded substep is a hole in the observation, and a run full of holes
+    # cannot be scored. But ALL-OR-NOTHING was too blunt: on 2026-08-13 one
+    # substep of 27 came back without a verdict -- the grader model was cut off
+    # mid-sentence by max_tokens and replied with prose instead of a tool call --
+    # and the run was discarded. It had passed 10 of 11 workflows and 35 of 37
+    # pytest checks. A $5.65 agent phase produced nothing.
+    #
+    # So: tolerate a small fraction, and never let tolerance flatter the app.
+    # A workflow holding an ungraded substep is counted as FAILED (already true
+    # above, since an ungraded substep is not a passing one), so the reward can
+    # only be dragged down by the hole, never lifted by it. Above the threshold
+    # the run is invalid exactly as before.
+    UNGRADED_TOLERANCE = 0.10
+    ungraded_ratio = (ungraded_browser / browser_declared) if browser_declared else 0.0
+
     invalid: list[str] = []
     if browser_declared and not browser_graded:
         invalid.append("browser_results_missing")
-    if ungraded_browser:
+    degraded: list[str] = []
+    over_tolerance = ungraded_ratio > UNGRADED_TOLERANCE
+
+    if ungraded_browser and over_tolerance:
         invalid.append("browser_substeps_ungraded")
-    invalid.extend(grader_errors)
+
+    # grader_error names the KIND of fault behind those same ungraded substeps
+    # (grader_no_tool_call, grader_step_cap, ...), so it has to follow the same
+    # rule. Extending `invalid` unconditionally would keep voiding the run for a
+    # single tolerated hole and make the tolerance above meaningless.
+    #
+    # `browser_results_missing` is deliberately NOT subject to this: nothing was
+    # observed at all, and there is no ratio to be lenient about.
+    if grader_errors:
+        (invalid if over_tolerance else degraded).extend(grader_errors)
+
+    # A fault under the tolerance is recorded rather than voiding the run, so the
+    # hole is never invisible: the number is publishable, and a reader can still
+    # see it was taken with something unobserved.
+    if ungraded_browser and not over_tolerance:
+        degraded.append(
+            f"browser_substeps_ungraded={ungraded_browser}/{browser_declared} "
+            f"({ungraded_ratio:.0%} <= {UNGRADED_TOLERANCE:.0%} tolerance); the "
+            f"workflows holding them are counted as failed, so the reward is a "
+            f"lower bound"
+        )
     # test.sh drops ctrf-error.json alongside a missing/empty ctrf.json when pytest
     # collection failed. Without this, all pytest substeps score False and the
     # harness fault bills the agent.
@@ -230,6 +268,7 @@ def main() -> int:
         "pytest_substeps_passed": pytest_passed,
         "critical_substeps_failed": critical_failed,
         "browser_graded": browser_graded,
+        "degraded": degraded,
         "deployed": args.deployed,
         "judge_score": judge_score,
     }
