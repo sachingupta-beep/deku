@@ -305,6 +305,19 @@ def repackage(trial: Path, verifier_dir: str = "verifier") -> Path:
     (dest / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
     _write_debug_log(dest / "harness-debug.log", manifest, trial, result, vdir)
+
+    # usage.json + score.json, derived from what was just written. Both are pure
+    # reports -- never inputs to grading -- so a failure here must not cost the
+    # publish: the run's reward.json and manifest.json are already on disk.
+    try:
+        from report import build_score, build_usage
+        (dest / "usage.json").write_text(
+            json.dumps(build_usage(dest), indent=2) + "\n")
+        (dest / "score.json").write_text(
+            json.dumps(build_score(dest), indent=2) + "\n")
+    except Exception as exc:  # noqa: BLE001 - reporting must never fail a publish
+        print(f"  [warn] usage/score report skipped: {exc}", file=sys.stderr)
+
     return dest
 
 

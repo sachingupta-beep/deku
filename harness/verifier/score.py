@@ -45,6 +45,31 @@ def load_ctrf(path: Path) -> dict[str, bool]:
     return results
 
 
+# A substep carries an error for two very different reasons, and only one of
+# them is a hole in the measurement.
+#
+#   grader_step_cap -- an EARLIER substep of the SAME workflow spent the whole
+#     budget, so this one was never reached. The journey could not be completed.
+#     That is a verdict about the app, not a failure to observe it, and the
+#     workflow is already counted as failed either way. Scoring it None inflated
+#     the ungraded ratio and helped push an honestly-measured run to `invalid`
+#     on 2026-08-13: 10 of the 22 ungraded substeps were this.
+#
+#   anything else (grader_llm_error, grader_unavailable, ...) -- the harness
+#     itself broke. Nothing was learned about the app, so it stays ungraded and
+#     counts against the tolerance.
+UNDRIVABLE = {"grader_step_cap"}
+
+
+def _outcome(step: dict) -> bool | None:
+    error = step.get("error")
+    if error in UNDRIVABLE:
+        return False
+    if error:
+        return None
+    return bool(step.get("passed"))
+
+
 def load_browser(path: Path) -> tuple[dict[str, list[bool | None]], bool, list[str]]:
     """Map workflow id -> ordered browser substep outcomes.
 
@@ -57,8 +82,7 @@ def load_browser(path: Path) -> tuple[dict[str, list[bool | None]], bool, list[s
         return {}, False, []
     payload = json.loads(path.read_text())
     outcomes = {
-        entry["id"]: [None if step.get("error") else bool(step.get("passed"))
-                      for step in entry.get("substeps", [])]
+        entry["id"]: [_outcome(step) for step in entry.get("substeps", [])]
         for entry in payload.get("workflows", [])
     }
     errors = payload.get("meta", {}).get("grader_error") or []

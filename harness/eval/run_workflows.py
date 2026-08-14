@@ -108,6 +108,30 @@ class GraderUnavailable(RuntimeError):
 ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_VIEWPORT = "1920x1200"
 DEFAULT_MAX_STEPS = 100
+# Per-substep ceiling, separate from the workflow-wide DEFAULT_MAX_STEPS above.
+#
+# Substeps used to share one 100-step pool, so a greedy one starved the rest.
+# Giving each its own 100 fixed the starvation and overcorrected: the 2026-08-13
+# fan-merch re-grade made 1,079 grader calls for 12.8M input tokens ($40) and
+# 8 substeps hit the workflow timeout instead.
+#
+# 80, raised from a first attempt at 40 that was measurably too tight: on the
+# 2026-08-14 payroll run three substeps hit 40 without reaching a verdict and were
+# scored as failures, while the busiest SUCCESSFUL substep finished on 37 of 40.
+# A cap that close to the observed maximum is a cap that fails real work.
+#
+# The steps it bounds are single tool calls, and the grader is blind between them,
+# so each real interaction costs about two (act, then snapshot to see the result).
+# 80 steps is therefore roughly 40 interactions -- enough for a multi-screen
+# journey like "open a submitted journal, reject it with a reason, verify the
+# detail reads back".
+#
+# Raising it is close to free: the cap is a CEILING, not a quota. run_substep
+# returns the moment report_result is called, and the measured median is 13 steps,
+# so a typical substep never approaches either number. Only two cases change --
+# a long journey that used to be truncated now finishes, and a genuinely stuck
+# substep burns 80 before failing instead of 40.
+SUBSTEP_MAX_STEPS = int(os.environ.get("DEKU_SUBSTEP_MAX_STEPS", "80"))
 # Consecutive text-only replies tolerated before a substep is abandoned.
 # One is almost always the model cut off mid-thought by max_tokens.
 NO_TOOL_CALL_RETRIES = 3
@@ -122,7 +146,10 @@ DEFAULT_CREDENTIALS_PATH = "/app/USER_README.md"
 # Throttles here are kind=transient_throttle (a rate ceiling), never
 # subscription_cap, so the ladder DOES clear them given room to finish. Sizing the
 # deadline below the ladder converts a recoverable throttle into a lost run.
-DEFAULT_TIMEOUT_SEC = int(os.environ.get("DEKU_WORKFLOW_TIMEOUT_SEC", "600"))
+# Raised from 600s: per-substep budgets mean a workflow now actually attempts
+# every substep instead of skipping the tail, so it needs the wall clock to
+# match. 8 substeps timed out at 600s on 2026-08-13.
+DEFAULT_TIMEOUT_SEC = int(os.environ.get("DEKU_WORKFLOW_TIMEOUT_SEC", "1200"))
 # Must exceed the bridge's worst-case absorb time. The bridge swallows upstream
 # 429s by sleeping (ladder 2,4,8,16,32,64,90,90 = 306s with the current
 # KAIJU_CC_MAX_INLINE_* settings). A client timeout below that converts every
@@ -637,6 +664,27 @@ class _GraderLLM:
         if gap < MIN_CALL_INTERVAL_SEC:
             time.sleep(MIN_CALL_INTERVAL_SEC - gap)
 
+    @staticmethod
+    def _retry_after_seconds(headers) -> float:
+        """Seconds from a `retry-after` header, or 0.0 if it says nothing usable.
+
+        NEVER raises. A malformed value must cost one back-off, not a workflow:
+        on 2026-08-13 the bridge emitted the header twice (`retry-after` from
+        upstream plus its own `Retry-After`), httpx joined them to "0, 1", and
+        the bare float() below raised ValueError -- inside the handler whose job
+        is to survive a 429. Eleven workflows died at steps_used=0 and the run
+        was discarded. The bridge no longer duplicates it; this makes the grader
+        immune to any upstream that does.
+        """
+        raw = (headers.get("retry-after") or "").split(",")[0].strip()
+        try:
+            return max(0.0, float(raw))
+        except ValueError:
+            if raw:  # absent is the normal case and not worth a line
+                print(f"  [retry] ignoring unparseable retry-after {raw!r}",
+                      file=sys.stderr)
+            return 0.0
+
     def _post_with_retry(self, send) -> dict:
         """Run `send()` under the shared 429/5xx ladder and breaker.
 
@@ -655,7 +703,7 @@ class _GraderLLM:
                             f"HTTP 429 after {RETRY_ATTEMPTS} attempts; grader quota exhausted"
                         )
                     r.raise_for_status()
-                delay = float(r.headers.get("retry-after") or 0) or min(
+                delay = self._retry_after_seconds(r.headers) or min(
                     RETRY_BASE_SEC * (2 ** attempt), RETRY_MAX_SEC
                 )
                 print(f"  [retry] HTTP {r.status_code}, sleeping {delay:.0f}s "
@@ -1054,8 +1102,21 @@ def run_workflow(
                      "note": f"initial navigate to {url} failed: {exc}"}
                     for s in b_substeps]
 
-        steps_remaining = max_steps
-        cap_hit = False
+        # EVERY substep gets its own `max_steps`, rather than all of them sharing
+        # one workflow-wide pool.
+        #
+        # The pool starved the substeps behind a greedy one: it was spent in
+        # order, so a single substep that burned all 100 steps left every later
+        # substep skipped, unattempted and unscored. On 2026-08-13 that cost 10
+        # substeps across two workflows -- the app was never asked whether it
+        # could do those things, and the holes helped void the run.
+        #
+        # Per-substep budgets cost far less than they look: measured across 241
+        # graded substeps the MEDIAN is 11 steps and only 1 workflow in 178 has
+        # more than 6 substeps, so the cap is a ceiling that is rarely reached,
+        # not a per-substep spend. `timeout_sec` remains the real runaway guard,
+        # and a substep that exhausts its own budget is scored as a FAILURE by
+        # run_substep -- a verdict about the app, not a hole in the measurement.
         deadline = (time.time() + timeout_sec) if timeout_sec > 0 else None
         for i, s in enumerate(b_substeps):
             do = s.get("do", "")
@@ -1065,25 +1126,9 @@ def run_workflow(
                                 "error": "workflow_timeout",
                                 "note": f"skipped: workflow exceeded {timeout_sec:.0f}s budget"})
                 continue
-            # These two keep `error` -- and therefore still invalidate the run --
-            # because they are genuinely UNOBSERVED: an earlier substep consumed
-            # the workflow's budget and these were never attempted at all. That is
-            # the opposite of a substep that exhausted the cap while driving the
-            # app, which is now scored as a failure (see run_substep). steps_used=0
-            # is the tell: nothing was tried here.
-            if cap_hit:
-                results.append({"passed": False, "do": do, "steps_used": 0,
-                                "error": "grader_step_cap",
-                                "note": "skipped: workflow step cap already hit"})
-                continue
-            if steps_remaining <= 0:
-                cap_hit = True
-                results.append({"passed": False, "do": do, "steps_used": 0,
-                                "error": "grader_step_cap",
-                                "note": "skipped: workflow step cap already hit"})
-                continue
             try:
-                res, used = run_substep(llm, browser, s, system, steps_remaining)
+                res, used = run_substep(llm, browser, s, system,
+                                        min(SUBSTEP_MAX_STEPS, max_steps))
             except GraderUnavailable as exc:
                 res = {"passed": False, "error": "grader_unavailable",
                        "note": f"grader unavailable: {exc}", "steps_used": 0}
@@ -1095,9 +1140,6 @@ def run_workflow(
                        "steps_used": 0}
                 used = 0
                 traceback.print_exc(file=sys.stderr)
-            steps_remaining -= max(used, 1)
-            if "step cap hit" in res.get("note", ""):
-                cap_hit = True
             res["do"] = do
             results.append(res)
             if screenshot_dir is not None:
@@ -1193,6 +1235,16 @@ def main() -> int:
         meta["ungraded_substeps"] = len(ungraded)
         if ungraded:
             meta["grader_error"] = sorted({s["error"] for s in ungraded})
+        # The browser grader's own token spend. `usage_snapshot()` existed and was
+        # never called here (only run_rubric.py called its copy), so every run
+        # silently dropped the biggest evaluator's usage: finance posted
+        # judge_lines=1 instead of 2, and usage.json had no browser row at all.
+        # `llm` is bound by the grading path below; guard so the playwright-missing
+        # shell above still writes a valid file.
+        try:
+            meta["usage"] = llm.usage_snapshot()
+        except (NameError, AttributeError):
+            pass
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(payload, indent=2) + "\n")
 

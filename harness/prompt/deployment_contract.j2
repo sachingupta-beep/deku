@@ -41,3 +41,19 @@ here are invisible to it. **Grading rebuilds from your source**, which means a
 working container proves nothing by itself — what is graded is the `Dockerfile`.
 If you fix something by hand inside a running container, put the fix in the
 `Dockerfile`.
+
+**Walk the app in a browser before you finish, and leave the evidence.** Chromium
+and Playwright are already installed here — you do not need to add them. Drive
+your running app through the journeys this brief describes, as a stranger would:
+sign up or sign in, do the thing, read the result back off the screen. A page
+that renders without error is not the same as a page that works.
+
+Save one screenshot per journey into `/app/.browser_screenshots/`, numbered in
+the order you took them (`01_login.png`, `02_dashboard.png`, ...). That directory
+already exists and is reserved for exactly this. Keep it out of the shipped image
+via `.dockerignore` — it is your working evidence, not part of the product.
+
+What this is for: it is the only point at which you see what a user sees. It
+catches what a passing build cannot — a control that does nothing, a value that
+renders as `NaN` or `undefined`, a form that clears itself on submit, a page that
+looks finished but has no data behind it. Fix what you find, then walk it again.

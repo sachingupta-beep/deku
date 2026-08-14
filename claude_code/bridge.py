@@ -458,13 +458,21 @@ def _build_error_response(
     # B10: forward the genuine upstream rate-limit/request-id headers so the
     # client's own back-off logic (which keys on anthropic-ratelimit-*) and
     # debugging (request-id) keep working through the bridge.
+    #
+    # Keys are stored LOWERCASED. `headers` is a plain dict and so is
+    # case-sensitive, but HTTP header names are not: forwarding upstream's
+    # `retry-after` under its own casing and then adding our own `Retry-After`
+    # produced TWO entries for one header. httpx joins duplicates with a comma,
+    # so the client read `retry-after: "0, 1"` and `float()` raised inside its
+    # 429 handler -- the retry path killed 11 grader workflows on 2026-08-13.
+    # Lowercasing here makes the two assignments collide as intended.
     if upstream_headers is not None:
         for k, v in upstream_headers.items():
             kl = k.lower()
             if kl.startswith("anthropic-ratelimit-") or kl in ("request-id", "anthropic-request-id", "retry-after"):
-                headers[k] = v
+                headers[kl] = v
     if classified.retry_after_seconds is not None:
-        headers["Retry-After"] = str(max(1, classified.retry_after_seconds))
+        headers["retry-after"] = str(max(1, classified.retry_after_seconds))
     if classified.reset_at_unix is not None:
         headers["X-Kaiju-Reset-At"] = f"{classified.reset_at_unix:.0f}"
     body = {
