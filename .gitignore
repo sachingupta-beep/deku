@@ -115,3 +115,14 @@ tasks/
 # any task or grader.
 environment/providers/api_test_responses.json
 environment/providers/api_test_report.md
+
+# Local docs and scratch. Deliberately untracked (2026-08-14): these are working
+# notes and per-developer scratch, not harness inputs. Files stay on disk.
+.omo/
+docs/
+SPEC example/
+FLOW.md
+OVERVIEW.md
+PLAN.md
+TEAM_GUIDE.md
+sqlite_mcp_server.db
