@@ -92,8 +92,20 @@ RUBRIC: list[tuple[str, float, str]] = [
      "Navigation reachability, empty states, loading states, error states, feedback on actions (toasts/inline messages), sensible redirects (unauth -> login?next=, login success -> next/home). Judge against the spec's User flow section."),
     ("ui_visual", 0.15,
      "Does the visual design match the UI/UX notes section -- palette hex values, type scale, radii, density, hierarchy? Does it look intentionally designed, or default-Bootstrap / default-Tailwind / default-shadcn slop? Use computed styles as objective evidence, not just screenshots."),
+    # Motion asks three things a still frame cannot answer, and this is the only
+    # dimension where that is true of the WHOLE criterion. Presence, timing and
+    # reduced-motion are now measured deterministically by harness/verifier/
+    # motion.py (CDP `Animation.animationStarted` start times and delays) and
+    # belong in pytest substeps, where they carry reward. What is left here is the
+    # genuinely qualitative residue -- whether the motion MEANS anything -- and
+    # the judge is told to report low confidence rather than guess, so an
+    # unanswerable criterion reaches a human instead of becoming a 0.5.
     ("motion", 0.05,
-     "Are transitions present with durations and easing near the spec (typically 150ms / 250ms / cubic-bezier(0.16, 1, 0.3, 1))? Does the app respect prefers-reduced-motion when emulated? Zero motion is a cut; bouncy over-motion is also a cut if the spec forbids it."),
+     "Judge motion on three axes a screenshot CAN speak to, and say so with LOW CONFIDENCE if the evidence cannot settle them. "
+     "PURPOSE: does the movement communicate a state transition -- something arriving, leaving, expanding, being confirmed -- or is it decoration bolted onto a static page? "
+     "CONTINUITY: across the before/after screenshots, does a moving element keep its identity (the same card growing into a panel), or does one thing vanish and an unrelated thing appear? "
+     "RESTRAINT: does the motion clarify, or compete for attention -- several things animating at once, a loop that never settles, movement on elements the user is trying to read? "
+     "Do NOT score presence, duration, easing or prefers-reduced-motion here: those are measured deterministically in pytest and a second opinion from a still frame only adds noise."),
     ("accessibility", 0.05,
      "Visible focus indicator on Tab through, labels on icon buttons, WCAG AA text contrast (4.5:1 body), keyboard reachability. Judge against the spec's stated a11y bar."),
     ("responsiveness", 0.05,
@@ -782,22 +794,85 @@ def gather_evidence(playwright, url: str, credentials_text: str,
 # --------------------------------------------------------------------------
 # LLM-driven per-dimension grading.
 
+# Below this, a criterion is NOT scored -- it is routed to a human.
+#
+# Confidence is not quality. "This is mediocre" and "I could not tell" are
+# different statements, and collapsing them is how a judge launders a guess into
+# a measurement. Evidence that the collapse was happening here: 157 of 701
+# per-criterion scores across output/ are EXACTLY 0.5, and R16_motion on one task
+# read 0.0, 1.0, 1.0, 0.0, 0.6, 1.0 across six runs of the same app. A 0.5 that
+# means "I cannot see this from a screenshot" was being averaged in as if it were
+# a considered verdict.
+#
+# The harness already draws this line elsewhere: score.py excludes an ungraded
+# substep from the ratio and names it, rather than counting it as a failure. A
+# low-confidence criterion is the rubric's version of the same thing, and gets
+# the same treatment -- excluded, surfaced, and left for a human to settle.
+#
+# 0.70 rather than 0.5: the judge is being asked "would you defend this verdict",
+# and anything at or below a coin-flip-plus-a-bit is not a verdict.
+HUMAN_REVIEW_THRESHOLD = float(os.environ.get("DEKU_REVIEW_CONFIDENCE", "0.70"))
+
 REPORT_TOOL = {
     "name": "report_dimension",
-    "description": ("MANDATORY final call. Return your score (0.0-1.0), a one-to-three "
-                    "sentence rationale, and at least one concrete evidence reference "
-                    "(a screenshot filename, a computed-style value, a console error "
-                    "string, or a specific route)."),
+    "description": ("MANDATORY final call. Return your score (0.0-1.0), your CONFIDENCE "
+                    "in that score (0.0-1.0), a one-to-three sentence rationale, and at "
+                    "least one concrete evidence reference (a screenshot filename, a "
+                    "computed-style value, a console error string, or a specific route)."),
     "input_schema": {
         "type": "object",
         "properties": {
             "score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            # Deliberately worded to break the habit of treating the midpoint as
+            # a safe answer. A judge that cannot see the thing it is grading must
+            # say so here rather than encode its doubt as a mediocre score.
+            "confidence": {
+                "type": "number", "minimum": 0.0, "maximum": 1.0,
+                "description": (
+                    "How certain are you of the SCORE -- a separate question from how "
+                    "good the app is. Report high confidence when the evidence settles "
+                    "it either way: a computed style you read, a console error you saw, "
+                    "an element plainly present or plainly absent. Report LOW confidence "
+                    "(below 0.7) when the evidence cannot settle it -- the criterion "
+                    "concerns motion or interaction you cannot observe in a still "
+                    "screenshot, the relevant screen was unreachable, or you are "
+                    "inferring rather than observing. A confident 0.0 is a real and "
+                    "useful verdict; an uncertain 0.5 is not, and will be sent to a "
+                    "human instead of being scored."
+                ),
+            },
             "rationale": {"type": "string"},
             "evidence": {"type": "array", "items": {"type": "string"}},
         },
-        "required": ["score", "rationale", "evidence"],
+        "required": ["score", "confidence", "rationale", "evidence"],
     },
 }
+
+
+def split_by_confidence(graded: dict[str, dict]) -> tuple[dict[str, dict], list[dict]]:
+    """Partition graded criteria into (scored, needs_review).
+
+    A criterion with no confidence at all is treated as CONFIDENT, not uncertain:
+    the field is required by the schema, so its absence means an older judge.json
+    or a provider that dropped it, and silently routing every such criterion to
+    review would empty the score rather than improve it.
+    """
+    scored: dict[str, dict] = {}
+    review: list[dict] = []
+    for key, d in graded.items():
+        conf = d.get("confidence")
+        if conf is not None and float(conf) < HUMAN_REVIEW_THRESHOLD:
+            review.append({
+                "criterion": key,
+                "provisional_score": d.get("score"),
+                "confidence": conf,
+                "rationale": d.get("rationale", ""),
+                "evidence": d.get("evidence", []),
+                "reason": f"confidence {float(conf):.2f} < {HUMAN_REVIEW_THRESHOLD:.2f}",
+            })
+        else:
+            scored[key] = d
+    return scored, review
 
 
 def _shortlist_styles(styles_by_route: dict, limit_routes: int = 3) -> dict:
@@ -971,15 +1046,23 @@ def grade_dimension(llm: JudgeAnthropic, name: str, asks: str,
             messages.append({"role": "user",
                              "content": "You must call report_dimension. Do it now."})
             if step >= 1:
-                return {"score": 0.0,
+                return {"score": 0.0, "confidence": 0.0,
                         "rationale": f"model refused to call report_dimension: {text!r}",
                         "evidence": []}
             continue
         for tu in tool_uses:
             if tu.get("name") == "report_dimension":
                 inp = tu.get("input", {}) or {}
+                # `confidence` is REQUIRED by REPORT_TOOL's schema, so the model
+                # always sends it -- but this dict used to be built from three
+                # keys and silently dropped it, which made split_by_confidence a
+                # no-op: 18 of 18 criteria arrived with confidence=None and were
+                # all treated as confident. Adding a field to a tool schema does
+                # nothing unless the handler carries it through.
                 return {
                     "score": float(inp.get("score", 0.0)),
+                    "confidence": (float(inp["confidence"])
+                                   if inp.get("confidence") is not None else None),
                     "rationale": str(inp.get("rationale", "")),
                     "evidence": [str(x) for x in (inp.get("evidence") or [])],
                 }
@@ -987,7 +1070,7 @@ def grade_dimension(llm: JudgeAnthropic, name: str, asks: str,
         messages.append({"role": "user",
                          "content": "Unknown tool. Call report_dimension."})
 
-    return {"score": 0.0,
+    return {"score": 0.0, "confidence": 0.0,
             "rationale": f"exceeded {max_steps} LLM steps without report_dimension",
             "evidence": []}
 
@@ -1143,11 +1226,25 @@ def main() -> int:
             print(f"task rubric: {len(task_criteria)} criteria from {args.rubric}",
                   file=sys.stderr)
         except Exception as exc:
-            # A malformed rubric must not lose the whole judge pass -- fall back to
-            # the generic dimensions and say so, rather than scoring everything 0.
-            print(f"  [warn] {args.rubric} unreadable ({exc}); falling back to the "
-                  f"generic dimensions", file=sys.stderr)
-            meta["rubric_error"] = f"{exc.__class__.__name__}: {exc}"
+            # FAIL LOUDLY. This used to fall back to the generic dimensions on the
+            # reasoning that a malformed rubric should not lose the whole judge
+            # pass -- but the fallback grades the app against SEVEN GENERIC
+            # QUESTIONS instead of the task's own, and still emits an ordinary
+            # judge_score. Nothing downstream can tell the difference, so a missing
+            # comma silently changes what the benchmark measured while the number
+            # continues to look normal.
+            #
+            # A judge pass that cannot ask the right questions has not graded this
+            # app. harness/preflight.sh parses rubric.json before the agent starts,
+            # so reaching this point means the file changed underneath a run --
+            # which is worth stopping for.
+            print(f"FATAL: {args.rubric} is unreadable ({exc}).\n"
+                  f"  The task's own criteria cannot be loaded, and grading against "
+                  f"the generic dimensions would answer different questions while "
+                  f"still producing a normal-looking score.\n"
+                  f"  Fix the file (harness/preflight.sh checks it) and re-run.",
+                  file=sys.stderr)
+            return 2
 
     try:
         if task_criteria:
@@ -1169,7 +1266,13 @@ def main() -> int:
                 })
                 dimensions[c["key"]] = graded
                 payload["dimensions"] = dimensions
-                payload["judge_score"] = compute_task_rubric_score(task_criteria, dimensions)
+                # Score only what the judge would defend. A criterion it could not
+                # settle is withheld and routed to a human, so `judge_score` stops
+                # carrying the judge's own uncertainty as if it were a middling app.
+                scored, review = split_by_confidence(dimensions)
+                payload["needs_review"] = review
+                payload["judge_score"] = compute_task_rubric_score(
+                    [c2 for c2 in task_criteria if c2["key"] in scored], scored)
                 _write_json(args.out, payload)
         else:
             for name, weight, asks in RUBRIC:
@@ -1179,7 +1282,9 @@ def main() -> int:
                                            args.max_steps)
                 dimensions[name] = safe_dimension(name, weight, asks, _runner)
                 payload["dimensions"] = dimensions
-                payload["judge_score"] = compute_judge_score(dimensions)
+                scored, review = split_by_confidence(dimensions)
+                payload["needs_review"] = review
+                payload["judge_score"] = compute_judge_score(scored)
                 _write_json(args.out, payload)  # incremental persistence
     finally:
         try:

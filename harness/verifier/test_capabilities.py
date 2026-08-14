@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Conformance suite for capability adapters.
 
-    bin/deku-py harness/verifier/test_capabilities.py
+    scripts/deku-py harness/verifier/test_capabilities.py
 
 Why a shared suite rather than per-adapter tests
 ------------------------------------------------

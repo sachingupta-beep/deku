@@ -128,13 +128,19 @@ def build_score(run: Path) -> dict:
     py_passed = summary.get("pytest_substeps_passed") or 0
     rubric = judge.get("judge_score")
 
+    # Criteria the judge could not settle. They are excluded from `rubric` above
+    # by run_rubric.py rather than scored, so the number here is what a judge would
+    # defend -- and the queue is what a human still has to look at.
+    review = judge.get("needs_review") or []
+
     components = {
         "workflow": {"score": (wf_passed / wf_total) if wf_total else None,
                      "passed": wf_passed, "total": wf_total},
         "pytest": {"score": (py_passed / py_total) if py_total else None,
                    "passed": py_passed, "total": py_total},
         "rubric": {"score": rubric,
-                   "criteria": (judge.get("meta") or {}).get("criteria_total")},
+                   "criteria": (judge.get("meta") or {}).get("criteria_total"),
+                   "needs_review": len(review)},
     }
 
     # A component with no denominator (no rubric file, no pytest substeps) is
@@ -147,6 +153,12 @@ def build_score(run: Path) -> dict:
     combined = (sum(present[k] * applied[k] for k in present) / denom) if denom else 0.0
 
     invalid = summary.get("invalid") or []
+    # Written beside score.json so the queue is a file a human can work through,
+    # not a field buried in a report they have to go looking for.
+    if review:
+        (run / "review_queue.json").write_text(
+            json.dumps({"threshold_note": "criteria the judge declined to score",
+                        "count": len(review), "criteria": review}, indent=2) + "\n")
     return {
         # An invalid run never observed the app, so a blended number would be a
         # fabrication in exactly the way reward.json refuses to be.
@@ -157,6 +169,7 @@ def build_score(run: Path) -> dict:
         "reward": summary.get("reward"),
         "invalid": invalid,
         "degraded": summary.get("degraded") or [],
+        "needs_human_review": len(review),
         "note": "combined_score is a report, not a training signal; reward.json "
                 "is unchanged and remains the workflow pass rate (PLAN.md 1.4)",
     }

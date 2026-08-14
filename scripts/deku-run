@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # One command: build a trajectory, grade it, publish it.
 #
-#   bin/deku-run tasks/calculator
-#   bin/deku-run tasks/streak-habit-tracker -m anthropic/claude-sonnet-4-5-20250929
-#   bin/deku-run tasks/calculator --shared-only     # skip the clean-container regrade
-#   bin/deku-run tasks/calculator -a nop            # free pipeline smoke test
+#   scripts/deku-run tasks/calculator
+#   scripts/deku-run tasks/streak-habit-tracker -m anthropic/claude-sonnet-4-5-20250929
+#   scripts/deku-run tasks/calculator --shared-only     # skip the clean-container regrade
+#   scripts/deku-run tasks/calculator -a nop            # free pipeline smoke test
 #
 # POLICY: evaluation ALWAYS runs in a fresh container, never in the agent's.
 #
@@ -41,7 +41,7 @@ cd "$REPO"
 # reports "DEKU_PROJECT_ID is unset" -- a genuinely confusing failure.
 #
 # A variable already present in the real environment WINS: this only fills in
-# what is unset, so `DEKU_BUDGET_TYPE=Production bin/deku-run ...` still
+# what is unset, so `DEKU_BUDGET_TYPE=Production scripts/deku-run ...` still
 # overrides the file for a one-off run.
 if [[ ! -f "$REPO/.env" ]]; then
   echo "==> .env is missing -- refusing to run." >&2
@@ -75,8 +75,8 @@ fi
 
 TASK="${1:-}"
 if [[ -z "$TASK" || "$TASK" == -* ]]; then
-  echo "usage: bin/deku-run <task-path> [--shared-only] [harbor flags...]" >&2
-  echo "   e.g. bin/deku-run tasks/calculator" >&2
+  echo "usage: scripts/deku-run <task-path> [--shared-only] [harbor flags...]" >&2
+  echo "   e.g. scripts/deku-run tasks/calculator" >&2
   exit 2
 fi
 shift
@@ -233,7 +233,7 @@ fi
 # or before using Harbor's own verifier.
 
 echo "==> [1/3] agent phase: $AGENT on $(basename "$TASK")"
-yes | bin/harbor run --path "$REPO/${TASK#./}" -a "$AGENT" \
+yes | "$REPO/scripts/harbor" run --path "$REPO/${TASK#./}" -a "$AGENT" \
       ${MODEL_FLAG[@]+"${MODEL_FLAG[@]}"} ${AK_FLAG[@]+"${AK_FLAG[@]}"} \
       ${TEMPLATE_FLAG[@]+"${TEMPLATE_FLAG[@]}"} \
       ${VERIFY_FLAG[@]+"${VERIFY_FLAG[@]}"} \
@@ -287,7 +287,7 @@ if [[ "$FRESH" == "0" ]]; then
 fi
 
 echo "==> [2/3] grading in a clean container"
-bin/deku-py harness/eval_fresh.py "$TRIAL"
+"$REPO/scripts/deku-py" harness/eval_fresh.py "$TRIAL"
 FRESH_RC=$?
 
 echo "==> [3/3] publishing"

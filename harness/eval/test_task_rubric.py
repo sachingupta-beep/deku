@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Self-checks for the task-authored rubric path in run_rubric.py.
 
-    bin/deku-py harness/eval/test_task_rubric.py
+    scripts/deku-py harness/eval/test_task_rubric.py
 
 Covers the two things that make a task rubric different from the generic seven
 dimensions, both of which are silent if wrong:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Python launcher for the Deku harness scripts (bridge, graders, report tools).
 #
-# Same problem and same workaround as bin/harbor: .venv was created at a
+# Same problem and same workaround as scripts/harbor: .venv was created at a
 # different path and moved here, so its interpreter symlink dangles and every
 # console script has a stale absolute shebang. This runs a real 3.12 with the
 # venv's site-packages on PYTHONPATH, without modifying the venv.
@@ -10,9 +10,9 @@
 # resolves from any working directory.
 #
 # Usage:
-#   bin/deku-py -m agent.claude_code --host 0.0.0.0 --port 8765
-#   bin/deku-py harness/eval/report.py jobs/ --detail
-#   bin/deku-py harness/validate_task.py tasks/*/
+#   scripts/deku-py -m agent.claude_code --host 0.0.0.0 --port 8765
+#   scripts/deku-py harness/eval/report.py jobs/ --detail
+#   scripts/deku-py harness/validate_task.py tasks/*/
 
 set -euo pipefail
 

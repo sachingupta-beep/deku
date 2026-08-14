@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Self-checks for read_credentials().
 
-    bin/deku-py harness/eval/test_credentials.py
+    scripts/deku-py harness/eval/test_credentials.py
 
 /app/USER_README.md is written by the AGENT, and the grader splices it into its
 own system prompt. Two opposing failure modes live here:

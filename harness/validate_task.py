@@ -523,7 +523,7 @@ def check(task_dir: Path) -> list[str]:
     # C13 — the spec must require /app/start.sh.
     #
     # Grading redeploys the built app into a clean container (harness/eval_fresh.py,
-    # the default path in bin/deku-run), and start.sh is the only thing that turns
+    # the default path in scripts/deku-run), and start.sh is the only thing that turns
     # the collected files back into a running app. A spec that never asks for it
     # produces an agent that never writes one, and the trial is unscoreable.
     #

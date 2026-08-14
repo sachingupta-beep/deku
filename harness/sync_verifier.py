@@ -28,7 +28,7 @@ from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parent / "verifier"
 SHARED = ("score.py", "test.sh", "capabilities.py", "appclient.py",
-          "_shapes.py", "pytest.ini")
+          "_shapes.py", "pytest.ini", "motion.py")
 # grader_compress.py is imported by run_workflows.py, so it has to ride along
 # into every tests/ dir -- the graders import it at /tests inside the container.
 # run_workflows falls back to an identity function if it is ever missing, so a
@@ -66,7 +66,7 @@ def sync(tests_dir: Path, *, check: bool) -> list[str]:
         # So: keep an EXISTING copy current, never resurrect a removed one. Tasks
         # that still carry copies stay correct and keep working with Harbor's own
         # verifier; pruned tasks stay pruned instead of being refilled by the next
-        # `bin/deku-run`.
+        # `scripts/deku-run`.
         if not dst.exists():
             continue
         if check:

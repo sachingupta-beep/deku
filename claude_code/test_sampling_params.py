@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Self-checks for drop_conflicting_sampling_params.
 
-    bin/deku-py claude_code/test_sampling_params.py
+    scripts/deku-py claude_code/test_sampling_params.py
 
 Covers the exact upstream 400s observed in jobs/2026-08-04__01-13-28 (opus-4-8,
 "`temperature` is deprecated for this model") and the pair rule that opus-4-5

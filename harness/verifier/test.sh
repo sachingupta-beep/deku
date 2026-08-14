@@ -123,12 +123,31 @@ elif [ -x /tests/run_rubric.py ] && [ -f /tests/instruction.md ]; then
     RUBRIC_FLAG="--rubric /tests/rubric.json"
     echo "task rubric found - grading tests/rubric.json instead of the generic dimensions" >&2
   fi
+  # Failures here are tolerated because the judge is advisory: an LLM error, a
+  # timeout or a browser crash must not lose a run whose reward is already
+  # decided by workflows + pytest.
+  #
+  # Exit 2 is the ONE exception. run_rubric.py returns it only when
+  # tests/rubric.json is unreadable, which used to fall back to the generic
+  # dimensions -- grading the app against seven generic questions instead of the
+  # task's own, while still emitting a normal-looking judge_score. That is a
+  # silently DIFFERENT measurement, not a degraded one, so it is recorded rather
+  # than swallowed with everything else.
+  set +e
   /tests/run_rubric.py \
     --instruction /tests/instruction.md \
     --url "$APP_PUBLIC_URL" \
     --screenshot-dir /logs/verifier/shots \
     $RUBRIC_FLAG \
-    --out "$JUDGE_RESULTS" || true
+    --out "$JUDGE_RESULTS"
+  RUBRIC_RC=$?
+  set -e
+  if [ "$RUBRIC_RC" -eq 2 ]; then
+    echo "RUBRIC FATAL: tests/rubric.json is unreadable; this task's own criteria were never graded." >&2
+    printf '{"judge_score": null, "dimensions": {}, "meta": {"fatal": "rubric_unreadable"}}\n' > "$JUDGE_RESULTS"
+  elif [ "$RUBRIC_RC" -ne 0 ]; then
+    echo "rubric judge exited $RUBRIC_RC - advisory only, continuing" >&2
+  fi
 else
   echo "no rubric judge in this image (or no instruction.md) - skipping" >&2
 fi

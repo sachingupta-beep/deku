@@ -9,7 +9,7 @@
 #      Homebrew on this machine has python@3.10, 3.11 and 3.14 -- no 3.12 -- so
 #      that symlink dangles and the interpreter cannot start at all.
 #   2. Every console script in .venv/bin carries an absolute shebang pointing at
-#      the old path, so `.venv/bin/harbor` dies with "bad interpreter" even once
+#      the old path, so `.venv/scripts/harbor` dies with "bad interpreter" even once
 #      the symlink is fixed.
 #
 # This script sidesteps both without modifying the venv: it runs a real 3.12
@@ -17,9 +17,9 @@
 # site-packages, where harbor 0.20.0 is installed and imports cleanly.
 #
 # Usage:
-#   bin/harbor --version
-#   bin/harbor init deku/thing --task --output-dir tasks
-#   yes | bin/harbor run -p tasks/calculator -a nop
+#   scripts/harbor --version
+#   scripts/harbor init deku/thing --task --output-dir tasks
+#   yes | scripts/harbor run -p tasks/calculator -a nop
 #
 # Put it on PATH to drop the prefix:
 #   export PATH="/Users/apple/Desktop/Green_Field/deku/bin:$PATH"

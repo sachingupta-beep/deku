@@ -205,11 +205,117 @@ for p in sorted((T/"environment").glob("*-init.sh")) if (T/"environment").is_dir
         bad(f"{p.name} is not executable",
             f"chmod +x {p}  (else the DB comes up healthy with no app role)")
 
+# The graders run INSIDE this image (verifier.environment_mode = "shared"), so
+# every module they import must be installed by the task's own Dockerfile. A task
+# can build, deploy and serve perfectly and still score 0.0 because the GRADER
+# could not start: on 2026-08-14 top-poster-dashboard died at
+# `ModuleNotFoundError: No module named 'httpx'` after a full agent phase, $6.65
+# spent, app up and healthy. Nothing before this point looked at the image.
+dockerfile = T / "environment" / "Dockerfile"
+if dockerfile.is_file():
+    body = dockerfile.read_text()
+    needed = {
+        "pytest": "pytest",                 # test.sh invokes it directly
+        "pytest-json-ctrf": "pytest-json-ctrf",  # score.py reads its ctrf.json
+        "httpx": "httpx",                   # appclient.py + both graders
+        "pyyaml": "pyyaml",                 # score.py parses workflows.yaml
+        "playwright": "playwright",         # run_workflows.py + run_rubric.py
+    }
+    missing = sorted(name for name, token in needed.items() if token not in body)
+    if missing:
+        bad(f"environment/Dockerfile installs no {', '.join(missing)}",
+            "the graders run in THIS image; without these, grading dies after the "
+            "agent phase has already been paid for")
+    elif "playwright install chromium" not in body:
+        bad("playwright is installed but chromium is not",
+            "add: RUN playwright install chromium")
+    else:
+        ok("environment/Dockerfile carries the grader runtime")
+
 if not cfg.get("artifacts"):
     bad("no [[artifacts]] block -- /app is never collected, so nothing can be graded",
         'add [[artifacts]] with source = "/app"')
 else:
     ok("collects /app")
+
+# The graded contract itself. score.py reads workflows.yaml and resolves each
+# pytest substep by exact `file.py::test_name`; a name that does not resolve is
+# scored FALSE, not flagged, so a typo is indistinguishable from a broken app.
+# Same for an unknown `kind`. Both are silent, and both bill a full agent phase.
+wf = T / "tests" / "workflows.yaml"
+if not wf.is_file():
+    bad("tests/workflows.yaml is missing -- score.py has nothing to grade against")
+else:
+    try:
+        import yaml
+        flows = yaml.safe_load(wf.read_text()) or []
+    except Exception as e:
+        bad(f"tests/workflows.yaml does not parse: {e}"); flows = []
+
+    if flows:
+        known = set()
+        for f in (T / "tests").glob("test_*.py"):
+            known |= {f"{f.name}::{m}"
+                      for m in re.findall(r"^def (test_\w+)", f.read_text(), re.M)}
+        refs, kinds, ids = [], set(), []
+        for w in flows:
+            ids.append(w.get("id"))
+            for s in w.get("substeps") or []:
+                kinds.add(s.get("kind"))
+                if s.get("kind") == "pytest":
+                    refs.append(s.get("test"))
+        unknown_kinds = sorted(k for k in kinds if k not in ("pytest", "browser"))
+        missing_tests = sorted({r for r in refs if r not in known})
+        dupe_ids = sorted({i for i in ids if ids.count(i) > 1})
+
+        if unknown_kinds:
+            bad(f"workflows.yaml uses unknown substep kind(s): {unknown_kinds}",
+                'score.py accepts only "pytest" and "browser"; anything else fails the substep')
+        elif missing_tests:
+            bad(f"{len(missing_tests)} pytest substep(s) name a test that does not exist: "
+                f"{missing_tests[:3]}",
+                "score.py scores an unresolvable name as FAILED, so this reads as a broken app")
+        elif dupe_ids:
+            bad(f"duplicate workflow id(s): {dupe_ids}",
+                "ids must be unique; results are keyed by them")
+        elif not refs and "browser" not in kinds:
+            bad("workflows.yaml declares no substeps at all")
+        else:
+            ok(f"{len(flows)} workflow(s), {len(refs)} pytest ref(s) all resolve")
+
+# Probe addresses on a special-use domain. RFC 6761 reserves .test, .invalid,
+# .localhost and .example, and `email-validator` -- which every Pydantic
+# `EmailStr` field goes through -- refuses them outright. A fixture that signs up
+# with `probe@something.test` therefore fails every app that validates its input
+# properly and passes the ones that do not. Measured 2026-08-14 on
+# marketplace-order-split: 15 of 16 signups returned 422 and the failure cascaded
+# into 16 of 31 tests, on an app whose signup was correct.
+bad_domains = set()
+for f in list((T / "tests").glob("*.py")) if (T / "tests").is_dir() else []:
+    for m in re.findall(r"@[a-z0-9.-]+\.(test|invalid|localhost|example)\b", f.read_text()):
+        bad_domains.add(m)
+if bad_domains:
+    bad(f"test fixtures build email addresses on reserved domain(s): "
+        f"{sorted('.' + d for d in bad_domains)}",
+        "email-validator rejects RFC 6761 special-use names; use example.com")
+
+# A task rubric that does not parse silently falls back to the GENERIC rubric,
+# so the run is graded against questions written for a different product.
+rubric = T / "tests" / "rubric.json"
+if rubric.is_file():
+    try:
+        import json as _json
+        crits = _json.loads(rubric.read_text())
+        n = len(crits.get("criteria", crits) if isinstance(crits, dict) else crits)
+        ok(f"tests/rubric.json parses ({n} criteria)")
+    except Exception as e:
+        bad(f"tests/rubric.json does not parse: {e}",
+            "an unparseable task rubric silently falls back to the generic one")
+
+# Harbor kills the agent at this budget. Unset means whatever harbor defaults to,
+# which is not the 5h the corpus assumes.
+if not (cfg.get("agent") or {}).get("timeout_sec") and "timeout_sec" not in (T / "task.toml").read_text():
+    warn("no timeout_sec in task.toml -- the agent gets harbor's default, not the corpus 5h")
 
 # Endpoints the tests call must be pinned in the brief, or a correct app fails.
 tests = T/"tests"
@@ -217,8 +323,15 @@ if tests.is_dir():
     spec = (T/"instruction.md").read_text()
     called = set()
     for f in list(tests.glob("test_*.py")) + list(tests.glob("conftest.py")):
+        # Only the APP's own surface. The App Contract mounts it under /api, so
+        # a path the fixtures call on a SIDECAR -- the payments provider's /v1/*,
+        # mailpit's /api/v1/search -- is not something the agent implements and
+        # must not be reported as unpinned. Left in, every well-authored
+        # multi-service task warns about endpoints its brief is right to omit,
+        # which teaches people to ignore the check.
         called |= {m for m in re.findall(r'"(/[a-z][a-z0-9/_-]*)"', f.read_text())
-                   if not m.startswith(("/app", "/tests", "/logs"))}
+                   if not m.startswith(("/app", "/tests", "/logs",
+                                        "/v1/", "/api/v1/"))}
     missing = sorted(e for e in called if e not in spec and f"/api{e}" not in spec)
     if missing:
         warn(f"{len(missing)} endpoint(s) the tests call are not named in the brief: "

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Self-checks for inject_system_prefix.
 
-    bin/deku-py claude_code/test_system_prefix.py
+    scripts/deku-py claude_code/test_system_prefix.py
 
 B17 regression. The OAuth path accepts the Claude Code prefix only as its own
 content block; concatenating it into a single string is rejected upstream as

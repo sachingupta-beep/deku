@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Make ONE real grader call and print exactly what came back.
 
-    bin/deku-py harness/eval/probe_grader.py
+    scripts/deku-py harness/eval/probe_grader.py
 
 Exists because a grader fault inside a trial costs ~14 minutes and ~$1 to
 reproduce, and until the browser results file was collected it surfaced only as

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Self-checks for the OpenAI grader adapter in run_workflows.py.
 
-    bin/deku-py harness/eval/test_openai_grader.py
+    scripts/deku-py harness/eval/test_openai_grader.py
 
 No network. These verify the translation layer only, which is where a silent bug
 would be worst: the tool-calling loop is shared by both providers, so a botched

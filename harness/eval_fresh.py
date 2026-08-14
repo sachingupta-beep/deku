@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Grade a finished trial by REDEPLOYING its app into a clean container.
 
-    bin/deku-py harness/eval_fresh.py jobs/<ts>/<task>__<id>
-    bin/deku-py harness/eval_fresh.py jobs/<ts>/<task>__<id> --keep   # debug
+    scripts/deku-py harness/eval_fresh.py jobs/<ts>/<task>__<id>
+    scripts/deku-py harness/eval_fresh.py jobs/<ts>/<task>__<id> --keep   # debug
 
 Why this exists
 ---------------
@@ -354,7 +354,7 @@ def main() -> int:
     # --- how do we deploy this app? ---------------------------------------
     # THE AGENT PACKAGES ITS OWN APP. The deployment contract
     # (harness/prompt/deployment_contract.j2, wrapped around every brief by
-    # bin/deku-run) asks for /app/Dockerfile, and that file is what gets built.
+    # scripts/deku-run) asks for /app/Dockerfile, and that file is what gets built.
     #
     # Measured 2026-08-11 on customer-issue-queue, opus-4-8: the agent's own
     # Dockerfile scored 0.7333 -- identical to the harness-generated one on the
@@ -590,7 +590,7 @@ def main() -> int:
         # ownership of what is task-specific: test_*.py, conftest.py,
         # workflows.yaml, rubric.json.
         shared = [REPO / "harness" / "verifier" / n for n in
-                  ("score.py", "test.sh", "capabilities.py", "appclient.py",
+                  ("score.py", "test.sh", "capabilities.py", "appclient.py", "motion.py",
                    "_shapes.py", "pytest.ini")]
         # grader_compress.py rides along because run_workflows.py imports it at
         # /tests. Its absence is SILENT -- the import is wrapped in a try/except

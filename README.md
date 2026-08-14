@@ -184,7 +184,7 @@ Code OAuth bridge.
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install harbor fastapi uvicorn httpx
-.venv/bin/harbor --version          # 0.20.0
+.venv/scripts/harbor --version          # 0.20.0
 ```
 
 Build the shared verifier base (needed before any task image):
@@ -230,7 +230,7 @@ Set only one and the other consumer ignores the bridge, dials
 surfaces minutes into a paid agent run as `401 invalid x-api-key` buried in a
 litellm traceback that names neither the variable nor the bridge.
 
-`bin/deku-run` now mirrors whichever one it finds onto the other, so this cannot
+`scripts/deku-run` now mirrors whichever one it finds onto the other, so this cannot
 bite you there -- but a bare `harbor run` has no such protection, which is why
 both belong in your shell (and in `.env`).
 
@@ -270,14 +270,14 @@ combinatorics guard.
 ### 2. Generate a trajectory
 
 ```bash
-.venv/bin/harbor run -p tasks/streak-habit-tracker \
+.venv/scripts/harbor run -p tasks/streak-habit-tracker \
   -a claude-code -m claude-sonnet-4-5-20250929 --n-concurrent-agents 1
 ```
 
 Cheap pipeline check with no model spend — `nop` builds nothing so it must score 0:
 
 ```bash
-.venv/bin/harbor run -p tasks/streak-habit-tracker -a nop --n-concurrent-agents 1
+.venv/scripts/harbor run -p tasks/streak-habit-tracker -a nop --n-concurrent-agents 1
 ```
 
 Artifacts per trial:
