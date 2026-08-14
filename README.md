@@ -46,6 +46,8 @@ harness/
     capabilities.py          per-slot provider adapters (backend/email/payments/storage)
     appclient.py             authenticated HTTP clients against the App Contract
     _shapes.py, pytest.ini
+  preflight.sh               go/no-go gate: host, LLM endpoint, task shape
+  publish_report.py          writes usage.json + score.json into a published run
   eval/                      evaluation, runs SEPARATELY from generation
     run_workflows.py         binary browser grader (agentic loop)
     run_rubric.py            UI/UX + motion + a11y judge (deterministic evidence)
@@ -296,6 +298,26 @@ jobs/<ts>/<task>__<id>/
 ```bash
 .venv/bin/python harness/eval/report.py jobs/ --detail
 .venv/bin/python harness/eval/verify_trajectory.py jobs/*/
+```
+
+Every publish also writes two per-run files (`harness/publish_report.py`, called
+from `repackage.py`). Not to be confused with `eval/report.py` above: that lists
+rewards ACROSS trials, these describe ONE run.
+
+```
+usage.json    tokens and cost per source -- agent, browser grader, rubric judge
+score.json    a weighted REPORT: 50% workflows / 25% pytest / 25% rubric
+```
+
+`score.json` is for humans comparing runs, and carries its components so nobody
+has to trust one opaque float. It is NOT the training signal: `reward.json` is
+untouched and remains the workflow pass rate, because a judge-driven reward is
+trivially gamed (PLAN.md 1.4). A component the task never declared is absent
+rather than zero, and an `invalid` run reports 0.0 -- an app that was not observed
+must not produce a blended number.
+
+```bash
+.venv/bin/python harness/publish_report.py output/*/*/run_*   # backfill any run
 ```
 
 Both graders can also run standalone against any deployed app:

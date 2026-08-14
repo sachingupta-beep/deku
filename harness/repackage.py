@@ -310,7 +310,7 @@ def repackage(trial: Path, verifier_dir: str = "verifier") -> Path:
     # reports -- never inputs to grading -- so a failure here must not cost the
     # publish: the run's reward.json and manifest.json are already on disk.
     try:
-        from report import build_score, build_usage
+        from publish_report import build_score, build_usage
         (dest / "usage.json").write_text(
             json.dumps(build_usage(dest), indent=2) + "\n")
         (dest / "score.json").write_text(

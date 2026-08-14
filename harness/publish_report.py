@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Write `usage.json` and `score.json` into a repackaged run directory.
 
-    python harness/report.py output/<task>/<model>/run_N
+    python harness/publish_report.py output/<task>/<model>/run_N
 
 Both files are DERIVED: everything here is read back out of artefacts the run
 already wrote, so regenerating them is always safe and never re-grades anything.
