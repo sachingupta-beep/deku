@@ -42,21 +42,30 @@ working container proves nothing by itself — what is graded is the `Dockerfile
 If you fix something by hand inside a running container, put the fix in the
 `Dockerfile`.
 
+**Anything you bring in must be yours to use.** If you fetch an image, font,
+icon set, sample text or dataset from the web, it must be public domain or under
+a licence that permits redistribution, and you must be able to say which. Do not
+use a company's logo or brand assets, a photographer's or artist's work, or
+anything whose licence you have not checked. Generating your own placeholder, or
+using a plain CSS or SVG stand-in, is always acceptable and is usually faster
+than finding something you are allowed to ship.
+
 **Walk the app in a browser before you finish, and leave the evidence.** Chromium
 and Playwright are already installed here — you do not need to add them. Drive
 your running app through the journeys this brief describes, as a stranger would:
 sign up or sign in, do the thing, arrive at the result. A page that renders
 without error is not the same as a page that works.
 
-Judge each step from the page itself, which is the reliable instrument you have:
-read values back with `textContent`, confirm the elements you expect are present
-and the ones you do not are absent, check a computed style when the brief pins
-one, and watch the console for errors. That is how you learn whether a control
-does anything, whether a figure arrives as `NaN` or `undefined`, whether a form
-quietly clears itself, whether a page that looks finished has data behind it.
-Fix what you find, then walk it again.
+Judge each step against the page rather than by eye: read the values back, check
+that what should be there is and what should not be is not, and watch the
+console. Fix what you find, then walk it again.
 
 Save one screenshot per journey into `/app/.browser_screenshots/` as evidence,
 numbered in the order you took them (`01_login.png`, `02_dashboard.png`, ...).
 That directory already exists and is reserved for exactly this. Keep it out of
 the shipped image via `.dockerignore`.
+
+**Do not read an image file back.** Your file reader cannot open binary files and
+the attempt ends your session — twice now, both times after the app was nearly
+finished and before the `Dockerfile` was written. Write the screenshot and move
+on; the page itself is what you verify against.

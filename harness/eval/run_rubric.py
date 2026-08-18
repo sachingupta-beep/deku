@@ -180,6 +180,94 @@ IMPORTANCE_WEIGHT = {
 DEFAULT_IMPORTANCE_WEIGHT = 1.0
 
 
+# ---------------------------------------------------------------------------
+# Judge council.
+#
+# Two models grade every criterion independently. One model scoring alone cannot
+# be checked: a confident wrong verdict is indistinguishable from a confident
+# right one, and the only signal of doubt was a hedged score -- which is exactly
+# what 16-of-18-partial looked like before the verdict became binary.
+#
+# Each member returns satisfied / confidence / rationale. The council then:
+#   both agree, both confident      -> scored, human_eval "no"
+#   either unsure, or they disagree -> scored on the agreed or higher-confidence
+#                                      verdict, and flagged human_eval "yes"
+#
+# A disagreement between two CONFIDENT models is the strongest signal a human is
+# needed, so it is flagged even though neither member expressed doubt.
+JUDGE_PANEL = [m.strip() for m in os.environ.get(
+    "DEKU_JUDGE_PANEL", "claude-opus-5,claude-sonnet-4-6").split(",") if m.strip()]
+
+
+def short_model(model: str) -> str:
+    """`claude-opus-5` -> `opus-5`, for readable per-judge keys."""
+    return model.replace("claude-", "", 1)
+
+
+def council_verdict(votes: list[dict], is_positive: bool, weight: float,
+                    criterion: str, number: str) -> dict:
+    """Fold each member's vote into one criterion record.
+
+    `satisfied` answers the criterion as written. `passed` answers whether the
+    APP is in good shape, which for a NEGATIVE criterion is the inverse: an
+    anti-pattern that is not satisfied is an anti-pattern that is absent, and the
+    app passes. Conflating the two rewards an app for being broken.
+    """
+    live = [v for v in votes if v.get("satisfied") is not None]
+    sats = [bool(v["satisfied"]) for v in live]
+    confs = [float(v.get("confidence") or 0.0) for v in live]
+
+    if not live:
+        satisfied, resolved = False, "no_votes"
+    elif len(set(sats)) == 1:
+        satisfied, resolved = sats[0], "unanimous"
+    else:
+        # Split. Take the more confident member's verdict, and flag it either way.
+        satisfied = live[max(range(len(live)), key=lambda i: confs[i])]["satisfied"]
+        resolved = "disagreement"
+
+    unsure = any(c < HUMAN_REVIEW_THRESHOLD for c in confs) if confs else True
+    needs_human = unsure or resolved in ("disagreement", "no_votes")
+
+    return {
+        "number": number,
+        "weight": weight if is_positive else -weight,
+        "is_positive": is_positive,
+        "criterion": criterion,
+        "satisfied": bool(satisfied),
+        # For a negative criterion the app passes by NOT satisfying it.
+        "passed": bool(satisfied) if is_positive else (not bool(satisfied)),
+        "resolved_by": resolved,
+        "human_eval": "yes" if needs_human else "no",
+        "voters": len(live),
+        "judges": [v["judge"] for v in votes],
+        "satisfied_by_judge": [v.get("satisfied") for v in votes],
+        "confidence_by_judge": [v.get("confidence") for v in votes],
+        "rationales_by_judge": [v.get("rationale", "") for v in votes],
+        # Kept for readers and for score.py, which reads `score` alone.
+        "score": 1.0 if (bool(satisfied) if is_positive else not bool(satisfied)) else 0.0,
+    }
+
+
+def weighted_rubric_score(criteria: list[dict]) -> float:
+    """Points earned over points available.
+
+        numerator    weight of every POSITIVE criterion that passed
+                     minus the weight of every NEGATIVE criterion that failed
+        denominator  weight of every POSITIVE criterion
+
+    Negative criteria are penalties, not credit: they cannot raise the score, and
+    an anti-pattern the app exhibits subtracts from what it earned. With no
+    negative failing, this reduces to passed/possible -- which reproduces the
+    reference implementation exactly (26.0 / 42.0 = 0.6190).
+    """
+    possible = sum(abs(c["weight"]) for c in criteria if c["is_positive"]) or 1.0
+    earned = sum(abs(c["weight"]) for c in criteria if c["is_positive"] and c["passed"])
+    penalty = sum(abs(c["weight"]) for c in criteria
+                  if not c["is_positive"] and not c["passed"])
+    return round(max(0.0, min(1.0, (earned - penalty) / possible)), 4)
+
+
 def load_task_rubric(path: Path) -> list[dict]:
     """Read tests/rubric.json into the (name, weight, asks) shape used above.
 
@@ -237,13 +325,12 @@ def load_task_rubric(path: Path) -> list[dict]:
 
 
 def rubric_verdict(score: float) -> str:
-    """A readable label beside the score. Presentation only -- never arithmetic.
+    """A readable label beside the verdict. Presentation only -- never arithmetic.
 
-    A rubric measures DEGREE, unlike a workflow substep which genuinely passes or
-    fails, so `score` stays the source of truth and `judge_score` is computed from
-    it alone. But a bare float per criterion is hard to scan, and readers were
-    inventing their own cutoffs to answer "which ones failed?" -- so the cutoff is
-    stated here once rather than differently by each reader.
+    A criterion is satisfied or it is not (see REPORT_TOOL), so `score` is 1.0 or
+    0.0 and this label is a direct restatement of it. The cutoff logic below is
+    retained only so that a judge.json written before 2026-08-17 -- when the
+    rubric did measure degree -- still renders readably.
 
     Thresholds match the scoring guide the judge is given:
         1.0 fully meets · 0.8 mostly meets · 0.5 partial · 0.2 barely · 0.0 absent
@@ -319,10 +406,15 @@ def safe_dimension(name: str, weight: float, asks: str,
         result = runner()
         if not isinstance(result, dict):
             raise TypeError(f"runner returned {type(result).__name__}, not dict")
-        score = float(result.get("score", 0.0) or 0.0)
-        score = max(0.0, min(1.0, score))
+        satisfied = bool(result.get("satisfied", False))
         return {
-            "score": score,
+            "satisfied": satisfied,
+            "score": 1.0 if satisfied else 0.0,
+            # Carried through EXPLICITLY. This function rebuilds the verdict dict
+            # from named keys, so anything it does not name is silently dropped --
+            # which is exactly what happened to `confidence` for three days after
+            # grade_dimension was fixed to return it.
+            "confidence": result.get("confidence"),
             "weight": weight,
             "rationale": str(result.get("rationale", ""))[:2000],
             "evidence": list(result.get("evidence", []))[:20],
@@ -330,7 +422,11 @@ def safe_dimension(name: str, weight: float, asks: str,
         }
     except Exception as exc:
         return {
+            "satisfied": False,
             "score": 0.0,
+            # A crash is not a verdict about the app. Zero confidence routes it to
+            # review rather than scoring the criterion as failed.
+            "confidence": 0.0,
             "weight": weight,
             "rationale": f"exception: {exc.__class__.__name__}: {exc}"[:2000],
             "evidence": [],
@@ -815,14 +911,30 @@ HUMAN_REVIEW_THRESHOLD = float(os.environ.get("DEKU_REVIEW_CONFIDENCE", "0.70"))
 
 REPORT_TOOL = {
     "name": "report_dimension",
-    "description": ("MANDATORY final call. Return your score (0.0-1.0), your CONFIDENCE "
+    "description": ("MANDATORY final call. Return whether the criterion is SATISFIED, your CONFIDENCE "
                     "in that score (0.0-1.0), a one-to-three sentence rationale, and at "
                     "least one concrete evidence reference (a screenshot filename, a "
                     "computed-style value, a console error string, or a specific route)."),
     "input_schema": {
         "type": "object",
         "properties": {
-            "score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            # A criterion is SATISFIED or it is not. A partial score is the
+            # judge splitting the difference on something it was asked to decide,
+            # and it dominated every run: 16 of 18 criteria came back partial on
+            # 2026-08-17, eight of them exactly 0.5. "Mostly" is not a verdict a
+            # reader can act on, and it cannot be defended in review.
+            "satisfied": {
+                "type": "boolean",
+                "description": (
+                    "True only if the criterion is FULLY met as written. If any part "
+                    "of it is unmet, or it is met only partly or only on some screens, "
+                    "answer false and say which part failed in the rationale. Do not "
+                    "round up a nearly-satisfied criterion, and do not answer true to "
+                    "avoid being harsh -- a false with a clear reason is the useful "
+                    "verdict. If you cannot tell either way, still answer, and report "
+                    "LOW CONFIDENCE so it reaches a human instead of being scored."
+                ),
+            },
             # Deliberately worded to break the habit of treating the midpoint as
             # a safe answer. A judge that cannot see the thing it is grading must
             # say so here rather than encode its doubt as a mediocre score.
@@ -844,7 +956,7 @@ REPORT_TOOL = {
             "rationale": {"type": "string"},
             "evidence": {"type": "array", "items": {"type": "string"}},
         },
-        "required": ["score", "confidence", "rationale", "evidence"],
+        "required": ["satisfied", "confidence", "rationale", "evidence"],
     },
 }
 
@@ -1059,8 +1171,13 @@ def grade_dimension(llm: JudgeAnthropic, name: str, asks: str,
                 # no-op: 18 of 18 criteria arrived with confidence=None and were
                 # all treated as confident. Adding a field to a tool schema does
                 # nothing unless the handler carries it through.
+                satisfied = bool(inp.get("satisfied", False))
                 return {
-                    "score": float(inp.get("score", 0.0)),
+                    "satisfied": satisfied,
+                    # Derived, never independent. judge_score, score.py and
+                    # publish_report all read `score`; keeping it as 1.0/0.0
+                    # means the verdict became binary without changing them.
+                    "score": 1.0 if satisfied else 0.0,
                     "confidence": (float(inp["confidence"])
                                    if inp.get("confidence") is not None else None),
                     "rationale": str(inp.get("rationale", "")),
@@ -1217,6 +1334,10 @@ def main() -> int:
 
     # Grade each dimension. Any exception per-dimension -> score 0.0.
     llm = JudgeAnthropic(model=model)
+    # One client per council member. `model` remains the single-judge default and
+    # the generic-dimension path; the panel is used only for a task rubric, where
+    # criteria are specific enough that two verdicts are worth their cost.
+    panel = [(short_model(m), JudgeAnthropic(model=m)) for m in JUDGE_PANEL]
     dimensions: dict[str, dict] = {}
 
     task_criteria: list[dict] = []
@@ -1254,25 +1375,64 @@ def main() -> int:
                 print(f"grading {c['number']} [{c['dimension']}/{c['importance']}"
                       f"{'' if c['is_positive'] else '/NEGATIVE'}] "
                       f"weight {c['weight']:.3f}", file=sys.stderr)
-                def _runner(_c=c) -> dict:
-                    return grade_dimension(llm, _c["key"], _c["asks"], sections,
-                                           evidence, args.max_steps)
-                graded = safe_dimension(c["key"], c["weight"], c["asks"], _runner)
+                # Every member votes independently on the same evidence. A member
+                # that crashes contributes no vote rather than a zero -- a grader
+                # failure is not a verdict about the app, and council_verdict
+                # flags a criterion nobody could settle.
+                votes = []
+                for label, member in panel:
+                    def _runner(_c=c, _m=member) -> dict:
+                        return grade_dimension(_m, _c["key"], _c["asks"], sections,
+                                               evidence, args.max_steps)
+                    one = safe_dimension(c["key"], c["weight"], c["asks"], _runner)
+                    votes.append({
+                        "judge": label,
+                        "satisfied": one.get("satisfied"),
+                        "confidence": one.get("confidence"),
+                        "rationale": one.get("rationale", ""),
+                    })
+                    print(f"    {label}: satisfied={one.get('satisfied')} "
+                          f"confidence={one.get('confidence')}", file=sys.stderr)
+
+                graded = council_verdict(votes, c["is_positive"], c["raw_weight"],
+                                         c["criterion"], c["number"])
                 graded.update({
-                    "number": c["number"], "dimension": c["dimension"],
-                    "importance": c["importance"], "is_positive": c["is_positive"],
-                    "criterion": c["criterion"],
-                    "verdict": rubric_verdict(graded.get("score", 0.0)),
+                    "dimension": c["dimension"], "importance": c["importance"],
+                    "asks": c["asks"],
+                    "verdict": "pass" if graded["passed"] else "fail",
                 })
                 dimensions[c["key"]] = graded
                 payload["dimensions"] = dimensions
                 # Score only what the judge would defend. A criterion it could not
                 # settle is withheld and routed to a human, so `judge_score` stops
                 # carrying the judge's own uncertainty as if it were a middling app.
-                scored, review = split_by_confidence(dimensions)
-                payload["needs_review"] = review
-                payload["judge_score"] = compute_task_rubric_score(
-                    [c2 for c2 in task_criteria if c2["key"] in scored], scored)
+                # Weighted points, not a normalised mean: a criterion is worth
+                # 5 / 3 / 1 by its stated importance, and the score is what the
+                # app earned over what was available. Every criterion is scored;
+                # `human_eval` marks the ones a person should settle rather than
+                # withholding them, so the number always covers the whole rubric.
+                rows = list(dimensions.values())
+                payload["judge_score"] = weighted_rubric_score(rows)
+                payload["criteria_total"] = len(rows)
+                payload["criteria_passed"] = sum(1 for r in rows if r["passed"])
+                payload["criteria_failed"] = sum(1 for r in rows if not r["passed"])
+                payload["needs_human_eval"] = sum(1 for r in rows
+                                                  if r.get("human_eval") == "yes")
+                payload["judge_council"] = {
+                    "members": JUDGE_PANEL,
+                    "aggregation": "unanimous_or_higher_confidence",
+                    "human_eval_when": (
+                        f"either member's confidence < {HUMAN_REVIEW_THRESHOLD}, "
+                        f"or the members disagree"
+                    ),
+                }
+                payload["needs_review"] = [
+                    {"criterion": r["number"], "confidence_by_judge": r["confidence_by_judge"],
+                     "resolved_by": r["resolved_by"], "satisfied": r["satisfied"],
+                     "passed": r["passed"], "text": r["criterion"],
+                     "rationales_by_judge": r["rationales_by_judge"]}
+                    for r in rows if r.get("human_eval") == "yes"
+                ]
                 _write_json(args.out, payload)
         else:
             for name, weight, asks in RUBRIC:

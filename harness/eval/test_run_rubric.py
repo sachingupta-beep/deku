@@ -93,11 +93,26 @@ def test_safe_dimension_swallows_exception() -> None:
     print(f"  exception -> {result['score']}, rationale={result['rationale'][:60]!r}")
 
 
-def test_safe_dimension_clamps_and_truncates() -> None:
+def test_safe_dimension_is_binary_and_truncates() -> None:
+    """A criterion is satisfied or it is not; `score` is derived, never supplied.
+
+    This test used to feed `score: 1.7` and assert it clamped to 1.0, which was
+    the right check while the rubric measured DEGREE. Since 2026-08-17 the judge
+    returns `satisfied` and score is 1.0/0.0 derived from it, so an out-of-range
+    float is not something the interface can express -- what matters now is that
+    a runner supplying no verdict is treated as UNSATISFIED rather than as a pass.
+    """
     def big() -> dict:
-        return {"score": 1.7, "rationale": "x" * 5000, "evidence": ["e"] * 50}
+        return {"satisfied": True, "score": 1.7,
+                "rationale": "x" * 5000, "evidence": ["e"] * 50}
     result = rr.safe_dimension("ui_visual", 0.15, "asks", big)
-    assert result["score"] == 1.0
+    assert result["satisfied"] is True
+    assert result["score"] == 1.0, "a supplied score must not override `satisfied`"
+
+    unsatisfied = rr.safe_dimension("ui_visual", 0.15, "asks",
+                                    lambda: {"rationale": "no verdict", "evidence": []})
+    assert unsatisfied["satisfied"] is False
+    assert unsatisfied["score"] == 0.0, "a missing verdict must not read as a pass"
     assert len(result["rationale"]) <= 2000
     assert len(result["evidence"]) <= 20
     print("  clamps score, truncates rationale + evidence")
@@ -144,7 +159,7 @@ def main() -> int:
         test_score_clamps_out_of_range,
         test_section_parser_on_real_instruction,
         test_safe_dimension_swallows_exception,
-        test_safe_dimension_clamps_and_truncates,
+        test_safe_dimension_is_binary_and_truncates,
         test_parse_viewport_list,
         test_works_cap_blocks_pretty_but_broken,
     ]

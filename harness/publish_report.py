@@ -139,8 +139,11 @@ def build_score(run: Path) -> dict:
         "pytest": {"score": (py_passed / py_total) if py_total else None,
                    "passed": py_passed, "total": py_total},
         "rubric": {"score": rubric,
-                   "criteria": (judge.get("meta") or {}).get("criteria_total"),
-                   "needs_review": len(review)},
+                   "criteria": judge.get("criteria_total"),
+                   "passed": judge.get("criteria_passed"),
+                   "failed": judge.get("criteria_failed"),
+                   "needs_human_eval": judge.get("needs_human_eval", len(review)),
+                   "council": (judge.get("judge_council") or {}).get("members")},
     }
 
     # A component with no denominator (no rubric file, no pytest substeps) is

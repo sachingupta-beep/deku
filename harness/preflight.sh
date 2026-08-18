@@ -226,7 +226,11 @@ if dockerfile.is_file():
         bad(f"environment/Dockerfile installs no {', '.join(missing)}",
             "the graders run in THIS image; without these, grading dies after the "
             "agent phase has already been paid for")
-    elif "playwright install chromium" not in body:
+    elif not re.search(r"playwright install(\s+--\S+)*\s+chromium", body):
+        # `--with-deps` is a legitimate form and was being reported as missing
+        # chromium. Both are accepted; the flag matters only on distributions
+        # where playwright resolves an Ubuntu package list, and a task that
+        # builds is the proof that its own base is fine.
         bad("playwright is installed but chromium is not",
             "add: RUN playwright install chromium")
     else:
@@ -283,6 +287,47 @@ else:
         else:
             ok(f"{len(flows)} workflow(s), {len(refs)} pytest ref(s) all resolve")
 
+# Harbor runs [environment.healthcheck].command inside the AGENT container, not
+# inside the service it is checking. A command whose binary the agent image does
+# not install therefore fails all 60 retries and harbor aborts with
+# HealthcheckError -- ten minutes, before the agent starts. Measured 2026-08-14
+# on seasonal-offer-publisher: `pg_isready` against a node:22-slim image with no
+# postgresql-client. Postgres itself was healthy in 25 seconds.
+hc = ((cfg.get("environment") or {}).get("healthcheck") or {}).get("command", "")
+if hc and dockerfile.is_file():
+    body = dockerfile.read_text()
+    # binary -> the apt package that provides it
+    provides = {"pg_isready": "postgresql-client", "psql": "postgresql-client",
+                "curl": "curl", "wget": "wget", "nc": "netcat",
+                "redis-cli": "redis-tools", "mysqladmin": "default-mysql-client"}
+    tool = hc.split()[0] if hc.split() else ""
+    pkg = provides.get(tool)
+    if pkg and pkg not in body and tool not in body:
+        bad(f"healthcheck runs `{tool}` but the agent image installs no {pkg}",
+            "harbor runs the healthcheck INSIDE the agent container; without the "
+            "binary it fails every retry and aborts before the agent starts")
+    elif tool:
+        ok(f"healthcheck `{tool}` is available in the agent image")
+
+# eval_fresh.py probes the deployed app by running curl INSIDE this same image:
+#     docker exec <grader-container> sh -c "curl ... $APP_PUBLIC_URL/api/health"
+# With no curl the exec yields an empty string, the probe reads it as
+# "no response" for the whole 180s window, and the run reports `deployed 0.0`
+# on an app that was serving 200s the entire time. Measured 2026-08-14 on
+# seasonal-offer-publisher: the image ran, seeded, bound 0.0.0.0:4173 and
+# answered /api/health with 200 when probed from a container that had curl.
+# Match an INSTALL, not a mention. `"curl" not in body` passed a Dockerfile whose
+# only occurrence was a comment claiming the base image ships it -- it does not,
+# and the built image had no curl (tessellate-market, 2026-08-17). Strip comments
+# and require the word inside an install command.
+_body = "\n".join(l for l in dockerfile.read_text().splitlines()
+                  if not l.lstrip().startswith("#")) if dockerfile.is_file() else ""
+if dockerfile.is_file() and not re.search(
+        r"(apt-get|apk add|yum|dnf)[^\n]*(\\\n[^\n]*)*\bcurl\b", _body):
+    bad("environment/Dockerfile installs no curl",
+        "eval_fresh probes the app with curl from INSIDE this image; without it "
+        "every probe returns nothing and a working app scores deployed 0.0")
+
 # Probe addresses on a special-use domain. RFC 6761 reserves .test, .invalid,
 # .localhost and .example, and `email-validator` -- which every Pydantic
 # `EmailStr` field goes through -- refuses them outright. A fixture that signs up
@@ -321,7 +366,28 @@ if not (cfg.get("agent") or {}).get("timeout_sec") and "timeout_sec" not in (T /
 tests = T/"tests"
 if tests.is_dir():
     spec = (T/"instruction.md").read_text()
+    # Paths that appear ONLY inside a negative test are routes the app must
+    # REFUSE, not routes it must build. camping-site-catalog probes four candidate
+    # signup paths and asserts >= 400 on each because its brief offers no signup;
+    # reporting those as "not named in the brief" is backwards, and a warning that
+    # fires on correct authoring is a warning people learn to skip.
+    negative = re.compile(r"^def (test_(no|never)_\w+|test_\w+_(refused|denied|"
+                          r"rejected|forbidden|not_\w+))\(", re.M)
+
+    def _paths(src: str) -> set:
+        return {m for m in re.findall(r'"(/[a-z][a-z0-9/_-]*)"', src)
+                if not m.startswith(("/app", "/tests", "/logs", "/v1/", "/api/v1/"))}
+
+    def _split(src: str):
+        """(paths in negative tests, paths anywhere else)."""
+        blocks = re.split(r"(?=^def )", src, flags=re.M)
+        neg, pos = set(), set()
+        for b in blocks:
+            (neg if negative.match(b) else pos).update(_paths(b))
+        return neg, pos
+
     called = set()
+    negative_only = set()
     for f in list(tests.glob("test_*.py")) + list(tests.glob("conftest.py")):
         # Only the APP's own surface. The App Contract mounts it under /api, so
         # a path the fixtures call on a SIDECAR -- the payments provider's /v1/*,
@@ -329,10 +395,33 @@ if tests.is_dir():
         # must not be reported as unpinned. Left in, every well-authored
         # multi-service task warns about endpoints its brief is right to omit,
         # which teaches people to ignore the check.
-        called |= {m for m in re.findall(r'"(/[a-z][a-z0-9/_-]*)"', f.read_text())
-                   if not m.startswith(("/app", "/tests", "/logs",
-                                        "/v1/", "/api/v1/"))}
-    missing = sorted(e for e in called if e not in spec and f"/api{e}" not in spec)
+        neg, pos = _split(f.read_text())
+        called |= pos
+        negative_only |= (neg - pos)
+    called -= negative_only
+    # A path whose last segment is a bare number is a PROBE -- `/assets/999999999`
+    # exists to assert a 404 for an unknown id, so it can never appear in the
+    # brief and reporting it trains people to ignore this check. Compare the
+    # parent path instead, which is what the brief does pin (`GET /api/assets/:id`).
+    def _pinned(path: str) -> bool:
+        for cand in (path, f"/api{path}"):
+            if cand in spec:
+                return True
+        # A brief pins a TEMPLATE -- `/media/{slug}`, `/assets/:id` -- while a test
+        # calls it with a value filled in. Literal matching therefore reports a
+        # correctly-pinned route as missing, which is how `/assets/999999999` and
+        # `/media/materials` both surfaced. Accept the path when its parent is
+        # pinned and the brief shows a placeholder in that position.
+        head, _, last = path.rpartition("/")
+        if head and last:
+            for cand in (head, f"/api{head}"):
+                if re.search(re.escape(cand) + r"/[{:<]", spec):
+                    return True
+            if last.isdigit():
+                return any(c in spec for c in (head, f"/api{head}"))
+        return False
+
+    missing = sorted(e for e in called if not _pinned(e))
     if missing:
         warn(f"{len(missing)} endpoint(s) the tests call are not named in the brief: "
              f"{missing[:4]}")
