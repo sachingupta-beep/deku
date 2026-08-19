@@ -268,6 +268,141 @@ def weighted_rubric_score(criteria: list[dict]) -> float:
     return round(max(0.0, min(1.0, (earned - penalty) / possible)), 4)
 
 
+# ---------------------------------------------------------------------------
+# Recorded criteria.
+#
+# A still frame cannot show movement. "the backdrop drifts slower than the glass
+# over it", "a mark trails the cursor", "a placeholder shows until the full image
+# decodes" -- the judge looks at one screenshot, cannot tell, and correctly says
+# so. The criterion then sits in the review queue every run.
+#
+# For those, film the interaction and hand the judge the frames in order. It is
+# still reading images; there are simply several of them, spaced in time, so a
+# change between them is visible.
+#
+# Opt in per criterion in rubric.json:
+#
+#     "evaluation_target": "recorded_ui",
+#     "capture": {"route": "/", "interaction": "scroll_page", "duration_ms": 4000}
+#
+# `capture` is required, because a recorder cannot film "the app" -- scrolling the
+# catalogue and hovering a button produce entirely different footage, and the
+# judge can only reason about what was recorded. Criteria sharing an identical
+# capture are filmed ONCE and shown the same strip.
+RECORDED_TARGET = "recorded_ui"
+FRAME_INTERVAL_MS = int(os.environ.get("DEKU_CAPTURE_FRAME_MS", "100"))
+MAX_FRAMES = int(os.environ.get("DEKU_CAPTURE_MAX_FRAMES", "14"))
+
+# Interactions a capture may name. Deliberately a closed set: an arbitrary script
+# in a rubric file is a way for a task to run anything inside the grader.
+INTERACTIONS = {
+    "scroll_page":      "scroll from top to bottom in steps",
+    "hover_primary":    "move the pointer across the page and onto the primary action",
+    "reload_cold":      "reload with a cleared cache and watch the first paint",
+    "navigate_and_back":"open the first internal link, then go back",
+    "idle":             "record without interacting, for load-time behaviour",
+}
+
+
+def record_capture(pw, url: str, cap: dict, out_dir: Path,
+                   credentials_text: str = "") -> list[dict]:
+    """Film one interaction and return its frames, oldest first.
+
+    Frames rather than a video file, because the judge reads images: a strip of
+    stills spaced in time is a movie as far as a vision model is concerned, and
+    it needs no decoder on the judge's side.
+
+    Never raises. A capture that fails yields no frames, the criterion falls back
+    to the still evidence, and its confidence drops -- which routes it to a human
+    rather than scoring the app on footage that was never taken.
+    """
+    route = cap.get("route", "/")
+    interaction = cap.get("interaction", "idle")
+    duration = min(int(cap.get("duration_ms", 4000)), 10000)
+    if interaction not in INTERACTIONS:
+        print(f"  [warn] unknown capture interaction {interaction!r}; skipping",
+              file=sys.stderr)
+        return []
+
+    frames: list[dict] = []
+    browser = context = None
+    try:
+        browser = pw.chromium.launch(headless=True, args=["--no-sandbox"])
+        context = browser.new_context(viewport={"width": 1440, "height": 900})
+        page = context.new_page()
+
+        # This is a FRESH browser -- it carries no cookie from the evidence pass,
+        # so it must sign in on its own or it films the login screen. Measured
+        # 2026-08-19: three captures, 42 frames, every one of them a login card.
+        if credentials_text:
+            status = try_login(page, credentials_text, url)
+            if status.startswith("LOGIN FAILED") or "unverified" in status:
+                print(f"  [warn] capture {interaction} filming logged OUT: {status}",
+                      file=sys.stderr)
+
+        page.goto(url.rstrip("/") + route, wait_until="domcontentloaded",
+                  timeout=ACTION_TIMEOUT_MS)
+
+        steps = max(2, min(MAX_FRAMES, duration // FRAME_INTERVAL_MS))
+        # The interaction is spread ACROSS the frames rather than run before them:
+        # a scroll that finishes before filming starts is a still picture of the
+        # bottom of the page, which answers nothing about how it got there.
+        for i in range(steps):
+            if interaction == "scroll_page":
+                page.evaluate("(f) => scrollTo({top: document.body.scrollHeight * f,"
+                              " behavior: 'smooth'})", i / max(1, steps - 1))
+            elif interaction == "hover_primary" and i == 1:
+                for sel in ("button", "[role=button]", "a"):
+                    try:
+                        page.locator(sel).first.hover(timeout=2000); break
+                    except Exception:
+                        continue
+            elif interaction == "navigate_and_back" and i == steps // 2:
+                try:
+                    page.locator("a[href^='/']").first.click(timeout=2000)
+                except Exception:
+                    pass
+            elif interaction == "reload_cold" and i == 0:
+                page.reload(wait_until="commit")
+
+            png = page.screenshot(type="jpeg", quality=55, full_page=False)
+            frames.append({"t_ms": i * FRAME_INTERVAL_MS,
+                           "b64": base64.b64encode(png).decode("ascii")})
+            page.wait_for_timeout(FRAME_INTERVAL_MS)
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for i, fr in enumerate(frames):
+            (out_dir / f"{interaction}_{i:02d}.jpg").write_bytes(
+                base64.b64decode(fr["b64"]))
+    except Exception as exc:
+        print(f"  [warn] capture {interaction} on {route} failed: {exc}", file=sys.stderr)
+    finally:
+        for c in (context, browser):
+            try:
+                if c: c.close()
+            except Exception:
+                pass
+    return frames
+
+
+def frame_blocks(frames: list[dict]) -> list[dict]:
+    """Frames as ordered image blocks, each labelled with its offset."""
+    out: list[dict] = []
+    for fr in frames:
+        out.append({"type": "text", "text": f"frame @ {fr['t_ms']}ms"})
+        out.append({"type": "image",
+                    "source": {"type": "base64", "media_type": "image/jpeg",
+                               "data": fr["b64"]}})
+    return out
+
+
+def capture_key(cap: dict) -> str:
+    """Identity of a recording, so criteria wanting the same footage share it."""
+    return "{}|{}|{}".format(cap.get("route", "/"),
+                             cap.get("interaction", "idle"),
+                             int(cap.get("duration_ms", 4000)))
+
+
 def load_task_rubric(path: Path) -> list[dict]:
     """Read tests/rubric.json into the (name, weight, asks) shape used above.
 
@@ -307,7 +442,16 @@ def load_task_rubric(path: Path) -> list[dict]:
                 "clearly does. This describes a defect, so a high score means the "
                 "defect is absent. Cite concrete evidence."
             )
+        target = str(c.get("evaluation_target", ""))
+        capture = c.get("capture") or {}
+        if target == RECORDED_TARGET and not capture:
+            raise ValueError(
+                f"{path}: criterion {number} is {RECORDED_TARGET} but declares no "
+                f"`capture`. A recorder cannot film 'the app' -- name the route, "
+                f"the interaction ({sorted(INTERACTIONS)}) and a duration_ms.")
         out.append({
+            "evaluation_target": target,
+            "capture": capture,
             "key": f"{number}_{c.get('dimension', 'unspecified')}",
             "number": number,
             "dimension": str(c.get("dimension", "unspecified")),
@@ -710,43 +854,104 @@ NAV_ROUTES_JS = r"""
 """
 
 
-def try_login(page, credentials_text: str) -> str:
-    """Best-effort programmatic login using credentials from USER_README.md.
+def try_login(page, credentials_text: str, base_url: str = "") -> str:
+    """Programmatic login using credentials from USER_README.md, then VERIFY it.
 
-    Extract an email + a password with regex; if a login form is on the current
-    page, fill and submit. Returns a status note.
+    An SPA login is a `fetch`, not a navigation, so `domcontentloaded` returns
+    the instant it is asked and the caller's next `page.goto` aborts the still
+    in-flight POST -- `net::ERR_ABORTED`, no session, and every subsequent route
+    bounces to /login. Measured 2026-08-19: a whole 51-criterion rubric graded
+    against a login card while reporting "attempted login as ..." as though it
+    had worked.
+
+    So: wait for the network to settle, then prove the session exists by loading
+    "/" and looking for a password field. The return value distinguishes
+    verified from failed -- callers must be able to tell an unmeasured rubric
+    from a bad one.
     """
     if not credentials_text:
         return "no credentials file"
     email_m = re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", credentials_text)
+    # The credentials file is MARKDOWN. "- **Password:** `deku-demo-pw-2026`"
+    # puts `**` between the colon and the value, and a character class that only
+    # excludes whitespace and quotes captures those asterisks -- so the grader
+    # posts the password `**`, gets a 401, and grades the login screen. Measured
+    # 2026-08-19 on a run where the API accepted the real password over curl.
+    # Emphasis and backticks are therefore skipped explicitly, and `*` and `` ` ``
+    # are excluded from the value itself.
     pw_m = None
-    for pat in (r"[Pp]assword\s*[:=]\s*[`\"']?([^\s`\"'\n]+)",
-                r"pass(?:word)?\s+is\s+`?([^\s`\n]+)"):
-        pw_m = re.search(pat, credentials_text)
-        if pw_m:
+    for pat in (r"[Pp]assword\**\s*[:=]\s*[*`\"'\s]*([^\s`\"'*\n]+)",
+                r"pass(?:word)?\s+is\s+[*`\"'\s]*([^\s`\"'*\n]+)"):
+        m = re.search(pat, credentials_text)
+        if m and len(m.group(1)) >= 3:   # "**" and friends are not passwords
+            pw_m = m
             break
     if not (email_m and pw_m):
         return "could not parse credentials"
     email, pw = email_m.group(0), pw_m.group(1)
-    try:
-        # Best guess: navigate to /login if present.
+    # Record the auth response. A failure that can name its own status code is
+    # worth far more than one that only reports "still logged out".
+    seen: dict[str, object] = {}
+
+    def _note(resp):
         try:
-            page.goto(page.url.rstrip("/") + "/login", timeout=ACTION_TIMEOUT_MS,
+            if (resp.request.method == "POST"
+                    and re.search(r"(login|signin|session|token|auth)", resp.url, re.I)):
+                seen.setdefault("status", resp.status)
+                seen.setdefault("url", resp.url)
+        except Exception:
+            pass
+
+    try:
+        page.on("response", _note)
+    except Exception:
+        pass
+    try:
+        # Build /login from the ORIGIN. `page.url` is already the redirect
+        # target (e.g. "/login?next=%2F"), so appending to it yields nonsense.
+        origin = (base_url or page.url).rstrip("/")
+        try:
+            page.goto(origin + "/login", timeout=ACTION_TIMEOUT_MS,
                       wait_until="domcontentloaded")
         except Exception:
             pass
-        # Find email + password inputs.
-        for sel in ('input[type="email"]', 'input[name*="email" i]',
-                    'input[name*="user" i]', 'input[type="text"]'):
-            loc = page.locator(sel).first
-            if loc.count() > 0:
-                loc.fill(email, timeout=ACTION_TIMEOUT_MS)
-                break
-        for sel in ('input[type="password"]',):
-            loc = page.locator(sel).first
-            if loc.count() > 0:
-                loc.fill(pw, timeout=ACTION_TIMEOUT_MS)
-                break
+        # Let the page's JS finish booting BEFORE typing. A reactive framework
+        # binds its model on DOMContentLoaded -- the same event Playwright's
+        # `domcontentloaded` resolves on -- and its init writes model -> input,
+        # so a value typed a moment too early is silently wiped. Measured
+        # 2026-08-19: Alpine `x-model`, submit() posted the default email with
+        # an empty password, 401, and the rubric graded the login card.
+        try:
+            page.wait_for_load_state("networkidle", timeout=8000)
+        except Exception:
+            pass
+        page.wait_for_timeout(600)
+
+        def fill_verified(selectors: tuple[str, ...], value: str) -> bool:
+            """Type, then read back -- and retry if the framework overwrote it."""
+            for sel in selectors:
+                loc = page.locator(sel).first
+                if loc.count() == 0:
+                    continue
+                for attempt in range(3):
+                    loc.fill(value, timeout=ACTION_TIMEOUT_MS)
+                    page.wait_for_timeout(250)
+                    try:
+                        if loc.input_value(timeout=2000) == value:
+                            return True
+                    except Exception:
+                        return True   # unreadable; assume it took
+                    page.wait_for_timeout(400 * (attempt + 1))
+                return False
+            return False
+
+        ok_email = fill_verified(('input[type="email"]', 'input[name*="email" i]',
+                                  'input[name*="user" i]', 'input[type="text"]'), email)
+        ok_pw = fill_verified(('input[type="password"]',), pw)
+        if not (ok_email and ok_pw):
+            return (f"LOGIN FAILED as {email} -- the form would not hold its "
+                    f"values (email_ok={ok_email} password_ok={ok_pw}); the page's "
+                    f"JS is overwriting typed input")
         # Submit.
         for sel in ('button[type="submit"]', 'button:has-text("Sign in")',
                     'button:has-text("Log in")', 'button:has-text("Login")',
@@ -755,8 +960,29 @@ def try_login(page, credentials_text: str) -> str:
             if loc.count() > 0:
                 loc.click(timeout=ACTION_TIMEOUT_MS)
                 break
-        page.wait_for_load_state("domcontentloaded", timeout=8000)
-        return f"attempted login as {email}"
+        # The submit is a fetch, not a navigation. Wait for it to COMPLETE.
+        for state in ("domcontentloaded", "networkidle"):
+            try:
+                page.wait_for_load_state(state, timeout=10000)
+            except Exception:
+                pass
+        time.sleep(1.0)  # cookie write + client-side redirect
+
+        # Verify: load "/" and see whether we are still being asked to log in.
+        try:
+            page.goto(origin + "/", timeout=ACTION_TIMEOUT_MS,
+                      wait_until="domcontentloaded")
+            page.wait_for_timeout(600)
+            still_out = (page.locator('input[type="password"]').count() > 0
+                         or "/login" in page.url)
+        except Exception as exc:
+            return f"login unverified as {email}: {exc}"
+        if still_out:
+            why = (f" (auth endpoint {seen.get('url')} returned {seen['status']})"
+                   if "status" in seen else "")
+            return (f"LOGIN FAILED as {email} -- still at {page.url} with a "
+                    f"password field{why}; everything below was graded logged OUT")
+        return f"logged in as {email}"
     except Exception as exc:
         return f"login attempt failed: {exc}"
 
@@ -807,7 +1033,7 @@ def gather_evidence(playwright, url: str, credentials_text: str,
             print(f"  [warn] initial navigate failed: {exc}", file=sys.stderr)
 
         # Login attempt (best effort). Puts the session inside the app.
-        evidence["login_status"] = try_login(page, credentials_text)
+        evidence["login_status"] = try_login(page, credentials_text, url)
 
         # Re-anchor at "/".
         try:
@@ -1068,7 +1294,8 @@ def _image_blocks(shots: list[dict], limit: int = 6) -> list[dict]:
 
 def grade_dimension(llm: JudgeAnthropic, name: str, asks: str,
                     instruction_sections: dict[str, str],
-                    evidence: dict, max_steps: int) -> dict:
+                    evidence: dict, max_steps: int,
+                    frames: list[dict] | None = None) -> dict:
     """One LLM call per dimension. The model is given the focused rubric plus
     the pre-gathered evidence, and returns a score via report_dimension.
     """
@@ -1140,6 +1367,20 @@ def grade_dimension(llm: JudgeAnthropic, name: str, asks: str,
                  f"```json\n{json.dumps(evidence_json, indent=2)[:20000]}\n```"},
     ]
     first_content.extend(_image_blocks(shots_summary))
+    if frames:
+        # A strip in time order. Said explicitly, because a model handed fifteen
+        # near-identical images will otherwise treat them as alternative views of
+        # one moment rather than as a sequence -- and the whole point is what
+        # CHANGED between them.
+        first_content.append({"type": "text", "text":
+            f"\n=== RECORDED SEQUENCE ({len(frames)} frames, "
+            f"{FRAME_INTERVAL_MS}ms apart, oldest first) ===\n"
+            "These are consecutive moments of one interaction, not alternative "
+            "views. Judge this criterion from what CHANGES between them -- what "
+            "moves, in which order, and how far. If the sequence does not show "
+            "the behaviour either way, say so and report low confidence rather "
+            "than inferring it."})
+        first_content.extend(frame_blocks(frames))
     first_content.append({"type": "text",
                           "text": "Now call report_dimension with score, rationale, evidence."})
 
@@ -1371,6 +1612,36 @@ def main() -> int:
         if task_criteria:
             meta["rubric_source"] = str(args.rubric)
             meta["rubric_criteria"] = len(task_criteria)
+
+            # Film each distinct capture ONCE. Two criteria that both want
+            # "scroll the catalogue" share one strip rather than paying for the
+            # same footage twice.
+            captures: dict[str, list[dict]] = {}
+            wanted = {capture_key(c["capture"]): c["capture"]
+                      for c in task_criteria
+                      if c.get("evaluation_target") == RECORDED_TARGET and c.get("capture")}
+            if wanted:
+                print(f"recording {len(wanted)} capture(s) for recorded_ui criteria",
+                      file=sys.stderr)
+                try:
+                    from playwright.sync_api import sync_playwright
+                    with sync_playwright() as _pw:
+                        for k, cap in wanted.items():
+                            # credentials_text is REQUIRED here: each capture is a
+                            # fresh browser with no cookie, so an auth-gated app
+                            # films its login page otherwise. Measured 2026-08-19:
+                            # 42 frames of a login card that both judges correctly
+                            # reported as "no scroll interaction in the bundle".
+                            frames = record_capture(
+                                _pw, args.url, cap,
+                                (args.screenshot_dir or Path("/logs/verifier/shots"))
+                                / "captures" / re.sub(r"[^a-z0-9]+", "_", k.lower()),
+                                credentials_text=creds)
+                            captures[k] = frames
+                            print(f"  {k}: {len(frames)} frame(s)", file=sys.stderr)
+                except Exception as exc:
+                    print(f"  [warn] capture session failed: {exc}", file=sys.stderr)
+                meta["captures"] = {k: len(v) for k, v in captures.items()}
             for c in task_criteria:
                 print(f"grading {c['number']} [{c['dimension']}/{c['importance']}"
                       f"{'' if c['is_positive'] else '/NEGATIVE'}] "
@@ -1382,8 +1653,11 @@ def main() -> int:
                 votes = []
                 for label, member in panel:
                     def _runner(_c=c, _m=member) -> dict:
+                        strip = (captures.get(capture_key(_c["capture"]))
+                                 if _c.get("evaluation_target") == RECORDED_TARGET
+                                 and _c.get("capture") else None)
                         return grade_dimension(_m, _c["key"], _c["asks"], sections,
-                                               evidence, args.max_steps)
+                                               evidence, args.max_steps, frames=strip)
                     one = safe_dimension(c["key"], c["weight"], c["asks"], _runner)
                     votes.append({
                         "judge": label,
@@ -1471,7 +1745,29 @@ def main() -> int:
     # is omitted and the run reports agent cost only, understating real spend.
     # Guarded because a missing cost figure must never fail a grading run.
     try:
-        meta["usage"] = llm.usage_snapshot()
+        # Sum EVERY client, not just `llm`. The council builds a separate
+        # JudgeAnthropic per member, so reading the single legacy client reported
+        # `calls: 0` while two models had graded 41 criteria -- the judge's real
+        # spend was invisible to usage.json and to finance. Same shape as the
+        # confidence bug: a feature added without the plumbing that carries its
+        # data out.
+        clients = [("legacy", llm)] + [(lbl, m) for lbl, m in panel]
+        totals = {"calls": 0, "input_tokens": 0, "output_tokens": 0,
+                  "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0}
+        per_member = {}
+        for label, client in clients:
+            try:
+                snap = client.usage_snapshot()
+            except Exception:
+                continue
+            if not snap.get("calls"):
+                continue                       # unused client, e.g. `llm` on the council path
+            per_member[label] = snap
+            for k in totals:
+                totals[k] += int(snap.get(k) or 0)
+        totals["model_name"] = ", ".join(per_member) or model
+        totals["per_member"] = per_member
+        meta["usage"] = totals
     except Exception:
         pass
     payload["meta"] = meta

@@ -261,6 +261,18 @@ def build_payload(run_dir: Path) -> dict:
 
     lines = []
     for source, meta in (("browser", browser_meta), ("rubric", judge_meta)):
+        # A judge COUNCIL bills two models, and each must be priced separately:
+        # `usage.model_name` is a comma-joined label ("opus-5, sonnet-4-6") that
+        # pricing.py cannot resolve, and an unpriced model blocks the WHOLE
+        # record -- agent cost included. `per_member` carries each model's own
+        # totals, so emit one judge_line per member.
+        per_member = ((meta or {}).get("usage") or {}).get("per_member") or {}
+        if len(per_member) > 1:
+            for label, snap in per_member.items():
+                line = judge_line(f"{source}:{label}", {"usage": snap}, blockers)
+                if line is not None:
+                    lines.append(line)
+            continue
         line = judge_line(source, meta, blockers)
         if line is not None:
             lines.append(line)

@@ -103,13 +103,37 @@ def build_usage(run: Path) -> dict:
     # 2. The browser grader (owns the reward) and 3. the rubric judge (advisory).
     for key, rel in (("browser_grader", "logs/browser_results.json"),
                      ("rubric_judge", "logs/judge.json")):
-        meta = _load(run / rel).get("meta") or {}
+        doc = _load(run / rel)
+        meta = doc.get("meta") or {}
         usage = meta.get("usage") or {}
-        if usage:
-            sources[key] = _usage_row(
-                usage, model=meta.get("grader_model") or usage.get("model_name", ""))
 
-    totals = {k: sum(s.get(k, 0) for s in sources.values())
+        # A council run whose usage was never instrumented must not read as
+        # "one model, zero tokens" -- that implies the judge graded for free.
+        # Runs before 2026-08-18 recorded only the unused legacy client, so the
+        # spend of both members is unrecoverable; say so rather than imply zero.
+        council = (doc.get("judge_council") or {}).get("members")
+        if council and not usage.get("calls"):
+            sources[key] = {
+                "model": ", ".join(council),
+                "note": ("token usage not recorded: this run predates per-member "
+                         "council accounting, and both judges' spend is unrecoverable"),
+                "input_tokens": None, "output_tokens": None,
+                "cache_read_tokens": None, "cache_write_tokens": None,
+                "total_tokens": None, "request_count": None,
+            }
+            continue
+        if usage:
+            row = _usage_row(usage,
+                             model=meta.get("grader_model") or usage.get("model_name", ""))
+            # A council bills two models. Keep the per-member split so a reader
+            # can see which judge cost what, rather than one merged row under a
+            # comma-joined name.
+            if usage.get("per_member"):
+                row["per_member"] = {
+                    m: _usage_row(s, model=m) for m, s in usage["per_member"].items()}
+            sources[key] = row
+
+    totals = {k: sum(s.get(k) or 0 for s in sources.values())
               for k in ("input_tokens", "output_tokens", "cache_read_tokens",
                         "cache_write_tokens", "total_tokens", "request_count")}
     totals["cost_usd"] = round(sum(s.get("cost_usd", 0.0) for s in sources.values()), 6)
