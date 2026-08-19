@@ -166,6 +166,21 @@ Rules:
 - Otherwise perform the action. Use short, decisive tool calls. After each action, take a snapshot to see the new state.
 - Use `browser_snapshot` to see interactive elements with their refs. Then click/fill by ref.
 - If a needed element is not visible, try scrolling or navigating.
+- The snapshot shows roles, names and text ONLY. When a substep asks about
+  something it cannot carry, use the tool that can, rather than re-snapshotting:
+    data-* or any attribute   -> browser_get_attribute
+    beside / above / columns  -> browser_get_bounding_box
+    colour, type, contrast    -> browser_get_computed_style
+    the served markup         -> browser_get_html
+    phone width / responsive  -> browser_set_viewport
+    what has focus now        -> browser_get_focused
+    a hover state             -> browser_hover
+    attach a file             -> browser_upload_file
+    a skeleton, loading->ready-> browser_wait_for
+    reduced motion            -> browser_emulate_media
+    a session expiring        -> browser_clear_cookies
+  Re-snapshotting will never reveal any of these. If two snapshots in a row have
+  not moved you closer, you are asking the wrong tool.
 - Do not invent URLs or credentials. Credentials, if any, are in the system prompt below.
 - Never open external sites. Stay inside the app's origin.
 - When the substep is done (or you cannot achieve it), call `report_result`. That call ends the substep. Do NOT keep exploring after reporting.
@@ -482,6 +497,173 @@ class Browser:
             return f"[get_text failed: {exc}]"
         return txt[:4000]
 
+    # ------------------------------------------------------------------
+    # Everything below exists because a substep in the corpus asked for it and
+    # the accessibility snapshot could not answer. Each one is a thin Playwright
+    # call: no arbitrary JS is exposed, so the agent still only learns what a
+    # person at the browser could learn.
+
+    def get_attribute(self, ref: int, name: str) -> str:
+        """data-* attributes are the state contract in 5+ tasks and are absent
+        from the accessibility tree entirely."""
+        v = self._get(ref).get_attribute(name)
+        return f"{name}={v!r}" if v is not None else f"{name} is NOT present on ref {ref}"
+
+    def get_bounding_box(self, ref: int) -> str:
+        """`beside`, `above`, `four across`, `one line` are geometry, and the
+        snapshot carries no coordinates."""
+        b = self._get(ref).bounding_box()
+        if not b:
+            return f"ref {ref} has no box (not rendered or display:none)"
+        return (f"x={b['x']:.0f} y={b['y']:.0f} width={b['width']:.0f} "
+                f"height={b['height']:.0f} right={b['x']+b['width']:.0f} "
+                f"bottom={b['y']+b['height']:.0f}")
+
+    def get_computed_style(self, ref: int, properties: list) -> str:
+        props = [str(x) for x in (properties or [])][:12] or ["color", "background-color"]
+        vals = self._get(ref).evaluate(
+            "(el, ps) => { const c = getComputedStyle(el);"
+            " return ps.map(p => p + ': ' + c.getPropertyValue(p)); }", props)
+        return "\n".join(vals) if vals else "(no values)"
+
+    def get_html(self, ref: int) -> str:
+        """For substeps phrased as `read the served markup`."""
+        h = self._get(ref).evaluate("el => el.outerHTML") or ""
+        return h[:3000]
+
+    def set_viewport(self, width: int, height: int) -> str:
+        self.page.set_viewport_size({"width": int(width), "height": int(height)})
+        self.page.wait_for_timeout(400)          # let a responsive layout settle
+        self._refs.clear()                        # geometry changed; refs are stale
+        return f"viewport is now {width}x{height}; call browser_snapshot to refresh refs"
+
+    def emulate_media(self, reduced_motion: str = "reduce") -> str:
+        rm = "reduce" if str(reduced_motion).lower() in ("reduce", "true", "1", "on") else "no-preference"
+        self.page.emulate_media(reduced_motion=rm)
+        return f"prefers-reduced-motion is now {rm}; reload for it to take effect on entry animations"
+
+    def upload_file(self, ref: int, kind: str = "png", filename: str = "") -> str:
+        """Synthesize a real file and attach it.
+
+        The grader ships no fixtures, and substeps ask for a PNG, a JPEG and
+        `a file that is neither` -- so the bytes are generated here rather than
+        depending on something existing in the image.
+        """
+        import base64, tempfile
+        PNG = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
+        JPEG = base64.b64decode(
+            "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIs"
+            "IxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA"
+            "AAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==")
+        k = (kind or "png").lower()
+        body, ext = {
+            "png":   (PNG,  "png"),
+            "jpeg":  (JPEG, "jpg"),
+            "jpg":   (JPEG, "jpg"),
+            "txt":   (b"this is not an image\n", "txt"),
+            "pdf":   (b"%PDF-1.4\n% not a real pdf\n", "pdf"),
+            "large": (PNG + b"\0" * (6 * 1024 * 1024), "png"),
+        }.get(k, (PNG, "png"))
+        name = filename or f"probe.{ext}"
+        d = Path(tempfile.mkdtemp(prefix="deku-upload-"))
+        f = d / name
+        f.write_bytes(body)
+        self._get(ref).set_input_files(str(f), timeout=ACTION_TIMEOUT_MS)
+        return f"attached {name} ({len(body)} bytes, kind={k}) to ref {ref}"
+
+    def wait_for(self, text: str = "", ref: int = 0, state: str = "",
+                 timeout_ms: int = 5000) -> str:
+        """Transient states -- a skeleton, `loading` then `ready`, an optimistic
+        row before the server confirms -- are missed by snapshot-and-hope, and
+        each retry costs steps."""
+        t = min(int(timeout_ms or 5000), 15000)
+        try:
+            if text:
+                self.page.get_by_text(text, exact=False).first.wait_for(
+                    state="visible", timeout=t)
+                return f"text {text!r} appeared"
+            if ref:
+                st = state or "visible"
+                if st in ("attached", "detached"):
+                    st = "visible" if st == "attached" else "hidden"
+                self._get(int(ref)).wait_for_element_state(st, timeout=t)
+                return f"ref {ref} reached state {st}"
+            if state == "networkidle":
+                self.page.wait_for_load_state("networkidle", timeout=t)
+                return "network went idle"
+            self.page.wait_for_timeout(t)
+            return f"waited {t}ms"
+        except Exception as exc:
+            return f"wait_for did NOT succeed within {t}ms: {type(exc).__name__}"
+
+    def get_focused(self) -> str:
+        """`press_key` can send Tab, but nothing could ask what received focus,
+        so every focus-order and focus-trap substep was half-blind."""
+        try:
+            return self.page.evaluate(
+                "() => { const e = document.activeElement;"
+                " if (!e || e === document.body) return 'focus is on <body> (nothing focused)';"
+                " const r = e.getBoundingClientRect();"
+                " const o = getComputedStyle(e);"
+                " return ['tag=' + e.tagName.toLowerCase(),"
+                "  e.id ? 'id=' + e.id : '',"
+                "  'text=' + (e.innerText || e.value || '').trim().slice(0, 60),"
+                "  e.getAttribute('aria-label') ? 'aria-label=' + e.getAttribute('aria-label') : '',"
+                "  'outline=' + o.outlineStyle + ' ' + o.outlineWidth + ' ' + o.outlineColor,"
+                "  'box=' + Math.round(r.x) + ',' + Math.round(r.y)].filter(Boolean).join('  '); }")
+        except Exception as exc:
+            return f"[get_focused failed: {exc}]"
+
+    def hover(self, ref: int) -> str:
+        el = self._get(ref)
+        el.scroll_into_view_if_needed(timeout=ACTION_TIMEOUT_MS)
+        el.hover(timeout=ACTION_TIMEOUT_MS)
+        self.page.wait_for_timeout(350)          # let a hover transition play
+        return f"hovering ref {ref}"
+
+    def scroll_to(self, ref: int) -> str:
+        self._get(ref).scroll_into_view_if_needed(timeout=ACTION_TIMEOUT_MS)
+        self.page.wait_for_timeout(300)
+        return f"scrolled ref {ref} into view"
+
+    def drag(self, from_ref: int, to_ref: int) -> str:
+        self._get(from_ref).drag_to(self._get(to_ref), timeout=ACTION_TIMEOUT_MS)
+        return f"dragged ref {from_ref} onto ref {to_ref}"
+
+    def clear_cookies(self) -> str:
+        self.page.context.clear_cookies()
+        return "cookies cleared; reload or navigate to see the app's unauthenticated behaviour"
+
+    def go_back(self) -> str:
+        self.page.go_back(timeout=ACTION_TIMEOUT_MS, wait_until="domcontentloaded")
+        self._refs.clear()
+        return f"went back to {self.page.url}"
+
+    def go_forward(self) -> str:
+        self.page.go_forward(timeout=ACTION_TIMEOUT_MS, wait_until="domcontentloaded")
+        self._refs.clear()
+        return f"went forward to {self.page.url}"
+
+    def reload(self) -> str:
+        self.page.reload(timeout=ACTION_TIMEOUT_MS, wait_until="domcontentloaded")
+        self._refs.clear()
+        return f"reloaded {self.page.url}"
+
+    def list_tabs(self) -> str:
+        pages = self.page.context.pages
+        return "\n".join(f"[{i}] {p.url}" for i, p in enumerate(pages)) or "(no tabs)"
+
+    def switch_tab(self, index: int) -> str:
+        pages = self.page.context.pages
+        i = int(index)
+        if not (0 <= i < len(pages)):
+            return f"no tab {i}; there are {len(pages)}"
+        self.page = pages[i]
+        self.page.bring_to_front()
+        self._refs.clear()
+        return f"switched to tab {i} ({self.page.url}); call browser_snapshot to refresh refs"
+
     def screenshot(self, path: Path) -> str:
         path.parent.mkdir(parents=True, exist_ok=True)
         self.page.screenshot(path=str(path), full_page=False)
@@ -523,6 +705,85 @@ TOOLS = [
     {"name": "browser_get_text",
      "description": "Return the full visible innerText of the page (up to 4000 chars). Useful for verify substeps.",
      "input_schema": {"type": "object", "properties": {}, "required": []}},
+    {"name": "browser_get_attribute",
+     "description": "Read one HTML attribute off an element by ref. REQUIRED for data-* attributes (data-view, data-reveal-state, data-sold-out, data-rail-index, ...) -- these never appear in browser_snapshot. Returns the value or says it is not present.",
+     "input_schema": {"type": "object",
+                      "properties": {"ref": {"type": "integer"}, "name": {"type": "string"}},
+                      "required": ["ref", "name"]}},
+    {"name": "browser_get_bounding_box",
+     "description": "Return x, y, width, height, right and bottom of an element in CSS pixels. Use for layout claims: side by side, above/below, columns across, stacked to one column, overflow, alignment, same line.",
+     "input_schema": {"type": "object", "properties": {"ref": {"type": "integer"}},
+                      "required": ["ref"]}},
+    {"name": "browser_get_computed_style",
+     "description": "Return real computed CSS values for an element (e.g. color, background-color, font-size, font-family, line-height, border, opacity, text-transform). Use instead of judging colour or type from the snapshot.",
+     "input_schema": {"type": "object",
+                      "properties": {"ref": {"type": "integer"},
+                                     "properties": {"type": "array", "items": {"type": "string"}}},
+                      "required": ["ref", "properties"]}},
+    {"name": "browser_get_html",
+     "description": "Return the outerHTML of one element (up to 3000 chars). Use for substeps phrased as 'read the served markup'.",
+     "input_schema": {"type": "object", "properties": {"ref": {"type": "integer"}},
+                      "required": ["ref"]}},
+    {"name": "browser_set_viewport",
+     "description": "Resize the browser window, e.g. 390x844 for a phone or 1440x900 for desktop. Refs go stale -- snapshot again afterwards. Use for responsive substeps.",
+     "input_schema": {"type": "object",
+                      "properties": {"width": {"type": "integer"}, "height": {"type": "integer"}},
+                      "required": ["width", "height"]}},
+    {"name": "browser_emulate_media",
+     "description": "Turn prefers-reduced-motion on or off, then reload to see entry animations honour it.",
+     "input_schema": {"type": "object",
+                      "properties": {"reduced_motion": {"type": "string", "enum": ["reduce", "no-preference"]}},
+                      "required": ["reduced_motion"]}},
+    {"name": "browser_upload_file",
+     "description": "Attach a generated file to a file input by ref. kind: png, jpeg, txt, pdf, large (a 6MB png, for size-limit checks). No fixture files are needed -- the bytes are made on the spot.",
+     "input_schema": {"type": "object",
+                      "properties": {"ref": {"type": "integer"},
+                                     "kind": {"type": "string", "enum": ["png", "jpeg", "txt", "pdf", "large"]},
+                                     "filename": {"type": "string"}},
+                      "required": ["ref", "kind"]}},
+    {"name": "browser_wait_for",
+     "description": "Wait for a transient state instead of snapshotting and hoping: text appearing, a ref becoming visible/hidden/attached/detached, the network going idle, or a plain delay. Use for skeletons, loading->ready, and optimistic rows shown before the server confirms.",
+     "input_schema": {"type": "object",
+                      "properties": {"text": {"type": "string"},
+                                     "ref": {"type": "integer"},
+                                     "state": {"type": "string", "enum": ["visible", "hidden", "attached", "detached", "networkidle"]},
+                                     "timeout_ms": {"type": "integer", "default": 5000}},
+                      "required": []}},
+    {"name": "browser_get_focused",
+     "description": "Describe the element that currently has focus: tag, id, text, aria-label, outline style and position. Use with browser_press_key('Tab') for focus order, skip links and focus traps.",
+     "input_schema": {"type": "object", "properties": {}, "required": []}},
+    {"name": "browser_hover",
+     "description": "Move the pointer over an element and let its transition play. Use for hover states.",
+     "input_schema": {"type": "object", "properties": {"ref": {"type": "integer"}},
+                      "required": ["ref"]}},
+    {"name": "browser_scroll_to",
+     "description": "Scroll one element into view. Far cheaper than repeated browser_scroll when the target is far down the page.",
+     "input_schema": {"type": "object", "properties": {"ref": {"type": "integer"}},
+                      "required": ["ref"]}},
+    {"name": "browser_drag",
+     "description": "Drag one element onto another. Use for reordering.",
+     "input_schema": {"type": "object",
+                      "properties": {"from_ref": {"type": "integer"}, "to_ref": {"type": "integer"}},
+                      "required": ["from_ref", "to_ref"]}},
+    {"name": "browser_clear_cookies",
+     "description": "Drop every cookie in this browser context. Use to simulate a session expiring or a signed-out visitor, then navigate or reload.",
+     "input_schema": {"type": "object", "properties": {}, "required": []}},
+    {"name": "browser_go_back",
+     "description": "Browser back button.",
+     "input_schema": {"type": "object", "properties": {}, "required": []}},
+    {"name": "browser_go_forward",
+     "description": "Browser forward button.",
+     "input_schema": {"type": "object", "properties": {}, "required": []}},
+    {"name": "browser_reload",
+     "description": "Reload the current page.",
+     "input_schema": {"type": "object", "properties": {}, "required": []}},
+    {"name": "browser_list_tabs",
+     "description": "List open tabs with their URLs.",
+     "input_schema": {"type": "object", "properties": {}, "required": []}},
+    {"name": "browser_switch_tab",
+     "description": "Switch to a tab by index. Refs go stale -- snapshot again afterwards.",
+     "input_schema": {"type": "object", "properties": {"index": {"type": "integer"}},
+                      "required": ["index"]}},
     {"name": "report_result",
      "description": "MANDATORY final call. Report whether the substep passed and a one-sentence note explaining why.",
      "input_schema": {"type": "object",
@@ -1053,6 +1314,44 @@ def dispatch_tool(browser: Browser, name: str, inp: dict) -> str:
         return browser.scroll(str(inp.get("direction", "down")), int(inp.get("amount", 600)))
     if name == "browser_get_text":
         return browser.get_text()
+    if name == "browser_get_attribute":
+        return browser.get_attribute(int(inp["ref"]), str(inp["name"]))
+    if name == "browser_get_bounding_box":
+        return browser.get_bounding_box(int(inp["ref"]))
+    if name == "browser_get_computed_style":
+        return browser.get_computed_style(int(inp["ref"]), inp.get("properties") or [])
+    if name == "browser_get_html":
+        return browser.get_html(int(inp["ref"]))
+    if name == "browser_set_viewport":
+        return browser.set_viewport(int(inp["width"]), int(inp["height"]))
+    if name == "browser_emulate_media":
+        return browser.emulate_media(str(inp.get("reduced_motion", "reduce")))
+    if name == "browser_upload_file":
+        return browser.upload_file(int(inp["ref"]), str(inp.get("kind", "png")),
+                                   str(inp.get("filename", "")))
+    if name == "browser_wait_for":
+        return browser.wait_for(str(inp.get("text", "")), int(inp.get("ref") or 0),
+                                str(inp.get("state", "")), int(inp.get("timeout_ms", 5000)))
+    if name == "browser_get_focused":
+        return browser.get_focused()
+    if name == "browser_hover":
+        return browser.hover(int(inp["ref"]))
+    if name == "browser_scroll_to":
+        return browser.scroll_to(int(inp["ref"]))
+    if name == "browser_drag":
+        return browser.drag(int(inp["from_ref"]), int(inp["to_ref"]))
+    if name == "browser_clear_cookies":
+        return browser.clear_cookies()
+    if name == "browser_go_back":
+        return browser.go_back()
+    if name == "browser_go_forward":
+        return browser.go_forward()
+    if name == "browser_reload":
+        return browser.reload()
+    if name == "browser_list_tabs":
+        return browser.list_tabs()
+    if name == "browser_switch_tab":
+        return browser.switch_tab(int(inp["index"]))
     raise ValueError(f"unknown tool {name}")
 
 
