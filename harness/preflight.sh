@@ -434,6 +434,41 @@ PY
   [[ $? -ne 0 ]] && FAIL=1
 fi
 
+# ---------------------------------------------------------------- environment
+# The gates above READ files. Everything below STARTS them, because the two
+# failures that have actually aborted agent phases were both invisible to a
+# reader: a Dockerfile that mentions every right package but does not parse, and
+# a compose whose one-shot init container exits 0 -- which `up --wait` counts as
+# a failure. Both cost a launch each, and both are free to catch here.
+#
+# Skip with DEKU_SKIP_ENV_BOOT=1 when iterating on a task whose image is known good.
+if [[ -z "${DEKU_SKIP_ENV_BOOT:-}" && -f "$TASK/environment/Dockerfile" ]]; then
+  echo
+  echo "== environment boots =="
+  if ! build_out="$(docker build -q -t "deku-preflight:$(basename "$TASK")" "$TASK/environment" 2>&1)"; then
+    echo "  FAIL  environment/Dockerfile does not build"
+    echo "$build_out" | grep -iE "error|failed to solve|parse error" | head -3 | sed 's/^/        /'
+    FAIL=1
+  else
+    echo "  ok    environment/Dockerfile builds"
+    COMPOSE="$TASK/environment/docker-compose.yaml"
+    if [[ -f "$COMPOSE" ]]; then
+      PROJ="dekupreflight$(basename "$TASK" | tr -cd '[:alnum:]' | tr 'A-Z' 'a-z' | tail -c 30)"
+      # --wait is the same call harbor makes, so this reproduces its verdict.
+      if up_out="$(docker compose -p "$PROJ" -f "$COMPOSE" up --wait --wait-timeout 180 -d 2>&1)"; then
+        echo "  ok    docker compose up --wait brings every service up"
+      else
+        echo "  FAIL  docker compose up --wait does not come up -- harbor aborts here"
+        echo "$up_out" | grep -iE "exited|error|unhealthy|dependency" | head -4 | sed 's/^/        /'
+        echo "        -> a one-shot init container must STAY running (append: && tail -f /dev/null);"
+        echo "           --wait requires every service to be running or healthy"
+        FAIL=1
+      fi
+      docker compose -p "$PROJ" -f "$COMPOSE" down -v --remove-orphans >/dev/null 2>&1 || true
+    fi
+  fi
+fi
+
 echo
 if [[ $FAIL -ne 0 ]]; then
   echo "PREFLIGHT FAILED -- fix the items above, or DEKU_SKIP_PREFLIGHT=1 to bypass." >&2
